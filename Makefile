@@ -6,7 +6,7 @@ ADA_PROJECT_PATH=.:../apq:../awlib
 
 projectFile="apq-mysql.gpr"
 
-SCRIPTS_DIR=scripts
+EXTRAS_DIR=extras
 
 
 libs: setup c_libs
@@ -15,13 +15,16 @@ libs: setup c_libs
 all: libs
 
 setup: 
-	cd ${SCRIPTS_DIR} && make
-	cp ${SCRIPTS_DIR}/apq-mysql.ads src/
+	cd ${EXTRAS_DIR} && make
+	mv ${EXTRAS_DIR}/apq-mysql.ads src/
 #	gnatmake -c $(AOPTS) comp_mysql
 
 clean:
-	cd ${SCRIPTS_DIR} && make clean
+	cd ${EXTRAS_DIR} && make clean
 	@ADA_PROJECT_PATH=${ADA_PROJECT_PATH} gnatclean -P ${projectFile}
+	@rm -f lib/*
+	@rm -f src/apq-mysql.ads
+	@make -C src-c clean
 	@echo "All clean"
 
 docs:
