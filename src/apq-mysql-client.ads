@@ -39,8 +39,12 @@ package APQ.MySQL.Client is
    ------------------------------
    type Connection_Type is new APQ.Root_Connection_Type with private;
 
+
+   function Query_Factory( C: in Connection_Type ) return Root_Query_Type'Class;
+
    type Query_Type is new APQ.Root_Query_Type with private;
 
+   function SQL_Code(Query : Query_Type) return SQL_Code_Type;
    ------------------------------
    -- DATABASE CONNECTION :
    ------------------------------
@@ -115,6 +119,7 @@ package APQ.MySQL.Client is
    function Error_Message(Query : Query_Type) return String;
    function Is_Duplicate_Key(Query : Query_Type) return Boolean;
    function Engine_Of(Q : Query_Type) return Database_Type;
+
 
 private
 

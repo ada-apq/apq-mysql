@@ -1252,6 +1252,16 @@ package body APQ.MySQL.Client is
       end if;
    end Append;
 
+   function Query_Factory( C: in Connection_Type ) return Root_Query_Type'Class is
+	   q: query_type;
+	 begin
+		 return q;
+		 end query_factory;
+
+   function SQL_Code(Query : Query_Type) return SQL_Code_Type is
+	  begin
+		  return 0;
+		 end sql_code;
 begin
    my_init;
 end APQ.MySQL.Client;

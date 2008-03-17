@@ -26,14 +26,13 @@
 
 package APQ.MySQL is
 
-   pragma Linker_Options("-rdynamic");
-   pragma Linker_Options("-L/usr/lib64/mysql");
+   pragma Linker_Options("-L/usr/lib/mysql");
    pragma Linker_Options("-lmysqlclient");
    pragma Linker_Options("-lz");
    pragma Linker_Options("-lcrypt");
    pragma Linker_Options("-lnsl");
    pragma Linker_Options("-lm");
-   pragma Linker_Options("-L/usr/lib64");
+   pragma Linker_Options("-L/usr/lib");
    pragma Linker_Options("-lssl");
    pragma Linker_Options("-lcrypto");
 
@@ -570,10 +569,6 @@ package APQ.MySQL is
       ER_HOSTNAME,
       ER_WRONG_STRING_LENGTH,
       ER_NON_INSERTABLE_TABLE,
-      ER_ADMIN_WRONG_MRG_TABLE,
-      ER_TOO_HIGH_LEVEL_OF_NESTING_FOR_SELECT,
-      ER_NAME_BECOMES_EMPTY,
-      ER_AMBIGUOUS_FIELD_TERM,
       CR_UNKNOWN_ERROR,
       CR_SOCKET_CREATE_ERROR,
       CR_CONNECTION_ERROR,
@@ -1104,10 +1099,6 @@ package APQ.MySQL is
       ER_HOSTNAME => 1469,
       ER_WRONG_STRING_LENGTH => 1470,
       ER_NON_INSERTABLE_TABLE => 1471,
-      ER_ADMIN_WRONG_MRG_TABLE => 1472,
-      ER_TOO_HIGH_LEVEL_OF_NESTING_FOR_SELECT => 1473,
-      ER_NAME_BECOMES_EMPTY => 1474,
-      ER_AMBIGUOUS_FIELD_TERM => 1475,
       CR_UNKNOWN_ERROR => 2000,
       CR_SOCKET_CREATE_ERROR => 2001,
       CR_CONNECTION_ERROR => 2002,
