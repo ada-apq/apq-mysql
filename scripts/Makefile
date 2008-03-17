@@ -17,11 +17,9 @@ all: setup mysql
 setup: mysql_xcr mysql_xcr2 mysql_xcr3 mysql_incl
 	chmod u+x mysql_xcr mysql_xcr2 mysql_xcr3 mysql_incl mysql_xty mysql_linker_options
 
-mysql: apq-mysql.ads c_mysql.o
+mysql: apq-mysql.ads 
 #	gnatmake -c $(AOPTS) comp_mysql
 
-c_mysql.o: c_mysql.c
-	$(CC) -c $(COPTS) $(ZOPTS) $(MY_INCL) c_mysql.c -o c_mysql.o
 
 apq-mysql.ads: apq-mysql.ads-in mysql_generr.c mysql_xcr2 mysql_xcr3
 	rm -f mysql_errmsg.h mysql_generr

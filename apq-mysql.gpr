@@ -30,7 +30,8 @@ project APQ.MySQL is
 	package Linker is
 		for Default_Switches ("Ada") use
 			APQ.Linker'Default_Switches("Ada") &
-			"-lmysqlclient";
+			"-lmysqlclient" &
+			"-lapq-mysqlhelp";
 	end Linker;
 
 end APQ.MySQL;
