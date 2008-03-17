@@ -22,7 +22,7 @@ cat >$TMP1
 # EDIT THE PRAMGA LINKER OPTIONS INTO THE INPUT
 #
 sed <"$INP" >"$TMP2" '/%mysql_linker_options%/,$d'
-./mysql_linker_options >>"$TMP2"
+../mysql_linker_options >>"$TMP2"
 
 case "$(uname -s)" in
 CYGWIN* )	sed <"$INP" >>"$TMP2" '1,/%mysql_linker_options%/d;s|%MYSQL_ROW_NO%|64|';;
