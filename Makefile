@@ -16,7 +16,7 @@ libs: setup c_libs
 all: libs
 
 setup: 
-	cd ${EXTRAS_DIR} && make
+	make -C ${EXTRAS_DIR} 
 	mv ${EXTRAS_WORK_DIR}/apq-mysql.ads src/
 #	gnatmake -c $(AOPTS) comp_mysql
 
