@@ -2,7 +2,6 @@
 #
 
 
-ADA_PROJECT_PATH=.:../apq:../awlib
 
 projectFile="apq-mysql.gpr"
 
@@ -11,7 +10,7 @@ EXTRAS_WORK_DIR=extras/work
 
 
 libs: setup c_libs
-	ADA_PROJECT_PATH=${ADA_PROJECT_PATH} gnatmake -P ${projectFile}
+	gnatmake -P ${projectFile}
 
 all: libs
 
@@ -22,7 +21,7 @@ setup:
 
 clean:
 	cd ${EXTRAS_DIR} && make clean
-	@ADA_PROJECT_PATH=${ADA_PROJECT_PATH} gnatclean -P ${projectFile}
+	gnatclean -P ${projectFile}
 	@rm -f lib/*
 	@rm -f src/apq-mysql.ads
 	@make -C src-c clean
