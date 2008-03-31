@@ -4,7 +4,6 @@
 /*                                                                          */
 /*                              A P Q - MYSQL  				    */
 /*                                  					    */
-/*                                 S P E C				    */
 /*                                                                          */
 /*         Copyright (C) 2002-2007, Warren W. Gay VE3WWG                    */
 /*         Copyright (C) 2007-2008, Ydea Desenv. de Softwares Ltda          */
