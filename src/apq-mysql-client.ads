@@ -73,7 +73,8 @@ package APQ.MySQL.Client is
 	function Options(C : Connection_Type) return String;
 
 	procedure Connect(C : in out Connection_Type);
-	procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class);
+	procedure Connect(C : in out Connection_Type;
+		Same_As : Root_Connection_Type'Class);
 	procedure Disconnect(C : in out Connection_Type);
 
 	function Is_Connected(C : Connection_Type) return Boolean;
@@ -81,10 +82,19 @@ package APQ.MySQL.Client is
 	function Error_Message(C : Connection_Type) return String;
 
 	-- Open trace output file
-	procedure Open_DB_Trace(C : in out Connection_Type; Filename : String; Mode : Trace_Mode_Type := Trace_APQ);
-	procedure Close_DB_Trace(C : in out Connection_Type);                         -- Close trace output file
-	procedure Set_Trace(C : in out Connection_Type; Trace_On : Boolean := True);  -- Enable/Disable tracing
-	function Is_Trace(C : Connection_Type) return Boolean;                        -- Test trace enabled/disabled
+	procedure Open_DB_Trace(C : in out Connection_Type;
+		Filename : String; Mode : Trace_Mode_Type := Trace_APQ);
+
+	
+	-- Close trace output file
+	procedure Close_DB_Trace(C : in out Connection_Type);
+	
+	-- Enable/Disable tracing
+	procedure Set_Trace(C : in out Connection_Type;
+		Trace_On : Boolean := True);
+	
+	-- Test trace enabled/disabled
+	function Is_Trace(C : Connection_Type) return Boolean; 
 
 	function In_Abort_State(C : Connection_Type) return Boolean;
 
@@ -92,35 +102,49 @@ package APQ.MySQL.Client is
 	-- SQL QUERY API : --
 	---------------------
 	procedure Clear(Q : in out Query_Type);
-	procedure Append_Quoted(Q : in out Query_Type; Connection : Root_Connection_Type'Class; SQL : String; After : String := "");
-	procedure Append(Q : in out Query_Type; V : APQ_Boolean; After : String := "");
+	procedure Append_Quoted(Q : in out Query_Type; 
+				Connection : Root_Connection_Type'Class;
+				SQL : String; After : String := "");
+	procedure Append(Q : in out Query_Type; V : APQ_Boolean; 
+		After : String := "");
 	procedure Set_Fetch_Mode(Q : in out Query_Type; Mode : Fetch_Mode_Type);
 
-	procedure Execute(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class);
-	procedure Execute_Checked(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class; Msg : String := "");
+	procedure Execute(Query : in out Query_Type; 
+			  Connection : in out Root_Connection_Type'Class);
+	procedure Execute_Checked(Query : in out Query_Type; 
+				  Connection : in out Root_Connection_Type'Class;
+				  Msg : String := "");
 
-	procedure Begin_Work(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class);
-	procedure Commit_Work(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class);
-	procedure Rollback_Work(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class);
+	procedure Begin_Work(   Query : in out Query_Type; 
+				Connection : in out Root_Connection_Type'Class);
+	procedure Commit_Work(  Query : in out Query_Type;
+				Connection : in out Root_Connection_Type'Class);
+	procedure Rollback_Work(Query : in out Query_Type;
+				Connection : in out Root_Connection_Type'Class);
 
 	procedure Rewind(Q : in out Query_Type);
 	procedure Fetch(Q : in out Query_Type);
 	procedure Fetch(Q : in out Query_Type; TX : Tuple_Index_Type);
-
-	function End_of_Query(Q : Query_Type) return Boolean;    -- Do not use with Sequential_Fetch mode!
+ 	
+	-- Do not use with Sequential_Fetch mode!
+	function End_of_Query(Q : Query_Type) return Boolean;   
 
 	function Tuple(Q : Query_Type) return Tuple_Index_Type;
 	function Tuples(Q : Query_Type) return Tuple_Count_Type;
 
 	function Columns(Q : Query_Type) return Natural;
-	function Column_Name(Q : Query_Type; CX : Column_Index_Type) return String;
-	function Column_Index(Q : Query_Type; Name : String) return Column_Index_Type;
-	function Column_Type(Q : Query_Type; CX : Column_Index_Type) return Field_Type;
+	function Column_Name(Q : Query_Type; CX : Column_Index_Type)
+		return String;
+	function Column_Index(Q : Query_Type; Name : String)
+		return Column_Index_Type;
+	function Column_Type(Q : Query_Type; CX : Column_Index_Type)
+		return Field_Type;
 
 	function Is_Null(Q : Query_Type; CX : Column_Index_Type) return Boolean;
 	function Value(Query : Query_Type; CX : Column_Index_Type) return String;
-
-	function Result(Query : Query_Type) return Natural;      -- Returns Result_Type'Pos()  (for generics)
+ 	-- Returns Result_Type'Pos()  (for generics)
+	
+	function Result(Query : Query_Type) return Natural;     
 	function Result(Query : Query_Type) return Result_Type;
 	function Command_Oid(Query : Query_Type) return Row_ID_Type;
 	function Null_Oid(Query : Query_Type) return Row_ID_Type;
@@ -134,11 +158,16 @@ private
 
 	type Connection_Type is new APQ.Root_Connection_Type with
 		record
-			Options :         String_Ptr;                   -- MySQL database engine options
-			Connection :      MYSQL := Null_Connection;     -- MySQL connection object
-			Connected :       Boolean := False;             -- True when connected
-			Error_Code :      Result_Type;                  -- Error code (should agree with message)
-			Error_Message :   String_Ptr;                   -- Error message after failed to connect (only)
+			Options :         String_Ptr;
+			-- MySQL database engine options
+			Connection :      MYSQL := Null_Connection;
+			-- MySQL connection object
+			Connected :       Boolean := False;
+			-- True when connected
+			Error_Code :      Result_Type;
+			-- Error code (should agree with message)
+			Error_Message :   String_Ptr;
+			-- Error message after failed to connect (only)
 		end record;
 
 	procedure Finalize(C : in out Connection_Type);
@@ -146,11 +175,16 @@ private
 
 	type Query_Type is new APQ.Root_Query_Type with
 		record
-			Results :         APQ.MySQL.MYSQL_RES := Null_Result;	-- MySQL Query Results (if any)
-			Error_Code :      Result_Type;                 		-- Error code (should agree with message)
-			Error_Message :   String_Ptr;                  		-- Error message after failed to connect (only)
-			Row :             APQ.MySQL.MYSQL_ROW := Null_Row; 	-- The current/last row fetched
-			Row_ID :          Row_ID_Type;				-- Row ID from last INSERT/UPDATE
+			Results :         APQ.MySQL.MYSQL_RES := Null_Result;	
+			-- MySQL Query Results (if any)
+			Error_Code :      Result_Type;
+			-- Error code (should agree with message)
+			Error_Message :   String_Ptr;
+			-- Error message after failed to connect (only)
+			Row :             APQ.MySQL.MYSQL_ROW := Null_Row;
+			-- The current/last row fetched
+			Row_ID :          Row_ID_Type;	
+			-- Row ID from last INSERT/UPDATE
 		end record;
 
 	procedure Initialize(Q : in out Query_Type);

@@ -47,24 +47,26 @@ package body APQ.MySQL.Client is
 
 	function mysql_init return MYSQL;
 	pragma import(C,mysql_init,"c_mysql_init");
-	
-	
-	function mysql_connect(conn : MYSQL; host, user, passwd, db : system.address;
-		port : Port_Integer; local_socket : system.address) return Return_Status;
+
+
+	function mysql_connect(conn : MYSQL; host, user, passwd, 
+		db : system.address; port : Port_Integer;
+		local_socket : system.address) return Return_Status;
 	pragma import(C,mysql_connect,"c_mysql_connect");
-	
 
 	function mysql_close(C : MYSQL) return MYSQL;
 	pragma import(C,mysql_close,"c_mysql_close");
-	
 
 	function mysql_errno(C : MYSQL) return Result_Type;
 	pragma import(C,mysql_errno,"c_mysql_errno");
 	
-	function mysql_error(C : MYSQL) return Interfaces.C.Strings.chars_ptr;
+	function mysql_error(C : MYSQL)
+		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,mysql_error,"c_mysql_error");
-	
-	function cheat_mysql_error(results : MYSQL_RES) return Interfaces.C.Strings.chars_ptr;
+		
+			
+	function cheat_mysql_error(results : MYSQL_RES)
+		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,cheat_mysql_error,"c_cheat_mysql_error");
 	
 	function cheat_mysql_errno(results : MYSQL_RES) return Result_Type;
@@ -75,19 +77,23 @@ package body APQ.MySQL.Client is
 	function mysql_port(C : MYSQL) return Integer;
 	pragma import(C,mysql_port,"c_mysql_port");
 	
-	function mysql_unix_socket(C : MYSQL) return Interfaces.C.Strings.chars_ptr;
+	function mysql_unix_socket(C : MYSQL)
+		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,mysql_unix_socket,"c_mysql_unix_socket");
 	
 
-	function mysql_select_db(C : MYSQL; Database : System.Address) return Return_Status;
+	function mysql_select_db(C : MYSQL; Database : System.Address)
+		return Return_Status;
 	pragma import(C,mysql_select_db,"c_mysql_select_db");
 	
 
-	function mysql_get_host_name(C : MYSQL) return Interfaces.C.Strings.chars_ptr;
+	function mysql_get_host_name(C : MYSQL)
+		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,mysql_get_host_name,"c_mysql_get_host_name");
 	
 	
-	function mysql_query(conn : MYSQL; query : System.Address) return Return_Status;
+	function mysql_query(conn : MYSQL; query : System.Address)
+		return Return_Status;
 	pragma import(C,mysql_query,"c_mysql_query");
 	
 
@@ -101,19 +107,22 @@ package body APQ.MySQL.Client is
 	pragma import(C,mysql_free_result,"c_mysql_free_result");
 
 
-	function mysql_fetch_field(result : MYSQL_RES; fieldno : Interfaces.C.int) return MYSQL_FIELD;
+	function mysql_fetch_field(result : MYSQL_RES;
+		fieldno : Interfaces.C.int) return MYSQL_FIELD;
 	pragma import(C,mysql_fetch_field,"c_mysql_fetch_field");
 	
 	function mysql_field_count(conn : MYSQL) return Field_Count_Type;
 	pragma import(C,mysql_field_count,"c_mysql_field_count");
 	
-	function mysql_field_name(field : MYSQL_FIELD) return Interfaces.C.Strings.chars_ptr;
+	function mysql_field_name(field : MYSQL_FIELD)
+		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,mysql_field_name,"c_mysql_field_name");
 	
 	function mysql_field_type(field : MYSQL_FIELD) return Field_Type;
 	pragma import(C,mysql_field_type,"c_mysql_field_type");
 	
-	function mysql_field_value(result : MYSQL_RES; row : MYSQL_ROW; fieldno : Interfaces.C.int)
+	function mysql_field_value(result : MYSQL_RES; row : MYSQL_ROW;
+		fieldno : Interfaces.C.int) 
 		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,mysql_field_value,"c_mysql_field_value");
 	
@@ -121,14 +130,16 @@ package body APQ.MySQL.Client is
 	function mysql_fetch_row(result : MYSQL_RES) return MYSQL_ROW;
 	pragma import(C,mysql_fetch_row,"c_mysql_fetch_row");
 	
-	function mysql_fetch_row_direct(result : MYSQL_RES; row_no : MYSQL_ROW_NO) return MYSQL_ROW;
+	function mysql_fetch_row_direct(result : MYSQL_RES; 
+		row_no : MYSQL_ROW_NO) return MYSQL_ROW;
 	pragma import(C,mysql_fetch_row_direct,"c_mysql_fetch_row_direct");
 	
 	function mysql_num_rows(result : MYSQL_RES) return MYSQL_ROW_NO;
 	pragma import(C,mysql_num_rows,"c_mysql_num_rows");
 	
 	
-	function mysql_sqlstate(conn : MYSQL) return Interfaces.C.Strings.chars_ptr;
+	function mysql_sqlstate(conn : MYSQL) 
+		return Interfaces.C.Strings.chars_ptr;
 	pragma import(C,mysql_sqlstate,"c_mysql_sqlstate");
 	
 	
@@ -136,19 +147,24 @@ package body APQ.MySQL.Client is
 	pragma import(C,mysql_eof,"c_mysql_eof");
 	
 	
-	function mysql_num_fields(results : MYSQL_RES) return Interfaces.C.int;
+	function mysql_num_fields(results : MYSQL_RES)
+		return Interfaces.C.int;
 	pragma import(C,mysql_num_fields,"c_mysql_num_fields");
 	
 	
-	function mysql_fetch_field_direct(results : MYSQL_RES; x : Interfaces.C.int) return MYSQL_FIELD;
-	pragma import(C,mysql_fetch_field_direct,"c_mysql_fetch_field_direct");
+	function mysql_fetch_field_direct(results : MYSQL_RES;
+		x : Interfaces.C.int) return MYSQL_FIELD;
+	pragma import(C,mysql_fetch_field_direct,
+		"c_mysql_fetch_field_direct");
 	
 	
-	function mysql_name_index(results : MYSQL_RES; name : System.Address) return Interfaces.C.int;
+	function mysql_name_index(results : MYSQL_RES;
+		name : System.Address) return Interfaces.C.int;
 	pragma import(C,mysql_name_index,"c_mysql_name_index");
 	
 	
-	function mysql_get_field_type(results : MYSQL_RES; x : Interfaces.C.int) return Field_Type;
+	function mysql_get_field_type(results : MYSQL_RES;
+		x : Interfaces.C.int) return Field_Type;
 	pragma import(C,mysql_get_field_type,"c_mysql_get_field_type");
 	
 	
@@ -156,24 +172,27 @@ package body APQ.MySQL.Client is
 	pragma import(C,mysql_insert_id,"c_mysql_insert_id");
 	
 	
-	function mysql_real_escape_string(connection : MYSQL; to, from : System.Address; 
-		length : u_long) return u_long;
+	function mysql_real_escape_string(connection : MYSQL; 
+		to, from : System.Address; length : u_long) return u_long;
 	pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
 	
 
-	function mysql_options_notused(connection : MYSQL; opt : MySQL_Enum_Option)
-		return Interfaces.C.int;
+	function mysql_options_notused(connection : MYSQL; 
+		opt : MySQL_Enum_Option) return Interfaces.C.int;
 	pragma import(C,mysql_options_notused,"c_mysql_options_notused");
 	
-	function mysql_options_uint(connection : MYSQL; opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
+	function mysql_options_uint(connection : MYSQL;
+		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
 		return Interfaces.C.int;
 	pragma import(C,mysql_options_uint,"c_mysql_options_uint");
 	
-	function mysql_options_puint(connection : MYSQL; opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
+	function mysql_options_puint(connection : MYSQL; 
+		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
 		return Interfaces.C.int;
 	pragma import(C,mysql_options_puint,"c_mysql_options_puint");
 	
-	function mysql_options_char(connection : MYSQL; opt : MySQL_Enum_Option; arg : System.Address)
+	function mysql_options_char(connection : MYSQL; 
+		opt : MySQL_Enum_Option; arg : System.Address)
 		return Interfaces.C.int;
 	pragma import(C,mysql_options_char,"c_mysql_options_char");
 
@@ -198,7 +217,16 @@ package body APQ.MySQL.Client is
 		return mysql_field_type(Field);
 	end Type_Of;
 
+
+ 	function Value_Of(Results : MYSQL_RES; Row : MYSQL_ROW;
+ 		Column_Index : Column_Index_Type) return Interfaces.C.Strings.chars_ptr is
+		
+		use Interfaces.C;
+        begin        
+		return mysql_field_value(Results,Row,Interfaces.C.Int(Column_Index)-1);
+	end Value_Of;
 	
+
 	
 	procedure Clear_Error(C : in out Connection_Type) is
 	begin
@@ -206,7 +234,8 @@ package body APQ.MySQL.Client is
 		Free(C.Error_Message);
 	end Clear_Error;
 
-	procedure Clear_Error(Q : in out Query_Type; C : in out Connection_Type) is
+	procedure Clear_Error(Q : in out Query_Type; 
+		C : in out Connection_Type) is
 	begin
 		C.Error_Code := CR_NO_ERROR;
 		Free(C.Error_Message);
@@ -280,14 +309,48 @@ package body APQ.MySQL.Client is
 	end Is_Column;
 
 
-	function Value_Of(Results : MYSQL_RES; Row : MYSQL_ROW; Column_Index : Column_Index_Type)
-		return Interfaces.C.Strings.chars_ptr is
-		use Interfaces.C;
-	begin
-		return mysql_field_value(Results,Row,Interfaces.C.Int(Column_Index)-1);
-	end Value_Of;
 
 	
+
+
+        ---------------------------
+        -- DATABASE CONNECTION : --
+        ---------------------------
+
+	
+	function Engine_Of(C : Connection_Type) return Database_Type is
+	begin
+		return Engine_MySQL;
+	end Engine_Of;
+
+
+	function New_Query(C : Connection_Type) return Root_Query_Type'Class is
+		Q : Query_Type;
+	begin
+		return Q;
+	end New_Query;
+
+
+	procedure Set_DB_Name(C : in out Connection_Type; DB_Name : String) is
+	begin
+		if not Is_Connected(C) then
+			Set_DB_Name(Root_Connection_Type(C),To_Case(DB_Name,C.SQL_Case));
+		else
+			declare
+				use Interfaces.C;
+				Use_Database : char_array := To_C(DB_Name);
+			begin
+				if mysql_select_db(C.Connection,Use_Database'Address) /= 0 then
+					Set_DB_Name(Root_Connection_Type(C),To_Case(DB_Name,C.SQL_Case));
+				else
+					Raise_Exception(Use_Error'Identity,
+					"MY02: Unable to select database '" & DB_Name & "' (Set_DB_Name).");
+				end if;
+			end;
+		end if;
+	end Set_DB_Name;
+
+
 	function Port(C : Connection_Type) return Integer is
 	begin
 		if not Is_Connected(C) then
@@ -314,26 +377,6 @@ package body APQ.MySQL.Client is
 		Raise_Exception(Not_Supported'Identity,
 		"MY01: MySQL has no Instance ID (Set_Instance).");
 	end Set_Instance;
-
-
-	procedure Set_DB_Name(C : in out Connection_Type; DB_Name : String) is
-	begin
-		if not Is_Connected(C) then
-			Set_DB_Name(Root_Connection_Type(C),To_Case(DB_Name,C.SQL_Case));
-		else
-			declare
-				use Interfaces.C;
-				Use_Database : char_array := To_C(DB_Name);
-			begin
-				if mysql_select_db(C.Connection,Use_Database'Address) /= 0 then
-					Set_DB_Name(Root_Connection_Type(C),To_Case(DB_Name,C.SQL_Case));
-				else
-					Raise_Exception(Use_Error'Identity,
-					"MY02: Unable to select database '" & DB_Name & "' (Set_DB_Name).");
-				end if;
-			end;
-		end if;
-	end Set_DB_Name;
 
 
 	procedure Parse_Option (Options :   in out Ada.Strings.Unbounded.Unbounded_String;
@@ -459,7 +502,6 @@ package body APQ.MySQL.Client is
 			end case;
 	end Process_Option;
 
-	
 	procedure Process_Connection_Options(C : in out Connection_Type) is
 		use Ada.Strings.Unbounded, Ada.Characters.Handling;
 		
@@ -474,6 +516,29 @@ package body APQ.MySQL.Client is
 		end loop;
 	end Process_Connection_Options;
 
+
+	procedure Set_Options(C : in out Connection_Type; Options : String) is
+		use Ada.Strings.Unbounded;
+	begin
+		Replace_String(C.Options,Set_Options.Options);
+
+		if C.Options = null then
+			return;
+		end if;
+
+		if Is_Connected(C) then
+			Process_Connection_Options(C);
+		end if;
+	end Set_Options;
+
+
+	function Options(C : Connection_Type) return String is
+	begin
+		return To_String(C.Options);
+	end Options;
+
+
+	
 	
 	procedure Connect(C : in out Connection_Type) is
 		use Interfaces.C.Strings;
@@ -513,7 +578,9 @@ package body APQ.MySQL.Client is
 			when IP_Port =>
 				null;
 			when UNIX_Port =>
-				C_Port := 0;         -- Zero indicates to mysql_connect() that we are using unix socket
+				C_Port := 0;
+				-- Zero indicates to mysql_connect() that we are using unix socket
+				
 				C_String(C.Port_Name,C_Unix,A_Unix);
 		end case;
 
@@ -569,10 +636,12 @@ package body APQ.MySQL.Client is
 			begin
 				if UNIX_Socket /= "" then
 					C.Port_Format := UNIX_Port;
-					Replace_String(C.Port_Name,UNIX_Socket);     -- Update socket pathname
+					Replace_String(C.Port_Name,UNIX_Socket);
+					-- Update socket pathname
 				else
 					C.Port_Format := IP_Port;
-					C.Port_Number := mysql_port(C.Connection);   -- Update port number used
+					C.Port_Number := mysql_port(C.Connection);
+					-- Update port number used
 				
 					if C.Port_Name /= null then
 						Free(C.Port_Name);
@@ -629,6 +698,29 @@ package body APQ.MySQL.Client is
 	end Connect;
 
 
+	procedure Disconnect(C : in out Connection_Type) is
+	begin
+		if C.Connection /= Null_Connection then
+			C.Connection := mysql_close(C.Connection);
+			C.Connection := Null_Connection;
+		end if;
+		
+		C.Connected := False;
+	end Disconnect;
+
+
+
+	function Is_Connected(C : Connection_Type) return Boolean is
+	begin
+		if C.Connection /= Null_Connection then
+			return C.Connected;
+		else
+			return False;
+		end if;
+	end Is_Connected;
+
+	
+
 	procedure Internal_Reset(C : in out Connection_Type; In_Finalize : Boolean := False) is
 	begin
 		Free_Ptr(C.Error_Message);
@@ -641,14 +733,22 @@ package body APQ.MySQL.Client is
 				Clear_Abort_State(C);
 				
 				if C.Rollback_Finalize or In_Abort_State(C) then
-					if C.Trace_On and then C.Trace_Filename /= null and then In_Finalize = True then
-						Ada.Text_IO.Put_Line(C.Trace_Ada,"-- ROLLBACK ON FINALIZE");
+					if C.Trace_On and then 
+						C.Trace_Filename /= null and then
+						In_Finalize = True then
+						
+						Ada.Text_IO.Put_Line(C.Trace_Ada,
+						"-- ROLLBACK ON FINALIZE");
 					end if;
 					
 					Rollback_Work(Q,C);
 				else
-					if C.Trace_On and then C.Trace_Filename /= null and then In_Finalize = True then
-						Ada.Text_IO.Put_Line(C.Trace_Ada,"-- COMMIT ON FINALIZE");
+					if C.Trace_On and then
+						C.Trace_Filename /= null and then
+						In_Finalize = True then
+						
+						Ada.Text_IO.Put_Line(C.Trace_Ada,
+						"-- COMMIT ON FINALIZE");
 					end if;
 				
 					Commit_Work(Q,C);
@@ -679,12 +779,10 @@ package body APQ.MySQL.Client is
 	end Internal_Reset;
 
 
-
 	procedure Reset(C : in out Connection_Type) is
 	begin
 		Internal_Reset(C,False);
 	end Reset;
-
 
 
 	function Error_Message(C : Connection_Type) return String is
@@ -697,76 +795,133 @@ package body APQ.MySQL.Client is
 	end Error_Message;
 
 
-
-	procedure Disconnect(C : in out Connection_Type) is
+	procedure Open_DB_Trace(C : in out Connection_Type;
+		Filename : String; Mode : Trace_Mode_Type := Trace_APQ) is
 	begin
-		if C.Connection /= Null_Connection then
-			C.Connection := mysql_close(C.Connection);
-			C.Connection := Null_Connection;
+		if C.Trace_Filename /= null then
+			Raise_Exception(Tracing_State'Identity,
+				"MY28: Object already in trace mode (Open_DB_Trace).");
 		end if;
-		
-		C.Connected := False;
-	end Disconnect;
+
+		if not Is_Connected(C) then
+			Raise_Exception(Not_Connected'Identity,
+				"MY29: Unconnected connection object (Open_DB_Trace).");
+		end if;
+
+		if Mode = Trace_None then
+			pragma assert(C.Trace_Mode = Trace_None);
+			return;     -- No trace required
+		end if;
+
+		Ada.Text_IO.Create(C.Trace_Ada,Append_File,Filename,Form => "shared=yes");
+		C.Trace_File := CStr.Null_Stream;      -- Not used for MySQL
+
+		Ada.Text_IO.Put_Line(C.Trace_Ada,
+			"-- Start of Trace, Mode = " & Trace_Mode_Type'Image(Mode));
+
+		C.Trace_Filename     := new String(1..Filename'Length);
+		C.Trace_Filename.all := Filename;
+		C.Trace_Mode         := Mode;
+		C.Trace_On           := True;          -- Enabled by default until Set_Trace disables this
+	end Open_DB_Trace;
 
 
 
-	function Is_Connected(C : Connection_Type) return Boolean is
+	procedure Close_DB_Trace(C : in out Connection_Type) is
 	begin
-		if C.Connection /= Null_Connection then
-			return C.Connected;
+		if C.Trace_Mode = Trace_None then
+			return;           -- No tracing in progress
+		end if;
+
+		pragma assert(C.Trace_Filename /= null);
+
+		Free(C.Trace_Filename);
+
+		Ada.Text_IO.Put_Line(C.Trace_Ada,"-- End of Trace.");
+		Ada.Text_IO.Close(C.Trace_Ada);  -- C.Trace_File is not used for MySQL
+
+		C.Trace_Mode := Trace_None;
+		C.Trace_On   := True;            -- Restore default
+	end Close_DB_Trace;
+
+
+
+	procedure Set_Trace(C : in out Connection_Type; Trace_On : Boolean := True) is
+		Orig_Trace : Boolean := C.Trace_On;
+	begin
+		C.Trace_On := Set_Trace.Trace_On;
+
+		if Orig_Trace = C.Trace_On then
+			return;        -- No change
+		end if;
+
+		if C.Trace_On then
+			if C.Trace_Mode = Trace_DB or C.Trace_Mode = Trace_Full then
+				null;
+			end if;
 		else
+			if C.Trace_Mode = Trace_DB or C.Trace_Mode = Trace_Full then
+				null;
+			end if;
+		end if;
+	end Set_Trace;
+
+
+	function Is_Trace(C : Connection_Type) return Boolean is
+	begin
+		return C.Trace_On;
+	end Is_Trace;
+
+
+
+	function In_Abort_State(C : Connection_Type) return Boolean is
+	begin
+		if C.Connection = Null_Connection then
 			return False;
 		end if;
-	end Is_Connected;
+	
+		return C.Abort_State;
+	end In_Abort_State;
 
 
+	-------------------
+	-- SQL QUERY API --
+	-------------------
 
-	function Options(C : Connection_Type) return String is
+
+	procedure Clear(Q : in out Query_Type) is
 	begin
-		return To_String(C.Options);
-	end Options;
+		Clear_Results(Q);
+		Clear(Root_Query_Type(Q));
+	end Clear;
 
+	procedure Append_Quoted(Q : in out Query_Type; 
+		Connection : Root_Connection_Type'Class;
+		SQL : String; After : String := "") is
+		
+		use Interfaces.C;
 
-
-	procedure Initialize(C : in out Connection_Type) is
+		C_Length :  size_t := size_t(SQL'Length * 2 + 1);
+		C_From :    char_array := To_C(SQL);
+		C_To :      char_array(0..C_Length-1);
+		R_Length :  u_long := mysql_real_escape_string(
+		Connection_Type(Connection).Connection,C_To'Address,C_From'Address,u_long(SQL'Length));
 	begin
-		C.Connection := mysql_init;
-		C.Connected  := False;
-		C.SQL_Case   := Lower_Case;
-	end Initialize;
+		Append(Q,"'" & To_Ada(C_To) & "'",After);
+		Q.Caseless(Q.Count) := False; -- Do not change case of this text
+	end Append_Quoted;
 
 
 
-	procedure Finalize(C : in out Connection_Type) is
+	procedure Append(Q : in out Query_Type; V : APQ_Boolean; 
+		After : String := "") is
 	begin
-		Internal_Reset(C,True);
-	end Finalize;
-
-
-
-	procedure Initialize(Q : in out Query_Type) is
-	begin
-		Q.SQL_Case := Lower_Case;
-	end Initialize;
-
-
-
-	procedure Adjust(Q : in out Query_Type) is
-	begin
-		Q.Results := Null_Result;
-		Q.Row     := Null_Row;
-		Q.Error_Message := null;
-		Q.Row_ID  := Row_ID_Type'First;
-		Adjust(Root_Query_Type(Q));
-	end Adjust;
-
-
-
-	procedure Finalize(Q : in out Query_Type) is
-	begin
-		Clear(Q);
-	end Finalize;
-
+		if V = True then
+			Append(Q,"1",After);
+		else
+			Append(Q,"0",After);
+		end if;
+	end Append;
 
 
 	procedure Execute(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class) is
@@ -806,13 +961,16 @@ package body APQ.MySQL.Client is
 		if R /= 0 then
 			-- Successful
 			Query.Tuple_Index := Tuple_Index_Type'First;
-			Query.Row_ID := Row_ID_Type(mysql_insert_id(Connection_Type(Connection).Connection));
+			Query.Row_ID := Row_ID_Type(mysql_insert_id(
+				Connection_Type(Connection).Connection));
 
 			case Query.Mode is
 				when Sequential_Fetch =>
-					Query.Results := mysql_use_result(Connection_Type(Connection).Connection);
+					Query.Results := mysql_use_result(
+						Connection_Type(Connection).Connection);
 				when Random_Fetch =>
-					Query.Results := mysql_store_result(Connection_Type(Connection).Connection);
+					Query.Results := mysql_store_result(
+					Connection_Type(Connection).Connection);
 				when Cursor_For_Update | Cursor_For_Read_Only =>
 					Raise_Exception(Not_Supported'Identity,
 						"MY12: MySQL does not support Cursor fetch modes (Execute).");
@@ -898,39 +1056,34 @@ package body APQ.MySQL.Client is
 
 
 
-	function Error_Message(Query : Query_Type) return String is
+	procedure Begin_Work(Query : in out Query_Type;
+		Connection : in out Root_Connection_Type'Class) is
 	begin
-		return To_String(Query.Error_Message);
-	end Error_Message;
+		Clear(Query);
+		Prepare(Query,"BEGIN WORK");
+		Execute(Query,Connection_Type(Connection));
+		Clear(Query);
+	end Begin_Work;
 
 
-
-	function Value(Query : Query_Type; CX : Column_Index_Type) return String is
+	procedure Commit_Work(Query : in out Query_Type;
+		Connection : in out Root_Connection_Type'Class) is
 	begin
-		if not Is_Column(Query,CX) then
-			Raise_Exception(No_Column'Identity,
-				"MY14: There is no column #" & Column_Index_Type'Image(CX) & " (Value).");
-		end if;
+		Clear(Query);
+		Prepare(Query,"COMMIT");
+		Execute(Query,Connection_Type(Connection));
+		Clear(Query);
+	end Commit_Work;
 
-		if Query.Row = Null_Row then
-			Raise_Exception(No_Result'Identity,
-			"MY15: There are no column results (Value).");
-		end if;
 
-		declare
-			use Interfaces.C.Strings;
-		
-			Col_Val : chars_ptr := Value_Of(Query.Results,Query.Row,CX);
-		begin
-			if Is_Null(Col_Val) then
-				Raise_Exception(Null_Value'Identity,
-					"MY16: Column" & Column_Index_Type'Image(CX) & " is NULL (Value).");
-			else
-				return Value_Of(Col_Val);
-			end if;
-		end;
-	end Value;
-
+	procedure Rollback_Work(Query : in out Query_Type; 
+		Connection : in out Root_Connection_Type'Class) is
+	begin
+		Clear(Query);
+		Prepare(Query,"ROLLBACK");
+		Execute(Query,Connection_Type(Connection));
+		Clear(Query);
+	end Rollback_Work;
 
 
 	procedure Rewind(Q : in out Query_Type) is
@@ -1011,18 +1164,6 @@ package body APQ.MySQL.Client is
 		end if;
 	end Fetch;
 
-	
-	function Tuple(Q : Query_Type) return Tuple_Index_Type is
-		NT : Tuple_Count_Type := Tuples(Q); -- May raise No_Result
-	begin
-		if NT < 1 or else Q.Rewound then
-			Raise_Exception(No_Tuple'Identity,
-				"MY24: There are no more row results to be fetched (Tuple).");
-		end if;
-		
-		return Q.Tuple_Index;
-	end Tuple;
-
 
 	function End_of_Query(Q : Query_Type) return Boolean is
 		use Interfaces.C;
@@ -1066,6 +1207,16 @@ package body APQ.MySQL.Client is
 	end End_of_Query;
 
 
+	function Tuple(Q : Query_Type) return Tuple_Index_Type is
+		NT : Tuple_Count_Type := Tuples(Q); -- May raise No_Result
+	begin
+		if NT < 1 or else Q.Rewound then
+			Raise_Exception(No_Tuple'Identity,
+				"MY24: There are no more row results to be fetched (Tuple).");
+		end if;
+		
+		return Q.Tuple_Index;
+	end Tuple;
 
 	function Tuples(Q : Query_Type) return Tuple_Count_Type is
 		begin
@@ -1076,138 +1227,6 @@ package body APQ.MySQL.Client is
 		
 			return Tuple_Count_Type(mysql_num_rows(Q.Results));
 	end Tuples;
-
-
-
-	function Result(Query : Query_Type) return Natural is
-	begin
-		return Result_Type'Pos(Result(Query));
-	end Result;
-
-
-
-	function Result(Query : Query_Type) return Result_Type is
-	begin
-		return Query.Error_Code;
-	end Result;
-
-
-
-	procedure Begin_Work(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class) is
-	begin
-		Clear(Query);
-		Prepare(Query,"BEGIN WORK");
-		Execute(Query,Connection_Type(Connection));
-		Clear(Query);
-	end Begin_Work;
-
-
-
-	procedure Commit_Work(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class) is
-	begin
-		Clear(Query);
-		Prepare(Query,"COMMIT");
-		Execute(Query,Connection_Type(Connection));
-		Clear(Query);
-	end Commit_Work;
-
-
-
-	procedure Rollback_Work(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class) is
-	begin
-		Clear(Query);
-		Prepare(Query,"ROLLBACK");
-		Execute(Query,Connection_Type(Connection));
-		Clear(Query);
-	end Rollback_Work;
-
-
-
-	procedure Open_DB_Trace(C : in out Connection_Type; Filename : String; Mode : Trace_Mode_Type := Trace_APQ) is
-	begin
-		if C.Trace_Filename /= null then
-			Raise_Exception(Tracing_State'Identity,
-				"MY28: Object already in trace mode (Open_DB_Trace).");
-		end if;
-
-		if not Is_Connected(C) then
-			Raise_Exception(Not_Connected'Identity,
-				"MY29: Unconnected connection object (Open_DB_Trace).");
-		end if;
-
-		if Mode = Trace_None then
-			pragma assert(C.Trace_Mode = Trace_None);
-			return;     -- No trace required
-		end if;
-
-		Ada.Text_IO.Create(C.Trace_Ada,Append_File,Filename,Form => "shared=yes");
-		C.Trace_File := CStr.Null_Stream;      -- Not used for MySQL
-
-		Ada.Text_IO.Put_Line(C.Trace_Ada,"-- Start of Trace, Mode = " & Trace_Mode_Type'Image(Mode));
-
-		C.Trace_Filename     := new String(1..Filename'Length);
-		C.Trace_Filename.all := Filename;
-		C.Trace_Mode         := Mode;
-		C.Trace_On           := True;          -- Enabled by default until Set_Trace disables this
-	end Open_DB_Trace;
-
-
-
-	procedure Close_DB_Trace(C : in out Connection_Type) is
-	begin
-		if C.Trace_Mode = Trace_None then
-			return;           -- No tracing in progress
-		end if;
-
-		pragma assert(C.Trace_Filename /= null);
-
-		Free(C.Trace_Filename);
-
-		Ada.Text_IO.Put_Line(C.Trace_Ada,"-- End of Trace.");
-		Ada.Text_IO.Close(C.Trace_Ada);  -- C.Trace_File is not used for MySQL
-
-		C.Trace_Mode := Trace_None;
-		C.Trace_On   := True;            -- Restore default
-	end Close_DB_Trace;
-
-
-
-	procedure Set_Trace(C : in out Connection_Type; Trace_On : Boolean := True) is
-		Orig_Trace : Boolean := C.Trace_On;
-	begin
-		C.Trace_On := Set_Trace.Trace_On;
-
-		if Orig_Trace = C.Trace_On then
-			return;        -- No change
-		end if;
-
-		if C.Trace_On then
-			if C.Trace_Mode = Trace_DB or C.Trace_Mode = Trace_Full then
-				null;
-			end if;
-		else
-			if C.Trace_Mode = Trace_DB or C.Trace_Mode = Trace_Full then
-				null;
-			end if;
-		end if;
-	end Set_Trace;
-
-
-	function Is_Trace(C : Connection_Type) return Boolean is
-	begin
-		return C.Trace_On;
-	end Is_Trace;
-
-
-
-	function In_Abort_State(C : Connection_Type) return Boolean is
-	begin
-		if C.Connection = Null_Connection then
-			return False;
-		end if;
-	
-		return C.Abort_State;
-	end In_Abort_State;
 
 
 
@@ -1237,7 +1256,9 @@ package body APQ.MySQL.Client is
 		-- We must check index, since mysql_fetch_field_direct() won't
 		if not Is_Column(Q,CX) then
 			Raise_Exception(No_Column'Identity,
-				"MY32: There is no column #" & Column_Index_Type'Image(CX) & " (Column_Name).");
+				"MY32: There is no column #" &
+				Column_Index_Type'Image(CX) &
+				" (Column_Name).");
 		end if;
 
 		declare
@@ -1278,6 +1299,27 @@ package body APQ.MySQL.Client is
 
 
 
+	function Column_Type(Q : Query_Type; CX : Column_Index_Type) return Field_Type is
+		use Interfaces.C;
+	
+		CBX : int := int(CX) - 1;
+	begin
+		if Q.Results = Null_Result then
+			Raise_Exception(No_Result'Identity,
+				"MY38: There are not results (Column_Type).");
+		end if;
+		
+		if not Is_Column(Q,CX) then
+			Raise_Exception(No_Column'Identity,
+				"MY39: There is no column #" & 
+				Column_Index_Type'Image(CX) & 
+				" (Column_Type).");
+		end if;
+	
+		return mysql_get_field_type(Q.Results,CBX);
+	end Column_Type;
+
+
 	function Is_Null(Q : Query_Type; CX : Column_Index_Type) return Boolean is
 	begin
 		if Q.Results = Null_Result then
@@ -1300,37 +1342,44 @@ package body APQ.MySQL.Client is
 	end Is_Null;
 
 
-	function Column_Type(Q : Query_Type; CX : Column_Index_Type) return Field_Type is
-		use Interfaces.C;
-	
-		CBX : int := int(CX) - 1;
+	function Value(Query : Query_Type; CX : Column_Index_Type) return String is
 	begin
-		if Q.Results = Null_Result then
+		if not Is_Column(Query,CX) then
+			Raise_Exception(No_Column'Identity, "MY14: There is no column #" &
+				Column_Index_Type'Image(CX) &" (Value).");
+		end if;
+
+		if Query.Row = Null_Row then
 			Raise_Exception(No_Result'Identity,
-				"MY38: There are not results (Column_Type).");
+			"MY15: There are no column results (Value).");
 		end if;
+
+		declare
+			use Interfaces.C.Strings;
 		
-		if not Is_Column(Q,CX) then
-			Raise_Exception(No_Column'Identity,
-				"MY39: There is no column #" & Column_Index_Type'Image(CX) & " (Column_Type).");
-		end if;
-	
-		return mysql_get_field_type(Q.Results,CBX);
-	end Column_Type;
+			Col_Val : chars_ptr := Value_Of(Query.Results,Query.Row,CX);
+		begin
+			if Is_Null(Col_Val) then
+				Raise_Exception(Null_Value'Identity,
+					"MY16: Column" & Column_Index_Type'Image(CX) &
+					" is NULL (Value).");
+			else
+				return Value_Of(Col_Val);
+			end if;
+		end;
+	end Value;
 
 
-
-	function Engine_Of(C : Connection_Type) return Database_Type is
+	function Result(Query : Query_Type) return Natural is
 	begin
-		return Engine_MySQL;
-	end Engine_Of;
+		return Result_Type'Pos(Result(Query));
+	end Result;
 
 
-	function Engine_Of(Q : Query_Type) return Database_Type is
+	function Result(Query : Query_Type) return Result_Type is
 	begin
-	return Engine_MySQL;
-	end Engine_Of;
-
+		return Query.Error_Code;
+	end Result;
 
 
 	function Command_Oid(Query : Query_Type) return Row_ID_Type is
@@ -1344,6 +1393,16 @@ package body APQ.MySQL.Client is
 		return Null_Row_ID;
 	end Null_Oid;
 
+	function Null_Oid(Query : Query_Type) return Row_ID_Type is
+	begin
+		return Null_Row_ID;
+	end Null_Oid;
+
+
+	function Error_Message(Query : Query_Type) return String is
+	begin
+		return To_String(Query.Error_Message);
+	end Error_Message;
 
 
 	function Is_Duplicate_Key(Query : Query_Type) return Boolean is
@@ -1351,33 +1410,51 @@ package body APQ.MySQL.Client is
 	begin
 	return R = ER_DUP_ENTRY or else R = ER_DUP_KEY;
 	end Is_Duplicate_Key;
-
-
-
-	procedure Append_Quoted(Q : in out Query_Type; Connection : Root_Connection_Type'Class; SQL : String; After : String := "") is
-		use Interfaces.C;
-
-		C_Length :  size_t := size_t(SQL'Length * 2 + 1);
-		C_From :    char_array := To_C(SQL);
-		C_To :      char_array(0..C_Length-1);
-		R_Length :  u_long := mysql_real_escape_string(
-		Connection_Type(Connection).Connection,C_To'Address,C_From'Address,u_long(SQL'Length));
+	
+	
+	function Engine_Of(Q : Query_Type) return Database_Type is
 	begin
-		Append(Q,"'" & To_Ada(C_To) & "'",After);
-		Q.Caseless(Q.Count) := False; -- Do not change case of this text
-	end Append_Quoted;
+	return Engine_MySQL;
+	end Engine_Of;
 
-	procedure Clear(Q : in out Query_Type) is
+
+
+	procedure Initialize(C : in out Connection_Type) is
 	begin
-		Clear_Results(Q);
-		Clear(Root_Query_Type(Q));
-	end Clear;
+		C.Connection := mysql_init;
+		C.Connected  := False;
+		C.SQL_Case   := Lower_Case;
+	end Initialize;
 
 
-	function Null_Oid(Query : Query_Type) return Row_ID_Type is
+	procedure Initialize(Q : in out Query_Type) is
 	begin
-		return Null_Row_ID;
-	end Null_Oid;
+		Q.SQL_Case := Lower_Case;
+	end Initialize;
+
+
+	procedure Adjust(Q : in out Query_Type) is
+	begin
+		Q.Results := Null_Result;
+		Q.Row     := Null_Row;
+		Q.Error_Message := null;
+		Q.Row_ID  := Row_ID_Type'First;
+		Adjust(Root_Query_Type(Q));
+	end Adjust;
+
+
+	procedure Finalize(C : in out Connection_Type) is
+	begin
+		Internal_Reset(C,True);
+	end Finalize;
+
+
+	procedure Finalize(Q : in out Query_Type) is
+	begin
+		Clear(Q);
+	end Finalize;
+
+
 
 
 	procedure Set_Fetch_Mode(Q : in out Query_Type; Mode : Fetch_Mode_Type) is
@@ -1391,39 +1468,8 @@ package body APQ.MySQL.Client is
 	end Set_Fetch_Mode;
 
 
-	function New_Query(C : Connection_Type) return Root_Query_Type'Class is
-		Q : Query_Type;
-	begin
-		return Q;
-	end New_Query;
-
-
-	procedure Set_Options(C : in out Connection_Type; Options : String) is
-		use Ada.Strings.Unbounded;
-	begin
-		Replace_String(C.Options,Set_Options.Options);
-
-		if C.Options = null then
-			return;
-		end if;
-
-		if Is_Connected(C) then
-			Process_Connection_Options(C);
-		end if;
-	end Set_Options;
-
-
-	procedure Append(Q : in out Query_Type; V : APQ_Boolean; After : String := "") is
-	begin
-		if V = True then
-			Append(Q,"1",After);
-		else
-			Append(Q,"0",After);
-		end if;
-	end Append;
-
-
-	function Query_Factory( C: in Connection_Type ) return Root_Query_Type'Class is
+	function Query_Factory( C: in Connection_Type ) 
+		return Root_Query_Type'Class is
 		q: query_type;
 	begin
 		return q;
