@@ -29,9 +29,12 @@
 /****************************************************************************/
 
 #include <stdio.h>
-#ifdef _WINDOWS
-#include <my_global.h>
-#endif
+
+
+//#ifdef _WINDOWS
+//#include <my_global.h>
+//#endif
+
 #include <mysql.h>
 #include <errmsg.h>
 #include <string.h>
@@ -45,7 +48,7 @@
 /*
  * Blinken Windows does not have a strcasecmp() :
  */
-#include <ctype.h>
+//#include <ctype.h>
 
 static int
 strcasecmp(const char *s1, const char *s2) {
@@ -63,7 +66,8 @@ strcasecmp(const char *s1, const char *s2) {
 		if ( c1 != c2 )
 			return c1 < c2 ? -1 : 1;
 	}
-
+	c1 = *s1;
+	c2 = *s2;
 	if ( !c1 && !c2 )
 		return 0;
 	return !c1 ? -1 : 1;
@@ -228,7 +232,7 @@ c_mysql_name_index(MYSQL_RES *results,const char *name) {
 
 	for ( x=0; x<n; ++x )
 		if ( !strcasecmp(fields[x].name,name) )		/* Caseless compare */
-			return x;				/* Found match at index x */
+			return x; /* Found match at index x */
 	return -1;
 }
 
