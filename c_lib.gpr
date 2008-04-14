@@ -15,9 +15,10 @@ project C_Lib is
 	for Object_Dir use "obj";
 
 	for Library_Dir use "lib";
-	for Library_Name use "libapq-mysqlhelp";
+
+	for Library_Name use "apq-mysqlhelp";
 	for Library_Kind use "dynamic";
-	for Library_Version use "libapq-mysqlhelp.so." & Version;
+	for Library_Version use "apq-mysqlhelp.so." & Version;
 	for Externally_Built use "true";
 
 end C_Lib;

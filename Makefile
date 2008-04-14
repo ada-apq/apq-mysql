@@ -1,6 +1,8 @@
 # Makefile for APQ-MySQL
 #
 
+
+
 projectFile="apq-mysql.gpr"
 
 EXTRAS_DIR=extras
@@ -9,7 +11,7 @@ EXTRAS_WORK_DIR=extras/work
 #SO Dependant configurations.
 ifeq ($(TARGET), WIN32)
 	#Name of the output dynamic library.
-	OUTPUT_LIB=libapq-mysqlhelp.dll
+	OUTPUT_LIB=apq-mysqlhelp.dll
 	#Options to compile the dynamic library.
 	DYNA_OPTS=-fPIC -shared ../obj-c/c_mysql.o "$(MYSQL_PATH)\lib\opt\libmysql.lib"
 else
@@ -19,7 +21,7 @@ else
 	DYNA_OPTS=-shared ../obj-c/c_mysql.o
 endif
 libs: setup c_libs
-	gnatmake -P ${projectFile} -f"*.c" -v 
+	gnatmake -P ${projectFile}
 
 all: libs
 
