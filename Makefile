@@ -1,8 +1,6 @@
 # Makefile for APQ-MySQL
 #
 
-
-
 projectFile="apq-mysql.gpr"
 
 EXTRAS_DIR=extras
@@ -21,7 +19,7 @@ else
 	DYNA_OPTS=-shared ../obj-c/c_mysql.o
 endif
 libs: setup c_libs
-	gnatmake -P ${projectFile}
+	gnatmake -P ${projectFile} -f"*.c" -v 
 
 all: libs
 
