@@ -3,6 +3,7 @@
 
 
 with "apq.gpr";
+with "c_lib";
 
 project APQ.MySQL is
 
@@ -28,10 +29,17 @@ project APQ.MySQL is
 
 
 	package Linker is
-		for Default_Switches ("Ada") use
-			APQ.Linker'Default_Switches("Ada") &
-			"-lmysqlclient" &
-			"-lapq-mysqlhelp";
+		case target is 
+			when "GNU/Linux" =>
+				for Default_Switches ("Ada") use
+					APQ.Linker'Default_Switches("Ada") &
+					"-lmysqlclient" &
+					"-lapq-mysqlhelp";
+			when "WIN32" =>
+				for Default_Switches ("Ada") use
+					APQ.Linker'Default_Switches("Ada") &
+					"-lapq-mysqlhelp";
+		end case;
 	end Linker;
 
 end APQ.MySQL;

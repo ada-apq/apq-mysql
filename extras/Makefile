@@ -1,16 +1,32 @@
 # Makefile for APQ-MySQL
 #
 
-
+#Workd dir, where we store temprary programs.
 WORK=work
+
+#Path to the Ada source dir.
 ADA_SRC=../src
 
+#Selected compiler.
 CC=gcc
+
+#Necessary gcc options.
 COPTS=-Wall -O0 -I${WORK}
 
-
-MY_INCL=`mysql_config --cflags`
-
+#SO Dependant configurations.
+ifeq ($(TARGET), WIN32)
+	#Path to the MySQL directory.
+	MY_INCL:=-I "$(MYSQL_PATH)\include" -D__LCC__
+	#The correct scripts to use with the SO.
+	XCR:=mysql_xcr_win32
+	XTY:=mysql_xty_win32
+else
+	#Path to the MySQL directory.
+	MY_INCL=`mysql_config --cflags`
+	#The correct scripts to use with the SO.
+	XCR:=mysql_xcr
+	XTY:=mysql_xty
+endif
 
 
 
@@ -19,13 +35,13 @@ all: apq-mysql.ads
 
 
 chmod: 
-	chmod u+x mysql_xcr mysql_xcr2 mysql_xcr3 mysql_incl mysql_xty mysql_linker_options
+	chmod u+x mysql_xcr mysql_xcr2 mysql_xcr3 mysql_incl mysql_xty mysql_linker_options mysql_xcr_win32 mysql_xty_win32
 
 err_msg:
-	./mysql_xcr > ${WORK}/mysql_errmsg.h
+	./${XCR} > ${WORK}/mysql_errmsg.h
 
 type_codes:
-	./mysql_xty > ${WORK}/mysql_type_codes.h
+	./${XTY} > ${WORK}/mysql_type_codes.h
 
 
 
