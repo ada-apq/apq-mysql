@@ -1,17 +1,26 @@
-# Makefile for APQ-MySQL
-#
+# Makefile for the creation of apq-mysql.ads.
 
-#Workd dir, where we store temprary programs.
-WORK=work
+#    Transfered Variables
+#CC, imported from the calling Makefile, is thename of the compiler to be used.
+#The variable WORK is also imported, pointing to the subdirectory to be used
+#to store the auxiliary programs used to create apq-mysql.ads. ADA_SOURCE is
+#also used to determine where the Ada source is stored.
+
+#    Environment Variables
+#The variable TARGET is expected to be an existing environment variable. It
+#should be set to WIN32 for windows systems and UNIX for unix ones.
+#NOTE: We may yet change the accepted values and their meanings.
+#The variable MYSQL_PATH should have the path to the mysql base directory. It
+#is only needed on Windows.
+
+
+#    Variables
 
 #Path to the Ada source dir.
-ADA_SRC=../src
+RELATIVE_ADA_SOURCE=../${ADA_SOURCE}
 
-#Selected compiler.
-CC=gcc
-
-#Necessary gcc options.
-COPTS=-Wall -O0 -I${WORK}
+#CC options.
+CC_OPTIONS=${WARNING_OPTIONS} -O0 -I${WORK}
 
 #SO Dependant configurations.
 ifeq ($(TARGET), WIN32)
@@ -46,12 +55,12 @@ type_codes:
 
 
 mysql_opts:
-	$(CC) $(COPTS) $(MY_INCL) mysqlopts.c -o ${WORK}/mysql_opts
+	$(CC) $(CC_OPTIONS) $(MY_INCL) mysqlopts.c -o ${WORK}/mysql_opts
 mysql_generr: err_msg
-	$(CC) $(COPTS) $(MY_INCL) mysql_generr.c -o ${WORK}/mysql_generr
+	$(CC) $(CC_OPTIONS) $(MY_INCL) mysql_generr.c -o ${WORK}/mysql_generr
 
 mysql_gentyp: type_codes
-	$(CC) $(COPTS) $(MY_INCL) mysql_gentyp.c -o ${WORK}/mysql_gentyp
+	$(CC) $(CC_OPTIONS) $(MY_INCL) mysql_gentyp.c -o ${WORK}/mysql_gentyp
 
 
 
@@ -67,12 +76,14 @@ typ: mysql_gentyp
 
 
 apq-mysql.ads-in:
-	cp ${ADA_SRC}/apq-mysql.ads-in ${WORK}
+	cp ${RELATIVE_ADA_SOURCE}/apq-mysql.ads-in ${WORK}
 
 apq-mysql.ads: apq-mysql.ads-in chmod opts err typ
 
+
 clean:
-	@rm -f ${WORK}/*
-docs:
-
-
+	-rm -f ${WORK}/*
+	-rm -f ~*
+	-rm -f *~
+	-rm -f \#*
+	-rm -f ../src/apq-mysql.ads
