@@ -26,7 +26,7 @@ endif
 ifeq ($(TARGET), WIN32)
 	SYSTEM_DEFINES=-D_WINDOWS -D__LCC__
 else
-	SYSTEM_DEFINES=""
+	SYSTEM_DEFINES=
 endif
 
 
