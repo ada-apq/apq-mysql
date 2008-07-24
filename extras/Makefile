@@ -19,6 +19,7 @@
 #Path to the Ada source dir.
 RELATIVE_ADA_SOURCE=../${ADA_SOURCE}
 
+WORK=work
 #CC options.
 CC_OPTIONS=${WARNING_OPTIONS} -O0 -I${WORK}
 
