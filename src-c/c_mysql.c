@@ -111,7 +111,7 @@ c_mysql_init() {
 EXPORT int
 c_mysql_connect(MYSQL *conn,char *host,char *user,char *passwd,char *db,unsigned port,char *local_socket) {
 	int z;
-	
+	// PLEASE READ :: http://dev.mysql.com/doc/refman/5.0/en/mysql-real-connect.html	
 	z = mysql_real_connect(conn,host,user,passwd,db,port,local_socket,0) == NULL;
 	return IS_OK(z);
 }
