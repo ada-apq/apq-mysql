@@ -54,6 +54,10 @@ package body APQ.MySQL.Client is
 		local_socket : system.address) return Return_Status;
 	pragma import(C,mysql_connect,"c_mysql_connect");
 
+
+	function mysql_is_connected(conn : MYSQL ) return Integer;
+	pragma Import( C, mysql_is_connected, "c_mysql_is_connected" );
+
 	function mysql_close(C : MYSQL) return MYSQL;
 	pragma import(C,mysql_close,"c_mysql_close");
 
@@ -712,8 +716,8 @@ package body APQ.MySQL.Client is
 
 	function Is_Connected(C : Connection_Type) return Boolean is
 	begin
-		if C.Connection /= Null_Connection then
-			return C.Connected;
+		if C.Connection /= Null_Connection and then C.Connected then
+			return mysql_is_connected( C.Connection ) = 1;
 		else
 			return False;
 		end if;

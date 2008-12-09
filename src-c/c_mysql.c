@@ -116,6 +116,17 @@ c_mysql_connect(MYSQL *conn,char *host,char *user,char *passwd,char *db,unsigned
 	return IS_OK(z);
 }
 
+
+/** 
+ * Returns 1 if the connection is active and 0 if it's down.
+ */
+EXPORT int
+c_mysql_is_connected(MYSQL *conn) {
+	if( !conn )
+		return 0;
+	return mysql_ping( conn ) == 0;
+}
+
 EXPORT MYSQL *
 c_mysql_close(MYSQL *conn) {
 
