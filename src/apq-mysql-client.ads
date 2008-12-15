@@ -72,7 +72,7 @@ package APQ.MySQL.Client is
 	procedure Set_Options(C : in out Connection_Type; Options : String);
 	function Options(C : Connection_Type) return String;
 
-	procedure Connect(C : in out Connection_Type);
+	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
 	procedure Connect(C : in out Connection_Type;
 		Same_As : Root_Connection_Type'Class);
 	procedure Disconnect(C : in out Connection_Type);

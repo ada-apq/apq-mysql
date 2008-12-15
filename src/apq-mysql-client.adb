@@ -544,7 +544,7 @@ package body APQ.MySQL.Client is
 
 	
 	
-	procedure Connect(C : in out Connection_Type) is
+	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True) is
 		use Interfaces.C.Strings;
 
 		C_Host :       char_array_access;
@@ -563,7 +563,7 @@ package body APQ.MySQL.Client is
 
 		Clear_Error(C);
 
-		if Is_Connected(C) then
+		if Check_Connection and then Is_Connected(C) then
 			Raise_Exception(Already_Connected'Identity,
 			"MY08: Object is already connected to database server (Connect).");
 		end if;
