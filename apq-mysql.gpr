@@ -32,14 +32,9 @@ project APQ.MySQL is
 	package Linker is
 		case target is 
 			when "GNU/Linux" =>
-				for Default_Switches ("Ada") use
-					APQ.Linker'Default_Switches("Ada") &
-					"-lmysqlclient" &
-					"-lapq-mysqlhelp";
+				for Default_Switches ("Ada") use ( "-lmysqlclient", "-lapq-mysqlhelp" );
 			when "WIN32" =>
-				for Default_Switches ("Ada") use
-					APQ.Linker'Default_Switches("Ada") &
-					"-lapq-mysqlhelp";
+				for Default_Switches ("Ada") use ( "-lapq-mysqlhelp" );
 		end case;
 	end Linker;
 
