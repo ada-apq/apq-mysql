@@ -3,11 +3,11 @@
 --                          APQ DATABASE BINDINGS                           --
 --                                                                          --
 --                              A P Q - MYSQL  				    --
---                                  					    --
---                                 S P E C				    --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --         Copyright (C) 2002-2007, Warren W. Gay VE3WWG                    --
---         Copyright (C) 2007-2008, Ydea Desenv. de Softwares Ltda          --
+--         Copyright (C) 2007-2009, Ada Works Project                       --
 --                                                                          --
 --                                                                          --
 -- APQ is free software;  you can  redistribute it  and/or modify it under  --
@@ -27,6 +27,10 @@
 -- covered  by the  GNU  General  Public  License.  This exception does not --
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+-- This is the package that actually has the MySQL driver implementation    --
 ------------------------------------------------------------------------------
 
 with System;
