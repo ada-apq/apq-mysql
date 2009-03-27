@@ -9,9 +9,9 @@ project APQ.MySQL is
 
 	Version := "2.3.0";
 
-	type Supported_OS is ("WIN32", "GNU/Linux");
+	type Supported_OS is ("Windows_NT", "GNU/Linux");
 
-	target: Supported_OS := external("TARGET", "GNU/Linux");
+	target: Supported_OS := external("OS", "GNU/Linux");
 
  
 	for Source_Dirs use ("src");
@@ -20,7 +20,13 @@ project APQ.MySQL is
 
 	for Library_Dir use "lib";
 	for Library_Name use "apq-mysql";
-	for Library_Kind use "dynamic";
+	case target is
+		when "Windows_NT" =>
+			for Library_Kind use "static";
+
+		when "GNU/Linux" =>
+			for Library_Kind use "dynamic";
+	end case;
 	for Library_Version use "libapq-mysql.so." & Version;
 
 
@@ -33,7 +39,7 @@ project APQ.MySQL is
 		case target is 
 			when "GNU/Linux" =>
 				for Default_Switches ("Ada") use ( "-lmysqlclient", "-lapq-mysqlhelp" );
-			when "WIN32" =>
+			when "Windows_NT" =>
 				for Default_Switches ("Ada") use ( "-lapq-mysqlhelp" );
 		end case;
 	end Linker;
