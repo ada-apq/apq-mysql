@@ -7,23 +7,20 @@
 #of the directory where object files are to be stored.
 
 #			Environment Variables
-#The variable TARGET is expected to be an existing environment variable. It
-#should be set to WIN32 for windows systems and UNIX for unix ones.
-#NOTE: We may yet change the accepted values and their meanings.
 #The variable MYSQL_PATH should have the path to the mysql base directory. It
 #is only needed on Windows.
 
 #			Variables
 
 #MYSQL_INCLUDE_PATH contains a -I to the correct MY_SQL include directory.
-ifeq ($(TARGET), WIN32)
+ifeq ($(OS), Windows_NT)
 	MYSQL_INCLUDE_PATH=-I "$(MYSQL_PATH)\include" -I./
 else
 	MYSQL_INCLUDE_PATH=`mysql_config --cflags` -I./
 endif
 
 #SYSTEM_DEFINES contain any definitions necessary for some systems.
-ifeq ($(TARGET), WIN32)
+ifeq ($(OS), Windows_NT)
 	SYSTEM_DEFINES=-D_WINDOWS -D__LCC__
 else
 	SYSTEM_DEFINES=

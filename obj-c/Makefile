@@ -7,9 +7,6 @@
 #of the directory where the library should be stored.
 
 #			Environment Variables
-#The variable TARGET is expected to be an existing environment variable. It
-#should be set to WIN32 for windows systems and UNIX for unix ones.
-#NOTE: We may yet change the accepted values and their meanings.
 #The variable MYSQL_PATH should have the path to the mysql base directory. It
 #is only needed on Windows.
 
@@ -22,7 +19,7 @@ OUTPUT_PATH=../${C_LIBRARY_PATH}
 #MYSQL_LIBRARY is the name of the static mysql library that needs to be
 #recompiled into a dynamic one. INCLUDE_MYSQL_LIBRARY is the option passed to
 #the compiler to include the generated dll. This is just needed on windows.
-ifeq (${TARGET}, WIN32)
+ifeq (${OS}, Windows_NT)
 	MYSQL_LIBRARY_NAME=mysql
 	MYSQL_LIBRARY=lib${MYSQL_LIBRARY_NAME}.lib
 	MYSQL_LIBRARY_ADDRESS="${MYSQL_PATH}\lib\opt\${MYSQL_LIBRARY}"
@@ -38,7 +35,7 @@ endif
 C_LIBRARY_TYPE=-shared
 
 #OUTPUT_NAME is the name of the compiled library.
-ifeq ($(TARGET), WIN32)
+ifeq ($(OS), Windows_NT)
 	OUTPUT_NAME=apq-mysqlhelp.dll
 else
 	OUTPUT_NAME=libapq-mysqlhelp.so
@@ -50,7 +47,7 @@ CC_OPTIONS=${C_LIBRARY_BASIC_OPTIONS} ${C_LIBRARY_TYPE} \
 
 
 #CREATE_DLL is a special target, that is ignored on all systems but windows.
-ifeq ($(TARGET), WIN32)
+ifeq ($(OS), Windows_NT)
 	CREATE_DLL=create_dll
 	MYSQL_DLL=${MYSQL_LIBRARY_NAME}_client
 	MYSQL_DLL_NAME=lib${MYSQL_DLL}.dll

@@ -1,9 +1,6 @@
 # Makefile for APQ-MySQL
 
 #			Environment Variables
-#The variable TARGET is expected to be an existing environment variable. It
-#should be set to WIN32 for windows systems and UNIX for unix ones.
-#NOTE: We may yet change the accepted values and their meanings.
 #The variable MYSQL_PATH should have the path to the mysql base directory. It
 #is only needed on Windows.
 

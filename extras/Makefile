@@ -7,9 +7,6 @@
 #also used to determine where the Ada source is stored.
 
 #    Environment Variables
-#The variable TARGET is expected to be an existing environment variable. It
-#should be set to WIN32 for windows systems and UNIX for unix ones.
-#NOTE: We may yet change the accepted values and their meanings.
 #The variable MYSQL_PATH should have the path to the mysql base directory. It
 #is only needed on Windows.
 
@@ -24,7 +21,7 @@ WORK=work
 CC_OPTIONS=${WARNING_OPTIONS} -O0 -I${WORK}
 
 #SO Dependant configurations.
-ifeq ($(TARGET), WIN32)
+ifeq ($(OS), Windows_NT)
 	#Path to the MySQL directory.
 	MY_INCL:=-I "$(MYSQL_PATH)\include" -D__LCC__
 	#The correct scripts to use with the SO.
