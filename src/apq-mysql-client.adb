@@ -917,17 +917,6 @@ package body APQ.MySQL.Client is
 
 
 
-	procedure Append(Q : in out Query_Type; V : APQ_Boolean; 
-		After : String := "") is
-	begin
-		if V = True then
-			Append(Q,"1",After);
-		else
-			Append(Q,"0",After);
-		end if;
-	end Append;
-
-
 	procedure Execute(Query : in out Query_Type; Connection : in out Root_Connection_Type'Class) is
 		R : Return_Status;
 	begin
