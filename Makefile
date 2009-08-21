@@ -99,7 +99,7 @@ gprclean:
 	@rm -f gpr/*.gpr 
 	@rm -f gpr/*.def
 
-install:
+install: gprfile
 	@echo "Installing files"
 	install -d $(INCLUDE_PREFIX)
 	install -d $(LIB_PREFIX)
@@ -107,4 +107,5 @@ install:
 	install src*/* -t $(INCLUDE_PREFIX)
 	install lib/* -t $(LIB_PREFIX)
 	install gpr/*.gpr -t $(GPR_PREFIX)
+	make gprclean
 
