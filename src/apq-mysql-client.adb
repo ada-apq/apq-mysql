@@ -1006,7 +1006,9 @@ package body APQ.MySQL.Client is
 			end if;
 			
 			Raise_Exception(SQL_Error'Identity,
-				"MY13: Query failed to execute (Execute).");
+				"MY13: Query failed to execute (Execute) :: """ &
+					To_String( Query ) & """"
+				);
 		end if;
 
 	end Execute;

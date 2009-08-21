@@ -38,6 +38,16 @@ export ADA_SOURCE=src
 projectFile="apq-mysql.gpr"
 
 
+VERSION=3.0
+
+
+ifndef ($(PREFIX))
+	PREFIX=/usr/local
+endif
+INCLUDE_PREFIX=$(PREFIX)/include
+LIB_PREFIX=$(PREFIX)/lib
+GPR_PREFIX=$(LIB_PREFIX)/gnat
+
 
 
 
@@ -53,7 +63,7 @@ c_libs: c_objs ${DLL_MAKE}
 	make -C ${C_OBJECT_PATH}
 
 c_objs:
-	make -C ${C_SOURCE_PATH}
+	make -C ${C_SOURCE_PATH} VERSION=$(VERSION)
 
 
 
@@ -77,3 +87,24 @@ clean:
 	-rm ~*
 	-rm \#*
 	@echo "All clean"
+
+gprfile:
+	@echo "Preparing GPR file.."
+	@echo version:=\"$(VERSION)\" > gpr/apq.def
+	@echo prefix:=\"$(PREFIX)\" >> gpr/apq.def
+	@gnatprep gpr/apq-mysql.gpr.in gpr/apq-mysql.gpr gpr/apq.def
+	@gnatprep gpr/apq-mysql_c.gpr.in gpr/apq-mysql_c.gpr gpr/apq.def
+
+gprclean:
+	@rm -f gpr/*.gpr 
+	@rm -f gpr/*.def
+
+install:
+	@echo "Installing files"
+	install -d $(INCLUDE_PREFIX)
+	install -d $(LIB_PREFIX)
+	install -d $(GPR_PREFIX)
+	install src*/* -t $(INCLUDE_PREFIX)
+	install lib/* -t $(LIB_PREFIX)
+	install gpr/*.gpr -t $(GPR_PREFIX)
+
