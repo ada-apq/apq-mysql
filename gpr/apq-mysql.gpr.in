@@ -1,0 +1,38 @@
+-- Build file for APQ-Mysql
+--
+
+
+with "apq.gpr";
+with "apq-mysql_c";
+
+project APQ.MySQL is
+
+	Version	:= APQ.Version;
+	target	:  APQ.Supported_OS := APQ.Target;
+	prefix	:= $prefix;
+
+ 
+	for Source_Dirs use (prefix & "/include");
+	for Library_Dir use prefix & "/lib";
+	for Library_Name use "apq-mysql";
+	for Library_Kind use APQ'Library_Kind;
+	for Library_Version use "libapq-mysql.so." & Version;
+
+
+	package Compiler is
+		for Default_Switches ("Ada") use ("-O2", "-gnat05");
+	end Compiler;
+
+
+	package Linker is
+		case target is 
+			when "GNU/Linux" =>
+				for Default_Switches ("Ada") use ( "-lmysqlclient", "-lapq-mysqlhelp" );
+			when "Windows_NT" =>
+				for Default_Switches ("Ada") use ( "-lapq-mysqlhelp" );
+		end case;
+	end Linker;
+
+	for Externally_Built use "true";
+end APQ.MySQL;
+

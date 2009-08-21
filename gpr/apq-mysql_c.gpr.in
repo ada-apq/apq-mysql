@@ -1,0 +1,24 @@
+-- Build file for the c dll that APQ-Mysql uses.
+-- TODO: Make the file actually compile the libraries.
+
+
+with "apq";
+
+project APQ.MySQL_C is
+
+	Version	:= APQ.Version;
+	Prefix	:= $prefix;
+
+	for Languages use ("C");
+
+	for Source_Dirs use (prefix & "/include");
+
+	for Library_Dir use prefix & "/lib";
+
+	for Library_Name use "apq-mysqlhelp";
+	for Library_Kind use APQ'Library_Kind;
+	for Library_Version use "apq-mysqlhelp.so." & Version;
+	for Externally_Built use "true";
+
+end APQ.MySQL_C;
+
