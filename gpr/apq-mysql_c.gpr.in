@@ -11,7 +11,7 @@ project APQ.MySQL_C is
 
 	for Languages use ("C");
 
-	for Source_Dirs use (prefix & "/include");
+	for Source_Dirs use (prefix & "/include/apq-mysql");
 
 	for Library_Dir use prefix & "/lib";
 
