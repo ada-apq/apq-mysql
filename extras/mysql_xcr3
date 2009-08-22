@@ -1,7 +1,7 @@
 # Extract MySQL Type Code Definitions
 
-TMP1=${TMPDIR:-/tmp/$$-1.tmp}
-TMP2=${TMPDIR:-/tmp/$$-2.tmp}
+TMP1=${TMPDIR:-/tmp}/$$-1.tmp
+TMP2=${TMPDIR:-/tmp}/$$-2.tmp
 
 trap "rm -f '$TMP1 $TMP2'" 0
 
