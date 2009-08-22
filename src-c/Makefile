@@ -39,7 +39,6 @@ CC_OPTIONS=${C_LIBRARY_BASIC_OPTIONS} ${MYSQL_INCLUDE_PATH} ${SYSTEM_DEFINES}
 
 #The main rule is to compile c_mysql.o
 all: c_mysql.o
-	echo A versão é $(VERSION)
 
 #This rule is a generic compilation rule to generate .o from .c.
 .c.o:
