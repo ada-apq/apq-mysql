@@ -7,13 +7,13 @@ with "apq";
 project APQ.MySQL_C is
 
 	Version	:= APQ.Version;
-	Prefix	:= $prefix;
+	
 
 	for Languages use ("C");
 
-	for Source_Dirs use (prefix & "/include/apq-mysql");
+	for Source_Dirs use ($include_prefix);
 
-	for Library_Dir use prefix & "/lib";
+	for Library_Dir use $lib_prefix;
 
 	for Library_Name use "apq-mysqlhelp";
 	for Library_Kind use APQ'Library_Kind;
