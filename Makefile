@@ -35,7 +35,7 @@ EXTRAS_WORK_DIR=${EXTRAS_DIR}/${WORK}
 export ADA_SOURCE=src
 
 #PROJECT_FILES should contain the name of the gpr files that need to be compiled.
-PROJECT_FILES=apq-mysql.gpr apq-mysql_c.gpr
+PROJECT_FILES=apq-mysql_c.gpr apq-mysql.gpr
 
 # GPR_FILES should contain the name of the gpr files that need to be installed.
 GPR_FILES=apq-mysql.gpr apq-mysql_c.gpr
