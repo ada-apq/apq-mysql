@@ -41,6 +41,8 @@ PROJECT_FILES=apq-mysql.gpr apq-mysql_c.gpr
 GPR_FILES=apq-mysql.gpr apq-mysql_c.gpr
 
 
+INCLUDE_FILES=src*/*
+
 
 include Makefile.include
 

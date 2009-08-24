@@ -12,8 +12,8 @@ project APQ.MySQL is
 	
 
  
-	for Source_Dirs use ($include_prefix);
-	for Library_Dir use $lib_prefix;
+	for Source_Dirs use ($include_path);
+	for Library_Dir use $lib_path;
 	for Library_Name use "apq-mysql";
 	for Library_Kind use APQ'Library_Kind;
 	for Library_Version use "libapq-mysql.so." & Version;

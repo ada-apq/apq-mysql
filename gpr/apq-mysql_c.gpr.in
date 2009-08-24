@@ -11,9 +11,9 @@ project APQ.MySQL_C is
 
 	for Languages use ("C");
 
-	for Source_Dirs use ($include_prefix);
+	for Source_Dirs use ($include_path);
 
-	for Library_Dir use $lib_prefix;
+	for Library_Dir use $lib_path;
 
 	for Library_Name use "apq-mysqlhelp";
 	for Library_Kind use APQ'Library_Kind;
