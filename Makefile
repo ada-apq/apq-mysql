@@ -62,7 +62,7 @@ setup:
 	mv ${EXTRAS_WORK_DIR}/apq-mysql.ads src/
 
 
-post_clean:
+extra_clean:
 	@make -C ${C_SOURCE_PATH} clean
 	@make -C ${C_OBJECT_PATH} clean
 	@make -C ${EXTRAS_DIR} clean
