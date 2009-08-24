@@ -6,7 +6,7 @@ with "apq";
 
 project APQ.MySQL_C is
 
-	Version	:= APQ.Version;
+	Version	:= $version;
 	
 
 	for Languages use ("C");

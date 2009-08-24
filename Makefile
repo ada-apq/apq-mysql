@@ -34,37 +34,21 @@ EXTRAS_WORK_DIR=${EXTRAS_DIR}/${WORK}
 
 export ADA_SOURCE=src
 
-#PROJECT_FILE should contain the name of the gpr file.
-projectFile="apq-mysql.gpr"
+#PROJECT_FILES should contain the name of the gpr files that need to be compiled.
+PROJECT_FILES=apq-mysql.gpr apq-mysql_c.gpr
 
-
-VERSION=3.0
-
-
-ifndef ($(PREFIX))
-	PREFIX=/usr/local
-endif
-
-ifndef ($(INCLUDE_PREFIX))
-	INCLUDE_PREFIX=$(PREFIX)/include/apq-mysql
-endif
-
-ifndef ($(LIB_PREFIX))
-	LIB_PREFIX=$(PREFIX)/lib
-endif
-ifndef ($(GPR_PREFIX)) 
-	GPR_PREFIX=$(LIB_PREFIX)/gnat 
-endif
+# GPR_FILES should contain the name of the gpr files that need to be installed.
+GPR_FILES=apq-mysql.gpr apq-mysql_c.gpr
 
 
 
-
-all: libs
-
-libs: c_libs ada_libs
-	gnatmake -P ${projectFile}
+include Makefile.include
 
 
+pre_libs: c_libs setup
+
+pos_libs:
+	@echo The library has been compiled!
 
 
 c_libs: c_objs ${DLL_MAKE}
@@ -73,21 +57,12 @@ c_libs: c_objs ${DLL_MAKE}
 c_objs:
 	make -C ${C_SOURCE_PATH} VERSION=$(VERSION)
 
-
-
-
-ada_libs: setup
-	gnatmake -P ${projectFile}
-
 setup: 
 	make -C ${EXTRAS_DIR} 
 	mv ${EXTRAS_WORK_DIR}/apq-mysql.ads src/
 
 
-
-
-clean:
-	gnatclean -P ${projectFile}
+post_clean:
 	@make -C ${C_SOURCE_PATH} clean
 	@make -C ${C_OBJECT_PATH} clean
 	@make -C ${EXTRAS_DIR} clean
@@ -95,27 +70,3 @@ clean:
 	-rm ~*
 	-rm \#*
 	@echo "All clean"
-
-gprfile:
-	@echo "Preparing GPR file.."
-	@echo version:=\"$(VERSION)\" > gpr/apq.def
-	@echo prefix:=\"$(PREFIX)\" >> gpr/apq.def
-	@echo lib_prefix:=\"$(LIB_PREFIX)\" >> gpr/apq.def
-	@echo include_prefix:=\"$(INCLUDE_PREFIX)\" >> gpr/apq.def
-	@gnatprep gpr/apq-mysql.gpr.in gpr/apq-mysql.gpr gpr/apq.def
-	@gnatprep gpr/apq-mysql_c.gpr.in gpr/apq-mysql_c.gpr gpr/apq.def
-
-gprclean:
-	@rm -f gpr/*.gpr 
-	@rm -f gpr/*.def
-
-install: gprfile
-	@echo "Installing files"
-	install -d $(INCLUDE_PREFIX)
-	install -d $(LIB_PREFIX)
-	install -d $(GPR_PREFIX)
-	install src*/* -t $(INCLUDE_PREFIX)
-	install lib/* -t $(LIB_PREFIX)
-	install gpr/*.gpr -t $(GPR_PREFIX)
-	make gprclean
-

@@ -7,7 +7,7 @@ with "apq-mysql_c";
 
 project APQ.MySQL is
 
-	Version := APQ.Version;
+	Version := $version;
 	target : APQ.Supported_OS := APQ.Target;
 
  
