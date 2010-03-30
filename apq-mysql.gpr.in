@@ -28,7 +28,7 @@ project APQ.MySQL is
 
 	package Linker is
 		case target is 
-			when "GNU/Linux" =>
+			when "GNU/Linux" | "Darwin" =>
 				for Default_Switches ("Ada") use ( "-lmysqlclient", "-lapq-mysqlhelp" );
 			when "Windows_NT" =>
 				for Default_Switches ("Ada") use ( "-lapq-mysqlhelp" );
