@@ -111,13 +111,13 @@ c_mysql_init() {
 EXPORT int
 c_mysql_connect(MYSQL *conn,char *host,char *user,char *passwd,char *db,unsigned port,char *local_socket) {
 	int z;
-	// PLEASE READ :: http://dev.mysql.com/doc/refman/5.0/en/mysql-real-connect.html	
+	// PLEASE READ :: http://dev.mysql.com/doc/refman/5.0/en/mysql-real-connect.html
 	z = mysql_real_connect(conn,host,user,passwd,db,port,local_socket,0) == NULL;
 	return IS_OK(z);
 }
 
 
-/** 
+/**
  * Returns 1 if the connection is active and 0 if it's down.
  */
 EXPORT int
@@ -364,5 +364,15 @@ EXPORT unsigned long
 c_mysql_real_escape_string(MYSQL *mysql,char *to,const char *from,unsigned long length) {
 	return mysql_real_escape_string(mysql,to,from,length);
 }
+/* acrescentei essa funcao :-)  */
+/*my_bool mysql_ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const char *capath, const char *cipher) */
+
+EXPORT void
+c_mysql_ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const  char *capath, const char *cipher){
+  my_bool dani;
+  dani =  mysql_ssl_set(mysql, key, cert, ca, capath, cipher);
+
+  }
+
 
 /* End $Source: /cvsroot/apq/apq/c_mysql.c,v $ */

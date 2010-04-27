@@ -58,8 +58,8 @@ package APQ.MySQL.Client is
 	type Query_Type is new APQ.Root_Query_Type with private;
 
 	function SQL_Code(Query : Query_Type) return SQL_Code_Type;
-	
-	
+
+
 	---------------------------
 	-- DATABASE CONNECTION : --
 	---------------------------
@@ -76,7 +76,13 @@ package APQ.MySQL.Client is
 	procedure Set_Options(C : in out Connection_Type; Options : String);
 	function Options(C : Connection_Type) return String;
 
-	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
+        procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
+
+        procedure Connect_ssl(C : in out Connection_Type;
+                               key,cert,ca,capath,cipher : String := "" ;
+                              Check_Connection : Boolean := True
+                             );
+
 	procedure Connect(C : in out Connection_Type;
 		Same_As : Root_Connection_Type'Class);
 	procedure Disconnect(C : in out Connection_Type);
@@ -89,16 +95,16 @@ package APQ.MySQL.Client is
 	procedure Open_DB_Trace(C : in out Connection_Type;
 		Filename : String; Mode : Trace_Mode_Type := Trace_APQ);
 
-	
+
 	-- Close trace output file
 	procedure Close_DB_Trace(C : in out Connection_Type);
-	
+
 	-- Enable/Disable tracing
 	procedure Set_Trace(C : in out Connection_Type;
 		Trace_On : Boolean := True);
-	
+
 	-- Test trace enabled/disabled
-	function Is_Trace(C : Connection_Type) return Boolean; 
+	function Is_Trace(C : Connection_Type) return Boolean;
 
 	function In_Abort_State(C : Connection_Type) return Boolean;
 
@@ -106,18 +112,18 @@ package APQ.MySQL.Client is
 	-- SQL QUERY API : --
 	---------------------
 	procedure Clear(Q : in out Query_Type);
-	procedure Append_Quoted(Q : in out Query_Type; 
+	procedure Append_Quoted(Q : in out Query_Type;
 				Connection : Root_Connection_Type'Class;
 				SQL : String; After : String := "");
 	procedure Set_Fetch_Mode(Q : in out Query_Type; Mode : Fetch_Mode_Type);
 
-	procedure Execute(Query : in out Query_Type; 
+	procedure Execute(Query : in out Query_Type;
 			  Connection : in out Root_Connection_Type'Class);
-	procedure Execute_Checked(Query : in out Query_Type; 
+	procedure Execute_Checked(Query : in out Query_Type;
 				  Connection : in out Root_Connection_Type'Class;
 				  Msg : String := "");
 
-	procedure Begin_Work(   Query : in out Query_Type; 
+	procedure Begin_Work(   Query : in out Query_Type;
 				Connection : in out Root_Connection_Type'Class);
 	procedure Commit_Work(  Query : in out Query_Type;
 				Connection : in out Root_Connection_Type'Class);
@@ -127,9 +133,9 @@ package APQ.MySQL.Client is
 	procedure Rewind(Q : in out Query_Type);
 	procedure Fetch(Q : in out Query_Type);
 	procedure Fetch(Q : in out Query_Type; TX : Tuple_Index_Type);
- 	
+
 	-- Do not use with Sequential_Fetch mode!
-	function End_of_Query(Q : Query_Type) return Boolean;   
+        function End_of_Query(Q : Query_Type) return Boolean;
 
 	function Tuple(Q : Query_Type) return Tuple_Index_Type;
 	function Tuples(Q : Query_Type) return Tuple_Count_Type;
@@ -145,8 +151,8 @@ package APQ.MySQL.Client is
 	function Is_Null(Q : Query_Type; CX : Column_Index_Type) return Boolean;
 	function Value(Query : Query_Type; CX : Column_Index_Type) return String;
  	-- Returns Result_Type'Pos()  (for generics)
-	
-	function Result(Query : Query_Type) return Natural;     
+
+	function Result(Query : Query_Type) return Natural;
 	function Result(Query : Query_Type) return Result_Type;
 	function Command_Oid(Query : Query_Type) return Row_ID_Type;
 	function Null_Oid(Query : Query_Type) return Row_ID_Type;
@@ -177,7 +183,7 @@ private
 
 	type Query_Type is new APQ.Root_Query_Type with
 		record
-			Results :         APQ.MySQL.MYSQL_RES := Null_Result;	
+			Results :         APQ.MySQL.MYSQL_RES := Null_Result;
 			-- MySQL Query Results (if any)
 			Error_Code :      Result_Type;
 			-- Error code (should agree with message)
@@ -185,7 +191,7 @@ private
 			-- Error message after failed to connect (only)
 			Row :             APQ.MySQL.MYSQL_ROW := Null_Row;
 			-- The current/last row fetched
-			Row_ID :          Row_ID_Type;	
+			Row_ID :          Row_ID_Type;
 			-- Row ID from last INSERT/UPDATE
 		end record;
 
