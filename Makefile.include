@@ -1,5 +1,6 @@
 
 VERSION=$(shell cat version)
+MYSQL_INCLUDE=$(shell mysql_config --include)
 
 ifndef ($(PREFIX))
 	PREFIX=/usr/local
@@ -34,8 +35,8 @@ all: libs
 libs: pre_libs
 	@for project_file in $(PROJECT_FILES); do\
 		echo "Making $$project_file"; \
-		gnatprep "-Dversion=\"$(VERSION)\"" $$project_file.in $$project_file; \
-		gnatmake -P $$project_file; \
+		gnatprep "-Dversion=\"$(VERSION)\"" "-Dmysql_include=\"$(MYSQL_INCLUDE)\"" $$project_file.in $$project_file; \
+		gprbuild -P $$project_file; \
 	done
 
 clean: gprclean extra_clean

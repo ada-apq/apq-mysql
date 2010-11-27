@@ -35,29 +35,30 @@ EXTRAS_WORK_DIR=${EXTRAS_DIR}/${WORK}
 export ADA_SOURCE=src
 
 #PROJECT_FILES should contain the name of the gpr files that need to be compiled.
-PROJECT_FILES=apq-mysql_c.gpr apq-mysql.gpr
+PROJECT_FILES=apq-mysql.gpr
 
 # GPR_FILES should contain the name of the gpr files that need to be installed.
-GPR_FILES=apq-mysql.gpr apq-mysql_c.gpr
+GPR_FILES=apq-mysql.gpr
 
 
 INCLUDE_FILES=src*/*
+ads_file=$(shell ls src/apq-mysql.ads) 
 
 
 include Makefile.include
 
 
-pre_libs: c_libs setup
+ifeq "$(strip $(ads_file))"  "src/apq-mysql.ads"
+pre_libs:
+else
+pre_libs:
+	@echo You need to run make setup first 
+	@false 
+endif
 
 pos_libs:
 	@echo The library has been compiled!
 
-
-c_libs: c_objs ${DLL_MAKE}
-	make -C ${C_OBJECT_PATH}
-
-c_objs:
-	make -C ${C_SOURCE_PATH} VERSION=$(VERSION)
 
 setup: 
 	make -C ${EXTRAS_DIR} 
@@ -65,15 +66,9 @@ setup:
 
 
 extra_clean:
-	@make -C ${C_SOURCE_PATH} clean
-	@make -C ${C_OBJECT_PATH} clean
 	@make -C ${EXTRAS_DIR} clean
 	-rm *~
 	-rm ~*
 	-rm \#*
 	@echo "All clean"
 
-
-gprbuild:
-	@echo Compilando com o gprbuild 
-	gprbuild mysql.gpr
