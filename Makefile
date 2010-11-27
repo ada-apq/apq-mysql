@@ -72,3 +72,8 @@ extra_clean:
 	-rm ~*
 	-rm \#*
 	@echo "All clean"
+
+
+gprbuild:
+	@echo Compilando com o gprbuild 
+	gprbuild mysql.gpr
