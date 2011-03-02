@@ -30,9 +30,9 @@ project APQ.MySQL is
 	package Linker is
 		case target is 
 			when "GNU/Linux" | "Darwin" =>
-				for Linker_Options use ( "-lmysqlclient", "-lapq-mysqlhelp" );
+				for Linker_Options use ( "-lmysqlclient" );
 			when "Windows_NT" =>
-				for Linker_Options use ( "-lapq-mysqlhelp" );
+				for Linker_Options use (  );
 		end case;
 	end Linker;
 
