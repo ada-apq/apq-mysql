@@ -3,7 +3,6 @@
 
 
 with "apq.gpr";
-with "apq-mysql_c";
 
 project APQ.MySQL is
 
@@ -26,10 +25,10 @@ project APQ.MySQL is
 
 	package Linker is
 		case target is 
-			when "GNU/Linux" =>
-				for Default_Switches ("Ada") use ( "-lmysqlclient", "-lapq-mysqlhelp" );
+			when "GNU/Linux" | "Darwin" =>
+				for Default_Switches ("Ada") use ( "-lmysqlclient"  );
 			when "Windows_NT" =>
-				for Default_Switches ("Ada") use ( "-lapq-mysqlhelp" );
+				for Default_Switches ("Ada") use (  );
 		end case;
 	end Linker;
 
