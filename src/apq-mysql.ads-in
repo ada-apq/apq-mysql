@@ -77,6 +77,9 @@ private
 		ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
 		ARG_CHAR_PTR   -- Argument is char pointer
 	);
+	type Option_Argument_Ptr is access all Option_Argument_Type;
+	type Option_Argument_Ptr_Array is array(Natural range <>) of Option_Argument_Ptr;
+	type Option_Argument_Ptr_Array_Access is access all Option_Argument_Ptr_Array;
 
 	type MySQL_Enum_Option is mod 2**32;
 

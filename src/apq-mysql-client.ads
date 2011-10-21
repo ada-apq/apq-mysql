@@ -164,19 +164,35 @@ package APQ.MySQL.Client is
 
 private
 
-	type Connection_Type is new APQ.Root_Connection_Type with
-		record
-			Options :         String_Ptr;
-			-- MySQL database engine options
-			Connection :      MYSQL := Null_Connection;
-			-- MySQL connection object
-			Connected :       Boolean := False;
-			-- True when connected
-			Error_Code :      Result_Type;
-			-- Error code (should agree with message)
-			Error_Message :   String_Ptr;
-			-- Error message after failed to connect (only)
-		end record;
+   type Connection_Type is new APQ.Root_Connection_Type with
+      record
+	 Options       : String_Ptr;
+	 -- MySQL database engine options
+	 Connection    : MYSQL := Null_Connection;
+	 -- MySQL connection object
+	 Connected     : Boolean := False;
+	 -- True when connected
+	 Error_Code    : Result_Type;
+	 -- Error code (should agree with message)
+	 Error_Message : String_Ptr;
+	 -- Error message after failed to connect (only)
+  	         ----
+         keyname : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
+	 keyval        : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
+	 keyval_type : Option_Argument_Ptr_Array_Access;
+         keycount : natural := 0;
+         keyalloc : natural := 0;
+
+         keyval_Caseless   : Boolean_Array_Access;
+         keyname_Caseless  : Boolean_Array_Access;
+
+         keyname_val_cache : String_Ptr;       -- for bypass "the recreate it" ,
+         keyname_val_cache_uptodate : boolean := false; -- if keyname_val_cache_uptodate = true (True)
+
+         keyname_default_case : SQL_Case_Type := Lower_Case;
+         keyval_default_case  : SQL_Case_Type := Preserve_Case;
+         ----
+      end record;
 
 	procedure Finalize(C : in out Connection_Type);
 	procedure Initialize(C : in out Connection_Type);
