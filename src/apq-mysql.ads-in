@@ -80,6 +80,10 @@ private
 	type Option_Argument_Ptr is access all Option_Argument_Type;
 	type Option_Argument_Ptr_Array is array(Natural range <>) of Option_Argument_Ptr;
 	type Option_Argument_Ptr_Array_Access is access all Option_Argument_Ptr_Array;
+	----
+	procedure Free is new Ada.Unchecked_Deallocation(Option_Argument_Type,Option_Argument_Ptr);
+	procedure Free is new Ada.Unchecked_Deallocation(Option_Argument_Ptr_Array,Option_Argument_Ptr_Array_Access);
+	----
 
 	type MySQL_Enum_Option is mod 2**32;
 
