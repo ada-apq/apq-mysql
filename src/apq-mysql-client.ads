@@ -74,17 +74,62 @@ package APQ.MySQL.Client is
 	procedure Set_Instance(C : in out Connection_Type; Instance : String);
 
 	procedure Set_Options(C : in out Connection_Type; Options : String);
-	function Options(C : Connection_Type) return String;
+   function Options (C : Connection_Type) return String;
+   -----
+      function quote_string( qkv : string ) return ada.Strings.Unbounded.Unbounded_String;
+   function quote_string( qkv : string ) return String;
+   procedure grow_key( C : in out Connection_Type); --
 
-        procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
+   function  cache_key_nameval_uptodate( C : Connection_Type) return boolean;--
+   pragma inline(cache_key_nameval_uptodate);
+   -- if force = true, re-create it even if already uptodate;
+   -- if force = false,(automatic,normal daily use) re-create only if necessary/not-uptodate
+   procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false);
+
+   function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type;--
+   function get_keyval_default_case( C : Connection_Type) return SQL_Case_Type;--
+   procedure set_keyname_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
+   procedure set_keyval_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
+   pragma inline(get_keyname_default_case);
+   pragma inline(get_keyval_default_case);
+   pragma inline(set_keyname_default_case);
+   pragma inline(set_keyval_default_case);
+
+   -- add keyword and his respective value for the connection string.
+   -- if clear = false, just append keyword and value to list of keywords and values
+   -- if clear = true, remove all values in list before add keyword and value to list
+   -- see http://www.postgresql.org/docs/8.4/static/libpq-connect.html  or
+   -- see http://www.postgresql.org/docs/9.0/static/libpq-connect.html to a list of kewords and his values
+   --
+   -- example sslmode, sslcert, ..., sslkey, gsspi ,etc :-)
+   --
+   -- if in the list of keywords have keywords equals the value used is the last value in list.
+   -- remember to include the libs was needed
+   procedure add_key_nameval( C : in out Connection_Type;
+                             kname,kval : string := "";
+                             knamecasele, kvalcasele : boolean := true;
+                             clear : boolean := false);
+
+   procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0);
+
+   procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
+
+   procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class);
+
+   function verifica_conninfo_cache( C : Connection_Type) return string;
+
+---------
+
+        procedure Connect_old(C : in out Connection_Type; Check_Connection : Boolean := True);
 
         procedure Connect_ssl(C : in out Connection_Type;
                                key,cert,ca,capath,cipher : String := "" ;
                               Check_Connection : Boolean := True
                              );
 
-	procedure Connect(C : in out Connection_Type;
-		Same_As : Root_Connection_Type'Class);
+	procedure Connect_old(C : in out Connection_Type;
+		       Same_As : Root_Connection_Type'Class);
+   ----
 	procedure Disconnect(C : in out Connection_Type);
 
 	function Is_Connected(C : Connection_Type) return Boolean;
@@ -177,10 +222,10 @@ private
 	 Error_Message : String_Ptr;
 	 -- Error message after failed to connect (only)
   	         ----
-         keyname : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
-	 keyval        : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
+	 keyname     : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
+	 keyval      : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
 	 keyval_type : Option_Argument_Ptr_Array_Access;
-         keycount : natural := 0;
+	 keycount      : natural := 0;
          keyalloc : natural := 0;
 
          keyval_Caseless   : Boolean_Array_Access;

@@ -508,7 +508,9 @@ package body APQ.MySQL.Client is
 	begin
 		Replace_String(C.Options,Set_Options.Options);
 
-		if C.Options = null then
+      		c.keyname_val_cache_uptodate := false;
+
+      		if C.Options = null then
 			return;
 		end if;
 
@@ -522,11 +524,476 @@ package body APQ.MySQL.Client is
 	begin
 		return To_String(C.Options);
 	end Options;
+   ------------
+   --
+   --
+   function quote_string( qkv : string ) return String
+   is
+      use ada.Strings;
+      use ada.Strings.Fixed;
+
+      function PQescapeString(to, from : System.Address; length : size_t) return size_t;
+      pragma Import(C,PQescapeString,"PQescapeString");
+      src : string := trim ( qkv , both );
+      C_Length : size_t := src'Length * 2 + 1;
+      C_From   : char_array := To_C(src);
+      C_To     : char_array(0..C_Length-1);
+      R_Length : size_t := PQescapeString(C_To'Address,C_From'Address,C_Length);
+      -- viva!!! :-)
+   begin
+      return To_Ada(C_To);
+   end quote_string;
+   ----
+
+   function quote_string( qkv : string ) return ada.Strings.Unbounded.Unbounded_String
+   is
+   begin
+      return ada.Strings.Unbounded.To_Unbounded_String(String'(quote_string(qkv)));
+   end quote_string;
+
+   --
+   procedure grow_key (C  : in out Connection_Type) is
+      -- used internally to grow the key name and respective val size so add_keyname_val() works;
+      -- not alter c.keyname_val_cache_uptodate here :-) because It don't yet insert new "real" change
+      -- in c.keyname_val_cache :-)
+      pragma optimize(time);
+
+   begin
+      if C.keycount <= 0 and c.keyalloc <= 0 then
+
+         C.keyalloc := 32; -- this suffice for now :-)
+
+         C.keyname := new String_Ptr_Array(1..C.keyalloc);
+         C.keyval  := new String_Ptr_Array(1..C.keyalloc);
+
+         C.keyname_Caseless  := new Boolean_Array(1..C.keyalloc);
+         C.keyval_Caseless   := new Boolean_Array(1..C.keyalloc);
+
+      elsif C.keycount >= C.keyalloc then
+         declare
+            New_keyAlloc : Natural := C.keyAlloc + 64;
+            New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
+            New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
+
+            New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
+            New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
+
+         begin
+            New_Array_keyname(1..C.keyalloc) := C.keyname.all;
+            New_Array_keyval(1..C.keyalloc) := C.keyval.all;
+
+            New_Case_keyname(1..C.keyalloc) := C.keyname_Caseless.all;
+            New_Case_keyval(1..C.keyalloc)  := C.keyval_Caseless.all;
+
+            Free(C.keyname);
+            Free(C.keyval);
+            Free(C.keyname_Caseless);
+            Free(C.keyval_Caseless);
+
+            C.keyAlloc := New_keyAlloc;
+
+            C.keyname := New_Array_keyname;
+            C.keyval := New_Array_keyval;
+
+            C.keyname_Caseless := New_Case_keyname;
+            C.keyval_Caseless := New_Case_keyval;
+
+         end;
+      end if;
+   end grow_key;--
+   --
+   function cache_key_nameval_uptodate( C : Connection_Type) --
+                                       return boolean
+   is
+   begin
+      return c.keyname_val_cache_uptodate;
+      -- fixme: proper exception/error handler  :-)
+   end cache_key_nameval_uptodate;
+
+   --
+   procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false)--
+   is
+      pragma optimize(time);
+
+      use ada.strings.Unbounded;
+      use ada.strings.Fixed;
+      use ada.Strings;
+      use Ada.Characters.Handling;
+      tmp_ub_cache : Unbounded_String := To_Unbounded_String(160); -- pre-allocate :-)
+      tmp_eq : Unbounded_String := to_Unbounded_String(" = '");
+      tmp_ap : Unbounded_String := to_Unbounded_String("' ");
+      a : natural := c.keycount; -- number of keyname's and keyval's
+
+   begin
+      if cache_key_nameval_uptodate( C ) and force = false then return; end if; -- bahiii :-)
+      Free_Ptr(c.keyname_val_cache);
+      if c.Port_Format = UNIX_Port then
+         tmp_ub_cache := to_Unbounded_String("host")
+           & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Host_Name)))),ada.Strings.both) & tmp_ap
+           & to_Unbounded_String("port")
+           & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Port_Name)))),ada.Strings.both) & tmp_ap ;
+        elsif c.Port_Format = IP_Port then
+         tmp_ub_cache := to_Unbounded_String("hostaddr")
+           & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Host_Address)))),ada.Strings.both) & tmp_ap
+           & to_Unbounded_String("port")
+           & tmp_eq & trim(to_Unbounded_String(string'(Port_Integer'image(c.Port_Number))),ada.Strings.both) & tmp_ap;
+      else
+         raise program_error;
+      end if;
+      tmp_ub_cache := tmp_ub_cache
+        & to_Unbounded_String("dbname") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.DB_Name)))),ada.Strings.both) & tmp_ap
+        & to_Unbounded_String("user") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.User_Name)))),ada.Strings.both) & tmp_ap
+        & to_Unbounded_String("password") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.User_Password)))),ada.Strings.both) & tmp_ap;
+      if trim(string'(To_String(C.Options)), ada.Strings.Both) /= "" then
+         tmp_ub_cache := tmp_ub_cache
+         & to_Unbounded_String("options") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Options)))), both) & tmp_ap ;
+      end if;
+
+      if a > 0 then --  a = c.keycount
+         for b in 1 .. a loop -- a = number of keyword names val par duuh :-)
+                                -- fixme if necessary: ? keyname need quoting  ? :-)
+                                -- I belive It not :-) but the Brighter user are encoraged to join and participate :-)
+            if c.keyname_Caseless(b) or c.keyname_default_case = Preserve_Case then
+               tmp_ub_cache := tmp_ub_cache & To_Unbounded_String(string'(to_string(c.keyname(b)))) & tmp_eq ;
+            else
+               if c.keyname_default_case = Lower_Case then
+                  tmp_ub_cache := tmp_ub_cache & To_Unbounded_String( To_Lower(string'(to_string(c.keyname(b))))) & tmp_eq ;
+               else
+                  tmp_ub_cache := tmp_ub_cache & To_Unbounded_String(To_Upper(string'(to_string(c.keyname(b))))) & tmp_eq ;
+               end if;
+            end if;
+            if c.keyval_Caseless(b) or c.keyval_default_case = Preserve_Case then
+               tmp_ub_cache := tmp_ub_cache & trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both) & tmp_ap ;
+            else
+               if c.keyname_default_case = Lower_Case then
+                  tmp_ub_cache := tmp_ub_cache & trim(Unbounded_String'(quote_string(To_Lower(string'(To_String(C.keyval(b)))))),ada.Strings.both) & tmp_ap;
+               else
+                  tmp_ub_cache := tmp_ub_cache & trim(Unbounded_String'(quote_string(To_Upper(string'(To_String(C.keyval(b)))))),ada.Strings.both) & tmp_ap;
+               end if;
+            end if;
+
+         end loop;
+      end if;
+      declare
+         cache_tmp_str : string := ada.strings.Fixed.trim(ada.Strings.Unbounded.to_string(tmp_ub_cache),both);
+         cache_tmp_len : natural := cache_tmp_str'length;
+      begin
+         C.keyname_val_cache := new string(1..cache_tmp_len);
+         c.keyname_val_cache.all(1..cache_tmp_len) := cache_tmp_str;
+         c.keyname_val_cache_uptodate := true;
+      end;
+   end cache_key_nameval_create;--
+   --
+   procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0)
+   is
+      pragma optimize(time);
+
+      ckcount : natural := c.keycount;
+      ckalloc : natural := c.keyalloc;
+      len     : natural := ckalloc;
+
+   begin
+      if ckcount = 0 and add_more_this_alloc = 0 and ckalloc /= 0 then
+         return;  -- bahiii :-)
+      end if;
+
+      pragma assert( add_more_this_alloc > 200 ); -- uau ! :-)
+
+      ckcount := ckcount + add_more_this_alloc;
+      if ckcount >= ckalloc then
+         ckalloc := ckcount + 32 ;
+         len := ckalloc;
+      end if;
+
+      declare
+         New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+         New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+
+         New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
+         New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
+
+      begin
+         Free(C.keyname);
+         Free(C.keyval);
+         Free(C.keyname_Caseless);
+         Free(C.keyval_Caseless);
+
+         C.keycount := 0;
+
+         C.keyname := New_Array_keyname;
+         C.keyval := New_Array_keyval;
+
+         C.keyname_Caseless := New_Case_keyname;
+         C.keyval_Caseless := New_Case_keyval;
+
+         C.keyname_val_cache_uptodate := false;
+
+         C.keyalloc := len;
+
+      end ;
+   end clear_all_key_nameval;
+
+
+   procedure add_key_nameval( C : in out Connection_Type;
+                             kname, kval : string := "";
+                             knamecasele, kvalcasele : boolean := true;
+                            clear : boolean := false )
+   is
+      pragma optimize(time);
+      use ada.strings;
+      use ada.Strings.Fixed;
+
+      tmp_kname : string  := string'(trim(kname,both));
+      tmp_kval  : string  := string'(trim(kval,both));
+      tkm       : natural := tmp_kname'Length;
+      tkv       : natural := tmp_kval'Length;
+      ckc       : natural := 0;
+   begin
+      if clear then
+         clear_all_key_nameval(C);
+      end if;
+      if tmp_kname = "" then return; end if; -- bahiii :-)
+      grow_key(C);
+      C.keycount := C.keycount + 1;
+      ckc := C.keycount;
+      C.keyname(ckc) := new String(1..tkm);
+      C.keyname(ckc).all(1..tkm) := tmp_kname;
+      C.keyname_Caseless(ckc) := knamecasele;
+      if tmp_kval = "" then
+         C.keyval(ckc) := null;
+      else
+         C.keyval(ckc) := new String(1..tkv);
+         C.keyval(ckc).all(1..tkv) := tmp_kval;
+      end if;
+      C.keyval_Caseless(ckc)       := kvalcasele;
+      C.keyname_val_cache_uptodate := false;
+
+   end add_key_nameval;
+
+
+
+   function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type--
+   is
+   begin
+      return c.keyname_default_case;
+      -- fixme: proper exception/error handler  :-)
+   end get_keyname_default_case;
+
+   function get_keyval_default_case( C : Connection_Type) return SQL_Case_Type--
+   is
+   begin
+      return c.keyval_default_case;
+      -- fixme: proper exception/error handler  :-)
+   end get_keyval_default_case;
+
+   procedure set_keyname_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type)--
+   is
+   begin
+      c.keyname_default_case := sqlcase;
+
+      -- fixme: are there necessity to invalidate
+      -- the keyname_val_cache ? if yes, uncomment the line below :-)
+      -- C.keyname_val_cache_uptodate := false;
+   end set_keyname_default_case;
+
+   procedure set_keyval_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type)
+   is
+   begin
+      c.keyval_default_case := sqlcase;
+      -- fixme: are there necessity to invalidate
+      -- the keyname_val_cache ? if yes, uncomment the line below :-)
+      -- C.keyname_val_cache_uptodate := false;
+   end set_keyval_default_case;
+   --
+   procedure clone_clone_pg(To : in out Connection_Type; From : Connection_Type )
+   is
+      pragma optimize(time);
+
+      keyalloc_from : natural := from.keyalloc;
+      keycount_from : natural := from.keycount;
+      keyalloc_to   : natural := to.keyalloc;
+      keycount_to   : natural := to.keycount;
+
+   begin
+      if keycount_from = 0 or keyalloc_from = 0 then
+         clear_all_key_nameval(To);
+         return; -- bahiii :-)
+      end if;
+
+      if keycount_from >= keyalloc_to then
+         clear_all_key_nameval(to , add_more_this_alloc => (keycount_from - keyalloc_to) + 1 );
+      else
+         clear_all_key_nameval(to);
+      end if;
+      declare
+         len        : natural := keycount_from;
+         New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+         New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+
+         New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
+         New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
+
+      begin
+         New_Array_keyname.all := from.keyname.all;
+         New_Array_keyval.all  := from.keyval.all;
+         New_Case_keyname.all  := from.keyname_Caseless.all;
+         New_Case_keyval.all  := from.keyval_Caseless.all;
+
+         to.keyname(1..len) := New_Array_keyname.all;
+         to.keyval(1..len) := New_Array_keyval.all;
+
+         to.keyname_Caseless(1..len) := New_Case_keyname.all;
+         to.keyval_Caseless(1..len) := New_Case_keyval.all;
+
+         to.keyname_val_cache_uptodate := false;
+
+         to.keycount := len;
+
+      end ;
+   end clone_clone_pg;
+ --
+   procedure connect(C : in out Connection_Type; Check_Connection : Boolean := True)
+   is
+      pragma optimize(time);
+
+      use Interfaces.C.Strings;
+
+   begin
+      if Check_Connection and then Is_Connected(C) then
+         Raise_Exception(Already_Connected'Identity,
+                         "PG07: Already connected (Connect).");
+      end if;
+
+      cache_key_nameval_create(C); -- don't worry :-) "re-create" accours only if not uptodate :-)
+                                   -- This procedure can be executed manually if you desire :-)
+                                   -- "for example": the "Connection_type" var was created  and configured
+                                   -- much before the  connection with the DataBase server :-) take place
+                                   -- then the "Connection_type" already uptodate
+                                   -- ( well... uptodate if really uptodate ;-)
+                                   -- this will speedy up the things a little :-)
+      declare
+         procedure Notice_Install(Conn : PG_Conn; ada_obj_ptr : System.Address);
+         pragma import(C,Notice_Install,"notice_install");
+
+         function PQconnectdb(coni : chars_ptr ) return PG_Conn;
+         pragma import(C,PQconnectdb,"PQconnectdb");
+         coni_str : string := C.keyname_val_cache.all;
+         C_conni : chars_ptr := New_String(Str => coni_str );
+      begin
+         C.Connection := PQconnectdb( C_conni); -- blocking call :-)
+         Free_Ptr(C.Error_Message);
+
+         if PQ_Status(C) /= Connection_OK then  -- if the connecting in a non-blocking fashion,
+            -- there are more option of status needing verification :-)
+            -- it Don't the case here
+            declare
+               procedure PQfinish(C : PG_Conn);
+               pragma Import(C,PQfinish,"PQfinish");
+               Msg : String := Strip_NL(Error_Message(C));
+            begin
+               PQfinish(C.Connection);
+               C.Connection := Null_Connection;
+               C.Error_Message := new String(1..Msg'Length);
+               C.Error_Message.all := Msg;
+               Raise_Exception(Not_Connected'Identity,
+                               "PG08: Failed to connect to database server (Connect). error was: " &
+                               msg ); -- more descriptive about 'what failed' :-)
+            end;
+         end if;
+
+         Notice_Install(C.Connection,C'Address);	-- Install Connection_Notify handler
+
+         ------------------------------
+         -- SET PGDATESTYLE TO ISO;
+         --
+         -- This is necessary for all of the
+         -- APQ date handling routines to
+         -- function correctly. This implies
+         -- that all APQ applications programs
+         -- should use the ISO date format.
+         ------------------------------
+         declare
+            SQL : Query_Type;
+         begin
+            Prepare(SQL,"SET DATESTYLE TO ISO");
+            Execute(SQL,C);
+         exception
+            when Ex : others =>
+               Disconnect(C);
+               Reraise_Occurrence(Ex);
+         end;
+      end;
+
+   end connect;
+
+   procedure connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class)
+   is
+      pragma optimize(time);
+
+      type Info_Func is access function(C : Connection_Type) return String;
+
+      procedure Clone(S : in out String_Ptr; Get_Info : Info_Func) is
+         Info : String := Get_Info(Connection_Type(Same_As));
+      begin
+         if Info'Length > 0 then
+            S	:= new String(1..Info'Length);
+            S.all	:= Info;
+         else
+            null;
+            pragma assert(S = null);
+         end if;
+      end Clone;
+      blo : boolean := true;
+      tmpex : natural := 2;
+   begin
+      Reset(C);
+
+      Clone(C.Host_Name,Host_Name'Access);
+
+      C.Port_Format := Same_As.Port_Format;
+      if C.Port_Format = IP_Port then
+         C.Port_Number := Port(Same_As);	  -- IP_Port
+      else
+         Clone(C.Port_Name,Port'Access);	  -- UNIX_Port
+      end if;
+
+      Clone(C.DB_Name,DB_Name'Access);
+      Clone(C.User_Name,User'Access);
+      Clone(C.User_Password,Password'Access);
+      Clone(C.Options,Options'Access);
+
+      C.Rollback_Finalize	:= Same_As.Rollback_Finalize;
+      C.Notify_Proc		:= Connection_Type(Same_As).Notify_Proc;
+      -- I believe if "Same_As" var is defacto a "Connection_Type" as "C" var,
+      -- there are need for copy  key's name and val from "Same_As" ,
+      -- because in this keys and vals
+      -- maybe are key's how sslmode , gsspi etc, that are defacto needs for connecting "C"
+
+      if Same_As.Engine_Of = Engine_PostgreSQL then
+         clone_clone_pg(C , Connection_Type(Same_as));
+      end if;
+
+     connect(C);	-- Connect to database before worrying about trace facilities
+
+      -- TRACE FILE & TRACE SETTINGS ARE NOT CLONED
+
+   end connect;
+
+   function verifica_conninfo_cache( C : Connection_Type) return string -- for debug purpose :-P
+                                                                        -- in the spirit there are an get_password(c) yet...
+
+   is
+   begin
+      return To_String(c.keyname_val_cache);
+   end verifica_conninfo_cache;
+
+
+   -------------------------------
 
 
 
 
-	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True) is
+	procedure Connect_old(C : in out Connection_Type; Check_Connection : Boolean := True) is
 		use Interfaces.C.Strings;
 
 		C_Host :       char_array_access;
@@ -639,7 +1106,7 @@ package body APQ.MySQL.Client is
 				Process_Connection_Options(C);
 			end if;
 		end if;
-	end Connect;
+	end Connect_old;
    ---------------------------------
    ----------------------------------------
    procedure Set_ssl(C1 : in out MYSQL; key,cert,ca,capath,cipher : String := "" ) is
@@ -802,7 +1269,7 @@ package body APQ.MySQL.Client is
 		end if;
 	end Connect_ssl;
 --------------------------------
-	procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
+	procedure Connect_old(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
 		type Info_Func is access function(C : Connection_Type) return String;
 
 		procedure Clone(S : in out String_Ptr; Get_Info : Info_Func) is
@@ -842,7 +1309,7 @@ package body APQ.MySQL.Client is
 
 		-- TRACE FILE & TRACE SETTINGS ARE NOT CLONED
 
-	end Connect;
+	end Connect_old;
 
 
 	procedure Disconnect(C : in out Connection_Type) is
