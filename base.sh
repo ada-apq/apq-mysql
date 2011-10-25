@@ -171,7 +171,7 @@ if [ $# -ne 9 ]; then
 	{	printf "\n"
 		printf 'not ok. You dont need use it by hand. read INSTALL for more info and direction.'
 		printf "\n"
-		printf 'configura "OSes" "libtype,libtype_n" "compiler_path1:compiler_path_n" "system_libs_path1:system_libs_paths_n"  "ssl_include_path" " 'stub' pg_config_path"  "gprconfig_path"  "gprbuild_path"  "build_with_debug_too" '
+		printf 'configura "OSes" "libtype,libtype_n" "compiler_path1:compiler_path_n" "system_libs_path1:system_libs_paths_n"  "ssl_include_path" "mysql_config_path"  "gprconfig_path"  "gprbuild_path"  "build_with_debug_too" '
 		printf "\n"
 	}>"$my_atual_dir/apq_error.log"
 	
@@ -193,8 +193,8 @@ local my_system_libs_paths=
 local _system_libs_paths=$4
 local my_ssl_include_path=
 local _ssl_include_path=$5
-local my_pg_config_path=
-local _pg_config_path=$6
+local my_mysql_config_path=
+local _mysql_config_path=$6
 local my_gprconfig_path=
 local _gprconfig_path=$7
 local my_gprbuild_path=
@@ -204,10 +204,9 @@ local my_with_debug_too=$(_choose_debug "$9" )
 
 # fix me if necessary:
 # need more sanitization
-# 'stub' _pg_config_path=${_pg_config_path:=$(_discover_acmd_path "pg_config" "$my_compiler_paths" "/usr/bin" )}
+_mysql_config_path=${_mysql_config_path:=$(_discover_acmd_path "mysql_config" "$my_compiler_paths" "/usr/bin" )}
 #_pg_config_path=${_pg_config_path//[''``]/""}
-# 'stub' my_pg_config_path=$_pg_config_path
-my_pg_config_path="stub"
+my_mysql_config_path=$_mysql_config_path
 
 _gprconfig_path=${_gprconfig_path:=$(_discover_acmd_path "gprconfig" "$my_compiler_paths" "/usr/bin" )}
 my_gprconfig_path=$_gprconfig_path
@@ -254,7 +253,7 @@ do
 				printf	"$my_compiler_paths  \n"
 				printf	"$my_gprconfig_path  \n"
 				printf	"$my_gprbuild_path  \n"
-				printf	"${my_pg_config_path}  \n"
+				printf	"${my_mysql_config_path}  \n"
 				printf	"${my_system_libs_paths}  \n"
 			}>"$my_tmp/logged/kov.log"
 
@@ -277,31 +276,31 @@ do
 
 			}>"$my_tmp/logged/kov.def"
 
-			cat "$my_atual_dir/apq_part1.gpr.in.in" > "$my_tmp/apq.gpr.in"  2>>"$my_atual_dir/apq_error.log"
-			printf  '   system_libs  := ( ) & ( ' >> "$my_tmp/apq.gpr.in"
-			printf  " $madeit3 " >> "$my_tmp/apq.gpr.in"
-			printf  ' ); ' >> "$my_tmp/apq.gpr.in"
-			cat "$my_atual_dir/apq_part3.gpr.in.in" >> "$my_tmp/apq.gpr.in"  2>>"$my_atual_dir/apq_error.log"
+			cat "$my_atual_dir/apq_mysql_part1.gpr.in.in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
+			printf  '   system_libs  := ( ) & ( ' >> "$my_tmp/apq_mysql.gpr.in"
+			printf  " $madeit3 " >> "$my_tmp/apq_mysql.gpr.in"
+			printf  ' ); ' >> "$my_tmp/apq_mysql.gpr.in"
+			cat "$my_atual_dir/apq_mysql_part3.gpr.in.in" >> "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 					
-			gnatprep "$my_tmp/apq.gpr.in"  "$my_tmp/apq.gpr"  "$my_tmp/logged/kov.def"  2>>"$my_atual_dir/apq_error.log"
+			gnatprep "$my_tmp/apq_mysql.gpr.in"  "$my_tmp/apq_mysql.gpr"  "$my_tmp/logged/kov.def"  2>>"$my_atual_dir/apq_mysql_error.log"
 			
 			IFS=",$ifsbackup"
 
-			for support_dirs in obj lib ali obj_c lib_c ali_c
+			for support_dirs in obj lib ali obj_c lib_c ali_c src
 			do
-				mkdir -p "$my_tmp"/$support_dirs  2>>"$my_atual_dir/apq_error.log"
+				mkdir -p "$my_tmp"/$support_dirs  2>>"$my_atual_dir/apq_mysql_error.log"
 			done # support_dirs
 		done # debuga
 	done # libbuildtype
 done # sist_oses
 IFS="$ifsbackup"
 	#not ok
-	if [ -s  "$my_atual_dir/apq_error.log" ]; then
-		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n not ok. \n " >> "$my_atual_dir/apq_error.log"
+	if [ -s  "$my_atual_dir/apq_mysql_error.log" ]; then
+		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n not ok. \n " >> "$my_atual_dir/apq_mysql_error.log"
 		exit 1
 	else 
 		#ok
-		printf "\n ok. \n\n" >> "$my_atual_dir/apq_error.log"
+		printf "\n ok. \n\n" >> "$my_mysql_atual_dir/apq_error.log"
 		exit 0;   # end ;-)
 	fi
 
