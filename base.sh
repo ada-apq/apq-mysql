@@ -3,7 +3,7 @@
 #: date		: 2011-jul-09
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.2
+#: version	: 1.2.3
 #: Description: base scripts and functions for configuring,compiling and installing.
 #: Description: You don't need run this script manually.
 #: Description: For It use makefile targets. See INSTALL file.
@@ -150,20 +150,20 @@ printf "$(dirname $my_path )"
 
 _configure(){
 #: title	: configure
-#: date		: 2011-jul-09
+#: date		: 2011-oct-25
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.03
+#: version	: 1.05
 #: Description: made configuration for posterior compiling by gprbuild.
 #: Description: You don't need run this script manually.
 #: Options	:  "OSes" "libtypes,libtypes_n" "compiler_path1:compiler_pathn"  \
-#:		"system_libs_path1:system_libs_pathn"  "ssl_include_paths" "pg_config_path"  \
+#:		"system_libs_path1:system_libs_pathn"  "ssl_include_paths" "mysql_config_path"  \
 #:		"gprconfig_path"  "gprbuild_path"  "with_debug_too"
 
 local my_atual_dir=$(pwd)
 
-# Silent Reporting, because apq_error.log or  don't exist or don't is a regular file or is a link
-if [ ! -f "$my_atual_dir"/apq_error.log ] || [ -L "$my_atual_dir"/apq_error.log ]; then
+# Silent Reporting, because apq_mysql_error.log or  don't exist or don't is a regular file or is a link
+if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ]; then
 	exit 1
 fi
 

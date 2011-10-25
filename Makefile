@@ -1,4 +1,4 @@
-## Makefile for libapq and associated files
+## Makefile for libapq-mysql and associated files
 #
 # @author Marcelo Coraça de Freitas <marcelo.batera@gmail.com>
 #
@@ -57,7 +57,7 @@ ifndef ($(build_with_debug_too))	# yes no onlydebug
 endif
 
 ### add_compiler_paths is considered first when searching automatically for commands; 
-### commands gprbuild, pg_config and gprconfig is a example of this behavior :-)
+### commands gprbuild, pg_config, mysql_config and gprconfig is a example of this behavior :-)
 ifndef ($(add_compiler_paths))
 	add_compiler_paths:=/usr/bin
 endif
@@ -71,9 +71,9 @@ ifndef ($(ssl_include_path))
 	ssl_include_path:=/usr/lib/openssl
 endif
 
-#ifndef ($(pg_config_path))
-#	pg_config_path:=$(shell dirname $(shell PATH="$(add_compiler_paths):$(path_backup)" ;  which pg_config || printf "/usr/bin/pg_config" ))
-#endif
+ifndef ($(my_config_path))
+	my_config_path:=$(shell dirname $(shell PATH="$(add_compiler_paths):$(path_backup)" ;  which mysql_config || printf "/usr/bin/mysql_config" ))
+endif
 
 ifndef ($(gprconfig_path))
 	gprconfig_path:=$(shell dirname $(shell PATH="$(add_compiler_paths):$(path_backup)" ;  which gprconfig || printf "/usr/bin/gprconfig" ))
@@ -90,23 +90,23 @@ endif
 
 compile:
 	@echo $(shell "$(atual_dir)/base.sh" "compile" "$(oses)" ) > /dev/nul
-	@cat "$(atual_dir)/apq_error.log"
+	@cat "$(atual_dir)/apq_mysql_error.log"
 
 configure:
-	@echo $(shell "$(atual_dir)/base.sh" "configure" "$(oses)" "$(lib_build_types)" "$(add_compiler_paths)" "$(system_libs_paths)" "$(ssl_include_path)" "stub_pg_config_path" "$(gprconfig_path)" "$(gprbuild_path)" "$(build_with_debug_too)" )  > /dev/nul
-	@cat "$(atual_dir)/apq_error.log"
+	@echo $(shell "$(atual_dir)/base.sh" "configure" "$(oses)" "$(lib_build_types)" "$(add_compiler_paths)" "$(system_libs_paths)" "$(ssl_include_path)" "$(my_config_path)" "$(gprconfig_path)" "$(gprbuild_path)" "$(build_with_debug_too)" )  > /dev/nul
+	@cat "$(atual_dir)/apq_mysql_error.log"
 
 install:
 	@echo $(shell "$(atual_dir)/base.sh" "install" "$(oses)" "$(prefix)" ) > /dev/null
-	@cat "$(atual_dir)/apq_error.log"
+	@cat "$(atual_dir)/apq_mysql_error.log"
 
 clean:
 	@echo $(shell "$(atual_dir)/base.sh" "clean" ) > /dev/null
-	@cat  "$(atual_dir)/apq_error.log"
+	@cat  "$(atual_dir)/apq_mysql_error.log"
 
 distclean:
 	@echo $(shell "$(atual_dir)/base.sh" "distclean" ) > /dev/null
-	@cat "$(atual_dir)/apq_error.log"
+	@cat "$(atual_dir)/apq_mysql_error.log"
 
 docs:
 	@for docdir in $(DOCS_DIRS); do make -C $$docdir; done
