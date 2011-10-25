@@ -300,7 +300,7 @@ IFS="$ifsbackup"
 		exit 1
 	else 
 		#ok
-		printf "\n ok. \n\n" >> "$my_mysql_atual_dir/apq_error.log"
+		printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
 		exit 0;   # end ;-)
 	fi
 
