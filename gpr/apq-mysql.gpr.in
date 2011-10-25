@@ -26,9 +26,9 @@
 ----       p.s.: You can use gnat-gps. gnat-gps will permit you choose in a Gui , the enviroment variables on-the-fly :-)
 ----  Enjoy!!! :-)
 
--- You can need set ADA_PROJECT_PATH
+with "apq.gpr"; -- You can need set ADA_PROJECT_PATH
 
-project Apq is
+project Apq.mysql is
    -----------------------
    -- type declarations --
    -----------------------
@@ -45,6 +45,8 @@ project Apq is
    Debug  := "";
    Debug_option_list_builder := ();  -- null string_list
    Debug_option_list_compiler := (); -- null string_list
+   Debug_option_list_builder_C  := ();  -- null string_list
+   Debug_option_list_compiler_C := (); -- null string_list
 
    case debug_information is
       when "yes" =>
@@ -53,26 +55,38 @@ project Apq is
             when "other" => -- :0}
                Debug_option_list_builder := Debug_option_list_builder & ( "-g" );
                Debug_option_list_compiler := Debug_option_list_compiler & ("-fstack-check", "-gnata" , "-gnato" , "-gnatE" ); -- fixme , if necessary :-)
+			   Debug_option_list_builder_C := Debug_option_list_builder_C & ( "-g" );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & ("-fstack-check" ); -- fixme , if necessary :-)
 
             when "mswindows" =>
                Debug_option_list_builder := Debug_option_list_builder & ( "-g" );
                Debug_option_list_compiler := Debug_option_list_compiler & ("-fstack-check", "-gnata" , "-gnato" , "-gnatE" ); -- fixme , if necessary :-)
+			   Debug_option_list_builder_C := Debug_option_list_builder_C & ( "-g" );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & ("-fstack-check" ); -- fixme , if necessary :-)
 
             when "linux" =>
                Debug_option_list_builder := Debug_option_list_builder & ( "-g" );
                Debug_option_list_compiler := Debug_option_list_compiler & ("-fstack-check", "-gnata" , "-gnato" , "-gnatE" ); -- fixme , if necessary :-)
+			   Debug_option_list_builder_C := Debug_option_list_builder_C & ( "-g" );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & ("-fstack-check" ); -- fixme , if necessary :-)
 
             when "darwin" =>
                Debug_option_list_builder := Debug_option_list_builder & ( "-g" );
                Debug_option_list_compiler := Debug_option_list_compiler & ("-fstack-check", "-gnata" , "-gnato" , "-gnatE" ); -- fixme , if necessary :-)
+			   Debug_option_list_builder_C := Debug_option_list_builder_C & ( "-g" );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & ("-fstack-check" ); -- fixme , if necessary :-)
 
             when "bsd" =>
                Debug_option_list_builder := Debug_option_list_builder & ( "-g" );
                Debug_option_list_compiler := Debug_option_list_compiler & ("-fstack-check", "-gnata" , "-gnato" , "-gnatE" ); -- fixme , if necessary :-)
+			   Debug_option_list_builder_C := Debug_option_list_builder_C & ( "-g" );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & ("-fstack-check" ); -- fixme , if necessary :-)
 
             when others => ---- :0]
                Debug_option_list_builder := Debug_option_list_builder & ( "-g" );
                Debug_option_list_compiler := Debug_option_list_compiler & ("-fstack-check", "-gnata" , "-gnato" , "-gnatE" ); -- fixme , if necessary :-)
+			   Debug_option_list_builder_C := Debug_option_list_builder_C & ( "-g" );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & ("-fstack-check" ); -- fixme , if necessary :-)
 
          end case;  -- end yes/os
       when "no" =>
@@ -81,34 +95,46 @@ project Apq is
             when "other" => -- :0}
                Debug_option_list_builder := Debug_option_list_builder & (  );
                Debug_option_list_compiler := Debug_option_list_compiler & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
+               Debug_option_list_builder_C := Debug_option_list_builder_C & (  );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
 
             when "mswindows" =>
                Debug_option_list_builder := Debug_option_list_builder & (  );
                Debug_option_list_compiler := Debug_option_list_compiler & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
+               Debug_option_list_builder_C := Debug_option_list_builder_C & (  );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
 
             when "linux" =>
                Debug_option_list_builder := Debug_option_list_builder & (  );
                Debug_option_list_compiler := Debug_option_list_compiler & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
+               Debug_option_list_builder_C := Debug_option_list_builder_C & (  );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
 
             when "darwin" =>
                Debug_option_list_builder := Debug_option_list_builder & (  );
                Debug_option_list_compiler := Debug_option_list_compiler & ( ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
+               Debug_option_list_builder_C := Debug_option_list_builder_C & (  );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
 
             when "bsd" =>
                Debug_option_list_builder := Debug_option_list_builder & ( );
                Debug_option_list_compiler := Debug_option_list_compiler & ( ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
+               Debug_option_list_builder_C := Debug_option_list_builder_C & (  );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
 
             when others => -- :0]
                Debug_option_list_builder := Debug_option_list_builder & (   );
                Debug_option_list_compiler := Debug_option_list_compiler & (   ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
+               Debug_option_list_builder_C := Debug_option_list_builder_C & (  );
+               Debug_option_list_compiler_C := Debug_option_list_compiler_C & (  ); -- fixme , if necessary :-) --> insert some thing making sense in string_list form -> ()
 
          end case; -- end no/os
       when others =>
 		  null;
    end case; -- end Debug_information
 
-   for Languages use ("Ada");
-   for Source_Dirs use () & ( prefix & "/include/apq" ) ;
+   for Languages use ("Ada" , "C" );
+   for Source_Dirs use () & ( prefix & "/include/apq-mysql" , prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & debug & "/src" ) ;
    for Library_Name use "apq" ;
    case debug_information is
 	   when "yes" =>
@@ -136,11 +162,13 @@ project Apq is
 
    package Compiler is
       for Default_Switches ("ada") use ("-O2", "-gnat05", "-gnatn"  ) & Debug_option_list_compiler ;
+	  for Default_Switches ("C") use ("-O2"  ) & Debug_option_list_compiler_C ;
    end Compiler;
 
    package Builder  is
       for Default_Switches ("ada") use ("-O2", "-gnat05", "-gnatn"  ) & Debug_option_list_builder ;
+	  for Default_Switches ("C") use ("-O2"  ) & Debug_option_list_builder_C ;
    end Builder;
 
-end Apq;
+end Apq.mysql;
 
