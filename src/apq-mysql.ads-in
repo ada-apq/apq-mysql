@@ -84,6 +84,17 @@ private
 	procedure Free is new Ada.Unchecked_Deallocation(Option_Argument_Type,Option_Argument_Ptr);
 	procedure Free is new Ada.Unchecked_Deallocation(Option_Argument_Ptr_Array,Option_Argument_Ptr_Array_Access);
 	----
+	type Option_Enum_Type is (
+		%Option_Enum_My%
+	);
+	pragma Convention( C , Option_Enum_Type );
+	type Option_Enum_Ptr is access all Option_Enum_Type;
+	type Option_Enum_Ptr_Array is array(Natural range <>) of Option_Enum_Ptr;
+	type Option_Enum_Ptr_Array_Access is access all Option_Enum_Ptr_Array;
+	----
+	procedure Free is new Ada.Unchecked_Deallocation(Option_Enum_Type,Option_Enum_Ptr);
+	procedure Free is new Ada.Unchecked_Deallocation(Option_Enum_Ptr_Array,Option_Enum_Ptr_Array_Access);
+	----
 
 	type MySQL_Enum_Option is mod 2**32;
 
