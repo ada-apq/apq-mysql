@@ -136,7 +136,7 @@ local these_paths="$2"
 local default_path="$3"
 local path_backup="$PATH"
 case $cmdo in
-	*[)({}$]* )  printf '/usr/bin/boo' ; exit 1
+	*[\)\({}$]* )  printf '/usr/bin/boo' ; exit 1
 		;;
 esac
 local my_path="$(PATH="$these_paths:$path_backup"; which "$cmdo" || printf "$default_path/stub" )"
