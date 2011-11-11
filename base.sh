@@ -126,7 +126,7 @@ _discover_acmd_path(){
 #: date		: 2011-jul-15
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.0
+#: version	: 1.02
 #: Description:  Discover automatically a _PATH_ for a command OR use a default.
 #: Options	: "cmd" "add_these_path(s)" "or_default_path"
 # need more sanitization
@@ -136,7 +136,7 @@ local these_paths="$2"
 local default_path="$3"
 local path_backup="$PATH"
 case $cmdo in
-	*\)* | *\(* | *\{* | *\}* | *\$*  )  printf '/usr/bin/boo' ; exit 1
+	*[)({}$]* )  printf '/usr/bin/boo' ; exit 1
 		;;
 esac
 local my_path="$(PATH="$these_paths:$path_backup"; which "$cmdo" || printf "$default_path/stub" )"
@@ -177,7 +177,7 @@ if [ $# -ne 9 ]; then
 	
 	exit 1
 fi;
-# remove old content from apq_error.log
+# remove old content from apq_mysql_error.log
 printf "" > "$my_atual_dir/apq_mysql_error.log"
 
 local ifsbackup="$IFS"
@@ -237,6 +237,20 @@ IFS=",$ifsbackup"
 
 local made_dirs="$my_atual_dir/build"
 
+local my_my_config=$my_mysql_config_path
+
+while true;
+do
+	[ -d "$my_my_config" ] && break
+	my_my_config=$(dirname "$my_my_config" )
+done
+
+#####################################
+	# $mysql_include
+			local my_enum_option=$( sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[mM][yY][sS][qQ][lL]_[oO][pP][tT][iI][oO][nN]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
+
+#####################################
+
 for sist_oses in $my_oses
 do
 	for libbuildtype in $my_libtypes
@@ -245,6 +259,12 @@ do
 		do
 			my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
 			mkdir -p "$my_tmp/logged"
+			
+			local	mysql_include=$( "$my_my_config"/mysql_config --include 2>"$my_tmp/logged/mysql_config_error.log" | sed -n -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/p'  )
+			if [ -s  "$my_tmp/logged/mysql_config_error.log" ] || [ -d "$mysql_include" ]; then
+				printf "mysql_config setup:\tnot ok\t: or $my_my_config/mysql_config  don't exist or '$mysql_include' don't is a directory\n" >> "$my_atual_dir/apq_mysql_error.log"
+				exit 1
+			fi
 
 			IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
 
@@ -290,6 +310,12 @@ do
 			do
 				mkdir -p "$my_tmp"/$support_dirs  2>>"$my_atual_dir/apq_mysql_error.log"
 			done # support_dirs
+			
+	
+			
+
+			#######################
+
 		done # debuga
 	done # libbuildtype
 done # sist_oses

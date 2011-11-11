@@ -98,10 +98,8 @@ package APQ.MySQL.Client is
    -- add keyword and his respective value for the connection string.
    -- if clear = false, just append keyword and value to list of keywords and values
    -- if clear = true, remove all values in list before add keyword and value to list
-   -- see http://www.postgresql.org/docs/8.4/static/libpq-connect.html  or
-   -- see http://www.postgresql.org/docs/9.0/static/libpq-connect.html to a list of kewords and his values
-   --
-   -- example sslmode, sslcert, ..., sslkey, gsspi ,etc :-)
+   -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
+   -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
    --
    -- if in the list of keywords have keywords equals the value used is the last value in list.
    -- remember to include the libs was needed
