@@ -958,7 +958,7 @@ _clean(){
 
 	local my_atual_dir=$(pwd)
 	# Silent Reporting, because apq_error.log or don't exist or don't is a regular file or is a link
-	if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ]; then
+	if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/ok.log ]; then
 		exit 1
 	fi
 	# remove old content from apq_error.log
@@ -975,6 +975,7 @@ _clean(){
 			printf "don't exist or don't is a directory."
 			printf "\n\n not ok. \n\n"
 		}>> "$my_atual_dir/apq_mysql_error.log"
+		printf 'fal' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
 	local my_path=$( echo $PATH )
@@ -1017,13 +1018,15 @@ _clean(){
 				rm $my_tmp4/lib_c/*	2>/dev/null
 				rm $my_tmp4/obj_c/*	2>/dev/null
 				rm $my_tmp4/obj/*	2>/dev/null
-				rm $my_tmp4/src/*	2>/dev/null
+				# dont clean $my_tmp4/src/* because it need rerun configure target :-)
+				# rm $my_tmp4/src/*	2>/dev/null
 				
 			done # debuga
 		done # libbuildtype
 	done # sist_oses
 
 	printf "\n\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
+	printf 'tru' > "$my_atual_dir/ok.log"
 	exit 0
 
 } #end _clean
@@ -1033,7 +1036,7 @@ _distclean(){
 #: date		: 2011-jul-09
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.04
+#: version	: 1.05
 #: Description: Deleta all temporary and cached organization and configuration files;
 #: Description:   for that, just delete temporary dir "build"
 #: Description: You don't need run this script manually.
@@ -1041,7 +1044,7 @@ _distclean(){
 
 	local my_atual_dir=$(pwd)
 	# Silent Reporting, because apq_error.log or don't exist or don't is a regular file or is a link
-	if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ]; then
+	if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/ok.log ]; then
 		exit 1
 	fi
 	# remove old content from apq_error.log
@@ -1054,9 +1057,10 @@ _distclean(){
 			printf "don't exist or don't is a directory."
 			printf "\n\n not ok. \n\n"
 		}>> "$my_atual_dir/apq_mysql_error.log"
+		printf 'fal' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
-	[ -d "$made_dirs" ] && [ ! -L "$made_dirs" ] && rm $made_dirs -rf && printf "\n\n ok \n\n" >> "$my_atual_dir/apq_mysql_error.log"; exit 0 || printf "\n\n not ok \n\n">> "$my_atual_dir/apq_mysql_error.log"; exit 1
+	[ -d "$made_dirs" ] && [ ! -L "$made_dirs" ] && rm $made_dirs -rf && printf "\n\n ok \n\n" >> "$my_atual_dir/apq_mysql_error.log"; printf 'tru' > "$my_atual_dir/ok.log"; exit 0 || printf "\n\n not ok \n\n">> "$my_atual_dir/apq_mysql_error.log"; printf 'fal' > "$my_atual_dir/ok.log" ; exit 1
 
 } #end _distclean
 
