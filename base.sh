@@ -313,7 +313,6 @@ local my_tmp0="$made_dirs"/$sist_oses0/$libbuildtype0/$debuga0
 mkdir -p "$my_tmp0/logged"
 local mysql_include=$( "$my_my_config"/mysql_config --include 2>"$my_tmp0/logged/mysql_config_error.log" | sed -n -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/p'  )
 
-
 if [ -s  "$my_tmp0/logged/mysql_config_error.log" ] || [ ! -d "$mysql_include" ]; then
 	printf "mysql_config setup:\tnot ok\t: or $my_my_config/mysql_config  don't exist or '$mysql_include' don't is a directory\n" >> "$my_atual_dir/apq_mysql_error.log"
 				
@@ -431,7 +430,7 @@ my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo
 					cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
 					)
 
-#####################################
+IFS=",$ifsbackup"
 
 for sist_oses in $my_oses
 do
