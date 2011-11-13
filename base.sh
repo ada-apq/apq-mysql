@@ -223,7 +223,7 @@ _configure(){
 local my_atual_dir=$(pwd)
 
 # Silent Reporting, because apq_mysql_error.log or  don't exist or don't is a regular file or is a link
-if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ]; then
+if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/ok.log ]; then
 	exit 1
 fi
 
@@ -234,7 +234,7 @@ if [ $# -ne 9 ]; then
 		printf 'configura "OSes" "libtype,libtype_n" "compiler_path1:compiler_path_n" "system_libs_path1:system_libs_paths_n"  "ssl_include_path" "mysql_config_path"  "gprconfig_path"  "gprbuild_path"  "build_with_debug_too" '
 		printf "\n"
 	}>"$my_atual_dir/apq_mysql_error.log"
-	
+	printf 'false' > "$my_atual_dir/ok.log"
 	exit 1
 fi;
 # remove old content from apq_mysql_error.log
@@ -319,6 +319,7 @@ if [ -s  "$my_tmp0/logged/mysql_config_error.log" ] || [ ! -d "$mysql_include" ]
 else
 
 	local my_enum_option_tmp=$( sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[mM][yY][sS][qQ][lL]_[oO][pP][tT][iI][oO][nN]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
+	
 	local my_field_types_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql_com.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[eE][nN][uU][mM]_[fF][iI][eE][lL][dD]_[tT][yY][pP][eE][sS]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
 
 	local enum_option_value=$(_sanatize_enum "$my_enum_option_tmp" )
@@ -328,6 +329,7 @@ else
 	local my_field_types_label_only=$(_sanatize_enum_remove_values "$my_field_types_value" )
 
 	local my_result_type_er_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysqld_error.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep '^#define[ ]*ER_.*' | grep -o 'ER_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[0-9]*[[:blank:][:space:]]*$/=> &,/' )
+	
 	local my_result_type_cr_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/errmsg.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep -v MIN_ERROR | grep -v MAX_ERROR | grep '^#define[ ]*CR_.*' | grep -o 'CR_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[0-9]*[[:blank:][:space:]]*$/=> &,/' | sed -e '$ s/,//' )
 
 	local my_result_type_value="$my_result_type_er_tmp\n$my_result_type_cr_tmp"
@@ -351,8 +353,9 @@ else
 	enum_option_value=
 	enum_option_label_only=
 
-	local mysql_config_libs=$(mysql_config --libs)
+	local mysql_config_libs=$("$my_my_config/mysql_config" --libs)
 	local miname=$(uname -s)
+	### if necessary, fix me ; in a cross-compiling environment, using "uname" is the correct thing to do ?
 	local pragma_linker_options=
 
 	local pragma_linker_oopt=$(	
@@ -392,6 +395,7 @@ my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo
 	my_apq_mysql_ads_0=
 	my_apq_mysql_ads_1=
 	my_apq_mysql_ads_2=
+	pragma_linker_oopt=
 
 	IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
 
@@ -422,7 +426,6 @@ my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo
 				printf "\n"
 			)
 
-
 	apq_mysql_gpr_in=$(cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 					printf  '   system_libs  := ( ) & ( ' 
 					printf  " $madeit3 " 
@@ -441,49 +444,12 @@ do
 			my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
 			mkdir -p "$my_tmp/logged"
 			
-			
-
 			IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
-
-			#min two spaces before "\n" because quotes
-#			{	printf	"$my_ssl_include_path  \n"
-#				printf	"$my_compiler_paths  \n"
-#				printf	"$my_gprconfig_path  \n"
-#				printf	"$my_gprbuild_path  \n"
-#				printf	"${my_mysql_config_path}  \n"
-#				printf	"${my_system_libs_paths}  \n"
-#			}>"$my_tmp/logged/kov.log"
 			
 			printf "$kov_log" > "$my_tmp/logged/kov.log"  2>>"$my_atual_dir/apq_mysql_error.log"
 
-#			local madeit3=
-#			local at_count_tmp=
-#			local madeit2=
-
-				#min two spaces before "\n" because quotes  ;
-#			{	printf	"version:=\"$my_version\"  \n"
-#				printf	"mysource:=\"$my_atual_dir/src/\"  \n"
-#				printf	"basedir:=\"$my_atual_dir/build\"  \n"	
-#				while [ ${at_count_tmp:=1} -lt ${at_count:=11} ];
-#				do
-#					madeit2="lib_system$at_count_tmp" ;
-#					madeit3="${madeit3:+${madeit3},} \$$madeit2 " ;
-#					printf  "${madeit2}:=\"${!madeit2}\"  \n" ;				
-#					at_count_tmp=$(( $at_count_tmp + 1 )) ;
-#				done ;
-#				printf "\n"
-#
-#			}>"$my_tmp/logged/kov.def"
-
 			printf "$kov_def" > "$my_tmp/logged/kov.def" 2>>"$my_atual_dir/apq_mysql_error.log"
 
-#			cat "$my_atual_dir/apq_mysql_part1.gpr.in.in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-#			printf  '   system_libs  := ( ) & ( ' >> "$my_tmp/apq_mysql.gpr.in"
-#			printf  " $madeit3 " >> "$my_tmp/apq_mysql.gpr.in"
-#			printf  ' ); ' >> "$my_tmp/apq_mysql.gpr.in"
-#			cat "$my_atual_dir/apq_mysql_part3.gpr.in.in" >> "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-#apq_mysql_gpr_in
-			
 			echo "$apq_mysql_gpr_in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 
 			gnatprep "$my_tmp/apq_mysql.gpr.in"  "$my_tmp/apq_mysql.gpr"  "$my_tmp/logged/kov.def"  2>>"$my_atual_dir/apq_mysql_error.log"
@@ -504,15 +470,16 @@ done # sist_oses
 fi
 
 IFS="$ifsbackup"
+
 	#not ok
 	if [ -s  "$my_atual_dir/apq_mysql_error.log" ]; then
-		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n not ok. \n " >> "$my_atual_dir/apq_mysql_error.log"
-		printf 'false' > "$my_atual_dir/ok.log"
+		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n not ok. \n " >> "$my_atual_dir/apq_mysql_error.log" ;
+		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
 	else 
 		#ok
-		printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
-		printf 'true' > "$my_atual_dir/ok.log"
+		printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log" ;
+		printf 'true' > "$my_atual_dir/ok.log" ;
 		exit 0;   # end ;-)
 	fi
 
@@ -975,7 +942,7 @@ _clean(){
 			printf "don't exist or don't is a directory."
 			printf "\n\n not ok. \n\n"
 		}>> "$my_atual_dir/apq_mysql_error.log"
-		printf 'fal' > "$my_atual_dir/ok.log"
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
 	local my_path=$( echo $PATH )
@@ -1026,7 +993,7 @@ _clean(){
 	done # sist_oses
 
 	printf "\n\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
-	printf 'tru' > "$my_atual_dir/ok.log"
+	printf 'true' > "$my_atual_dir/ok.log"
 	exit 0
 
 } #end _clean
@@ -1057,10 +1024,10 @@ _distclean(){
 			printf "don't exist or don't is a directory."
 			printf "\n\n not ok. \n\n"
 		}>> "$my_atual_dir/apq_mysql_error.log"
-		printf 'fal' > "$my_atual_dir/ok.log"
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
-	[ -d "$made_dirs" ] && [ ! -L "$made_dirs" ] && rm $made_dirs -rf && printf "\n\n ok \n\n" >> "$my_atual_dir/apq_mysql_error.log"; printf 'tru' > "$my_atual_dir/ok.log"; exit 0 || printf "\n\n not ok \n\n">> "$my_atual_dir/apq_mysql_error.log"; printf 'fal' > "$my_atual_dir/ok.log" ; exit 1
+	[ -d "$made_dirs" ] && [ ! -L "$made_dirs" ] && rm $made_dirs -rf && printf "\n\n ok \n\n" >> "$my_atual_dir/apq_mysql_error.log"; printf 'true' > "$my_atual_dir/ok.log"; exit 0 || printf "\n\n not ok \n\n">> "$my_atual_dir/apq_mysql_error.log"; printf 'false' > "$my_atual_dir/ok.log" ; exit 1
 
 } #end _distclean
 

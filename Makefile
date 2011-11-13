@@ -40,6 +40,7 @@
 			system_libs_paths=/usr/source:/usr/local:/lib/got \
 			build_with_debug_too=yes
 
+	OK = $(shell cat ok.log)
 
 ifndef ($(prefix))
 	prefix=/usr/local
@@ -92,49 +93,27 @@ endif
 compile:
 	@echo $(shell "$(atual_dir)/base.sh" "compile" "$(oses)" ) > /dev/nul
 	@cat "$(atual_dir)/apq_mysql_error.log"
-ifeq "$(strip $(shell cat $(atual_dir)/ok.log ))" "tru"
-	@true
-else
-	@false
-endif
+	@$(OK)
 
 configure:
 	@echo $(shell "$(atual_dir)/base.sh" "configure" "$(oses)" "$(lib_build_types)" "$(add_compiler_paths)" "$(system_libs_paths)" "$(ssl_include_path)" "$(my_config_path)" "$(gprconfig_path)" "$(gprbuild_path)" "$(build_with_debug_too)" )  > /dev/nul
 	@cat "$(atual_dir)/apq_mysql_error.log"
-ifeq "$(strip $(shell cat $(atual_dir)/ok.log ))" "tru"
-	@true
-else
-	@false
-endif
+	@$(OK)
 
 install:
 	@echo $(shell "$(atual_dir)/base.sh" "install" "$(oses)" "$(prefix)" ) > /dev/null
 	@cat "$(atual_dir)/apq_mysql_error.log"
-ifeq "$(strip $(shell cat $(atual_dir)/ok.log ))" "tru"
-	@true
-else
-	@false
-endif
+	@$(OK)
 
 clean:
 	@echo $(shell "$(atual_dir)/base.sh" "clean" ) > /dev/null
 	@cat  "$(atual_dir)/apq_mysql_error.log"
-ifeq "$(strip $(shell cat $(atual_dir)/ok.log ))" "tru"
-	@true
-else
-	@false
-endif
+	@$(OK)
 
 distclean:
 	@echo $(shell "$(atual_dir)/base.sh" "distclean" ) > /dev/null
 	@cat "$(atual_dir)/apq_mysql_error.log"
-#$(shell cat "$(atual_dir)/ok.log" )
-ifeq "$(strip $(shell cat $(atual_dir)/ok.log ))" "tru"
-	@true
-else
-	@false
-endif
-
+	@$(OK)
 
 docs:
 	@for docdir in $(DOCS_DIRS); do make -C $$docdir; done
