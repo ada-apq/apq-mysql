@@ -144,6 +144,66 @@ printf "$(dirname $my_path )"
 
 } #end
 
+_sanatize_enum(){
+#: title	: _sanatize_enum
+#: date		: 2011-nov-12
+#: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
+#: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
+#: version	: 1.0
+#: Description: sanitize list of enums separate ",\n" and add "label => value,"
+#: dont worry ;-) _sanatize_enum is enough smart. :-)
+#: Options	: "list"
+#: returns 	: the list sanitizade
+	if [ $# -ne 1 ]; then
+		printf "not ok. I need 1 option\n"
+		exit 1;
+	fi;
+	local my_enum_list="$1"
+	local my_enum_list_nol=$( printf "$my_enum_list" | sed -n -e '$=' )
+	# because "enum c" rules don't oblige all labels have a '=' ;
+	# the rule states that after a '=' (before follow lines with '=' ) the 
+	# next labels will getting '+1' in sequence 
+	# until before newer '=' and so on :-)
+	count0=1
+	a=$(printf "$my_enum_list" |  sed -n -e "$count0"' p' | grep -o '=[ ]*[0-9]*' | grep -o '[0-9]*' )
+	b="-1"
+	if [ -n "$a" ]; then
+		b="$a"
+	fi	
+	while [ ${count0:=1} -le ${my_enum_list_nol} ];
+	do
+		a=$(printf "$my_enum_list" |  sed -n -e "$count0"' p' | grep -o '=[ ]*[0-9]*' | grep -o '[0-9]*' )
+		if [ -n "$a" ]; then
+			b=$a			
+		else
+			b=$(( $b + 1 ))				
+			my_enum_list=$( printf "$my_enum_list" | sed -e "$count0"' s/[ ,]*$/='"$b"',/ ' ) 
+		fi
+		count0=$(( $count0 + 1 ))	
+	done
+	my_enum_list=$( printf "$my_enum_list" | sed -e 's/[=]/ => / ' | sed -e '$ s/[ ,]*$//' )
+	printf "$my_enum_list"
+} #end
+
+_sanatize_enum_remove_values(){
+#: title	: _sanatize_enum_remove_values
+#: date		: 2011-nov-12
+#: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
+#: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
+#: version	: 1.0
+#: Description: remove "=> number" from list processed by _sanatize_enum() :-)
+#: Options	: "list"
+#: returns 	: the list sanitizade
+	if [ $# -ne 1 ]; then
+		printf "not ok. I need 1 option\n"
+		exit 1;
+	fi;
+	local my_enum_list="$1"
+	my_enum_list=$( printf "$my_enum_list" | sed -e 's/[=].*$/,/ ' | sed -e '$ s/[ ,]*$//' )
+	printf "$my_enum_list"
+} #end
+
+
 ##################################
 ##### target functions ##########
 ##################################
@@ -236,7 +296,7 @@ done
 IFS=",$ifsbackup"
 
 local made_dirs="$my_atual_dir/build"
-
+local src_genesis="$my_atual_dir/src_genesis"
 local my_my_config=$my_mysql_config_path
 
 while true;
@@ -245,9 +305,131 @@ do
 	my_my_config=$(dirname "$my_my_config" )
 done
 
-#####################################
-	# $mysql_include
-			local my_enum_option=$( sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[mM][yY][sS][qQ][lL]_[oO][pP][tT][iI][oO][nN]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
+local sist_oses0=$( printf "$my_oses" | grep  -o '^[^ ,]*' )
+local libbuildtype0=$( printf "$my_libtypes" | grep  -o '^[^ ,]*' )
+local debuga0=$( printf "$my_with_debug_too" | grep  -o '^[^ ,]*' )
+
+local my_tmp0="$made_dirs"/$sist_oses0/$libbuildtype0/$debuga0
+mkdir -p "$my_tmp0/logged"
+local mysql_include=$( "$my_my_config"/mysql_config --include 2>"$my_tmp0/logged/mysql_config_error.log" | sed -n -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/p'  )
+
+
+if [ -s  "$my_tmp0/logged/mysql_config_error.log" ] || [ ! -d "$mysql_include" ]; then
+	printf "mysql_config setup:\tnot ok\t: or $my_my_config/mysql_config  don't exist or '$mysql_include' don't is a directory\n" >> "$my_atual_dir/apq_mysql_error.log"
+				
+else
+
+	local my_enum_option_tmp=$( sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[mM][yY][sS][qQ][lL]_[oO][pP][tT][iI][oO][nN]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
+	local my_field_types_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql_com.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[eE][nN][uU][mM]_[fF][iI][eE][lL][dD]_[tT][yY][pP][eE][sS]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
+
+	local enum_option_value=$(_sanatize_enum "$my_enum_option_tmp" )
+	local enum_option_label_only=$(_sanatize_enum_remove_values "$enum_option_value" )
+
+	local my_field_types_value=$(_sanatize_enum "$my_field_types_tmp" )
+	local my_field_types_label_only=$(_sanatize_enum_remove_values "$my_field_types_value" )
+
+	local my_result_type_er_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysqld_error.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep '^#define[ ]*ER_.*' | grep -o 'ER_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[0-9]*[[:blank:][:space:]]*$/=> &,/' )
+	local my_result_type_cr_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/errmsg.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep -v MIN_ERROR | grep -v MAX_ERROR | grep '^#define[ ]*CR_.*' | grep -o 'CR_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[0-9]*[[:blank:][:space:]]*$/=> &,/' | sed -e '$ s/,//' )
+
+	local my_result_type_value="$my_result_type_er_tmp\n$my_result_type_cr_tmp"
+	local a=$(printf "$my_result_type_value" | grep CR_NO_ERROR )
+	[ ! -n "$a" ] && my_result_type_value="CR_NO_ERROR => 0 ,\n$my_result_type_value"
+	local my_result_type_label_only=$( _sanatize_enum_remove_values "$my_result_type_value")
+	my_result_type_er_tmp=
+	my_result_type_cr_tmp=
+	a=
+	#############################################
+	local my_field_types_value_esc=$(printf "$my_field_types_value" | sed -e 's/^/\t&/' | sed -e 's/$/\\&/')
+	local my_field_types_label_only_esc=$(printf "$my_field_types_label_only" | sed -e 's/^/\t&/' | sed -e 's/$/\\&/')
+	local my_result_type_value_esc=$(printf "$my_result_type_value" | sed -e 's/^/\t&/' | sed -e 's/$/\\&/')
+	local my_result_type_label_only_esc=$(printf "$my_result_type_label_only" | sed -e 's/^/\t&/' | sed -e 's/$/\\&/')
+	local enum_option_value_esc=$(printf "$enum_option_value" | sed -e 's/^/\t\t&/' | sed -e 's/$/\\&/')
+	local enum_option_label_only_esc=$(printf "$enum_option_label_only" | sed -e 's/^/\t\t&/' | sed -e 's/$/\\&/')
+	my_field_types_value=
+	my_field_types_label_only=
+	my_result_type_value=
+	my_result_type_label_only=
+	enum_option_value=
+	enum_option_label_only=
+
+	local mysql_config_libs=$(mysql_config --libs)
+	local miname=$(uname -s)
+	local pragma_linker_options=
+
+	local pragma_linker_oopt=$(	
+		case "$miname" in
+			( *CYGWIN* ) pragma_linker_options='   --! pragma Linker_Options("");'
+					;;
+			( * )	for miarg in $mysql_config_libs
+					do
+						echo "pragma Linker_Options(\"$miarg\");"
+					done
+					;;
+					esac
+	)
+
+## because quotes , _IS Mandatory_  a one or more(1+) espaces characters before the closing "/" or  "\n/" in each sed script :-)
+## THANKS Jesus! et al ;-) Enjoy!
+	local my_apq_mysql_ads_0=$(cat "$src_genesis/apq-mysql.ads-in" | 
+sed -e "s/%ENUM_FIELD_TYPE%/$my_field_types_label_only_esc  \n/" |
+sed -e "s/%USE_FIELD_TYPE%/$my_field_types_value_esc  \n/" | 
+sed -e "s/%ENUM_RESULT_TYPE%/$my_result_type_label_only_esc  \n/" | 
+sed -e "s/%USE_RESULT_TYPE%/$my_result_type_value_esc  \n/" | 
+sed -e "s/%OPTION_ENUM_MY%/$enum_option_label_only_esc  \n/" | 
+sed -e "s/%USE_OPTION_ENUM_MY%/$enum_option_value_esc  \n/"  |
+sed -e 's/%MYSQL_ROW_NO%/64 /')
+
+my_apq_mysql_ads_1=$( echo "$my_apq_mysql_ads_0" | sed -n -e '1,/%mysql_linker_options%/ p' | sed -e '/%mysql_linker_options%/ d' )
+my_apq_mysql_ads_2=$( echo "$my_apq_mysql_ads_0" | sed -n -e '/%mysql_linker_options%/,$ p' | sed -e '/%mysql_linker_options%/ d' )
+
+my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo "$my_apq_mysql_ads_2" )
+
+	my_field_types_value_esc=
+	my_field_types_label_only_esc=
+	my_result_type_value_esc=
+	my_result_type_label_only_esc=
+	enum_option_value_esc=
+	enum_option_label_only_esc=
+	my_apq_mysql_ads_0=
+	my_apq_mysql_ads_1=
+	my_apq_mysql_ads_2=
+
+	IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
+
+	#min two spaces before "\n" because quotes
+	local kov_log=$(	printf	"$my_ssl_include_path  \n"
+				printf	"$my_compiler_paths  \n"
+				printf	"$my_gprconfig_path  \n"
+				printf	"$my_gprbuild_path  \n"
+				printf	"${my_mysql_config_path}  \n"
+				printf	"${my_system_libs_paths}  \n"
+				)
+
+	local madeit3=
+	local at_count_tmp=
+	local madeit2=
+
+	#min two spaces before "\n" because quotes  ;
+	kov_def=$(	printf	"version:=\"$my_version\"  \n"
+				printf	"mysource:=\"$my_atual_dir/src/\"  \n"
+				printf	"basedir:=\"$my_atual_dir/build\"  \n"	
+				while [ ${at_count_tmp:=1} -lt ${at_count:=11} ];
+				do
+					madeit2="lib_system$at_count_tmp" ;
+					madeit3="${madeit3:+${madeit3},} \$$madeit2 " ;
+					printf  "${madeit2}:=\"${!madeit2}\"  \n" ;				
+					at_count_tmp=$(( $at_count_tmp + 1 )) ;
+				done ;
+				printf "\n"
+			)
+
+
+	apq_mysql_gpr_in=$(cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
+					printf  '   system_libs  := ( ) & ( ' 
+					printf  " $madeit3 " 
+					printf  ' ); ' 
+					cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
+					)
 
 #####################################
 
@@ -260,48 +442,51 @@ do
 			my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
 			mkdir -p "$my_tmp/logged"
 			
-			local	mysql_include=$( "$my_my_config"/mysql_config --include 2>"$my_tmp/logged/mysql_config_error.log" | sed -n -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/p'  )
-			if [ -s  "$my_tmp/logged/mysql_config_error.log" ] || [ -d "$mysql_include" ]; then
-				printf "mysql_config setup:\tnot ok\t: or $my_my_config/mysql_config  don't exist or '$mysql_include' don't is a directory\n" >> "$my_atual_dir/apq_mysql_error.log"
-				exit 1
-			fi
+			
 
 			IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
 
 			#min two spaces before "\n" because quotes
-			{	printf	"$my_ssl_include_path  \n"
-				printf	"$my_compiler_paths  \n"
-				printf	"$my_gprconfig_path  \n"
-				printf	"$my_gprbuild_path  \n"
-				printf	"${my_mysql_config_path}  \n"
-				printf	"${my_system_libs_paths}  \n"
-			}>"$my_tmp/logged/kov.log"
+#			{	printf	"$my_ssl_include_path  \n"
+#				printf	"$my_compiler_paths  \n"
+#				printf	"$my_gprconfig_path  \n"
+#				printf	"$my_gprbuild_path  \n"
+#				printf	"${my_mysql_config_path}  \n"
+#				printf	"${my_system_libs_paths}  \n"
+#			}>"$my_tmp/logged/kov.log"
+			
+			{	printf	"$kov_log" }>"$my_tmp/logged/kov.log"
 
-			local madeit3=
-			local at_count_tmp=
-			local madeit2=
+#			local madeit3=
+#			local at_count_tmp=
+#			local madeit2=
 
-				#min two spaces before "\n" because quotes
-			{	printf	"version:=\"$my_version\"  \n"
-				printf	"mysource:=\"$my_atual_dir/src/\"  \n"
-				printf	"basedir:=\"$my_atual_dir/build\"  \n"	
-				while [ ${at_count_tmp:=1} -lt ${at_count:=11} ]
-				do
-					madeit2="lib_system$at_count_tmp" ;
-					madeit3="${madeit3:+${madeit3},} \$$madeit2 " ;
-					printf  "${madeit2}:=\"${!madeit2}\"  \n" ;				
-					at_count_tmp=$(( $at_count_tmp + 1 )) ;
-				done ;
-				printf "\n"
+				#min two spaces before "\n" because quotes  ;
+#			{	printf	"version:=\"$my_version\"  \n"
+#				printf	"mysource:=\"$my_atual_dir/src/\"  \n"
+#				printf	"basedir:=\"$my_atual_dir/build\"  \n"	
+#				while [ ${at_count_tmp:=1} -lt ${at_count:=11} ];
+#				do
+#					madeit2="lib_system$at_count_tmp" ;
+#					madeit3="${madeit3:+${madeit3},} \$$madeit2 " ;
+#					printf  "${madeit2}:=\"${!madeit2}\"  \n" ;				
+#					at_count_tmp=$(( $at_count_tmp + 1 )) ;
+#				done ;
+#				printf "\n"
+#
+#			}>"$my_tmp/logged/kov.def"
 
-			}>"$my_tmp/logged/kov.def"
+			{	printf	"$kov_def" }>"$my_tmp/logged/kov.def"
 
-			cat "$my_atual_dir/apq_mysql_part1.gpr.in.in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-			printf  '   system_libs  := ( ) & ( ' >> "$my_tmp/apq_mysql.gpr.in"
-			printf  " $madeit3 " >> "$my_tmp/apq_mysql.gpr.in"
-			printf  ' ); ' >> "$my_tmp/apq_mysql.gpr.in"
-			cat "$my_atual_dir/apq_mysql_part3.gpr.in.in" >> "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-					
+#			cat "$my_atual_dir/apq_mysql_part1.gpr.in.in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
+#			printf  '   system_libs  := ( ) & ( ' >> "$my_tmp/apq_mysql.gpr.in"
+#			printf  " $madeit3 " >> "$my_tmp/apq_mysql.gpr.in"
+#			printf  ' ); ' >> "$my_tmp/apq_mysql.gpr.in"
+#			cat "$my_atual_dir/apq_mysql_part3.gpr.in.in" >> "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
+#apq_mysql_gpr_in
+			
+			{ echo "$apq_mysql_gpr_in" }>"$my_tmp/apq_mysql.gpr.in"
+
 			gnatprep "$my_tmp/apq_mysql.gpr.in"  "$my_tmp/apq_mysql.gpr"  "$my_tmp/logged/kov.def"  2>>"$my_atual_dir/apq_mysql_error.log"
 			
 			IFS=",$ifsbackup"
@@ -311,7 +496,7 @@ do
 				mkdir -p "$my_tmp"/$support_dirs  2>>"$my_atual_dir/apq_mysql_error.log"
 			done # support_dirs
 			
-	
+			{ echo "$my_apq_mysql_ads" }>"$my_tmp/apq-mysql.ads"
 			
 
 			#######################
@@ -319,14 +504,18 @@ do
 		done # debuga
 	done # libbuildtype
 done # sist_oses
+fi
+
 IFS="$ifsbackup"
 	#not ok
 	if [ -s  "$my_atual_dir/apq_mysql_error.log" ]; then
 		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n not ok. \n " >> "$my_atual_dir/apq_mysql_error.log"
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	else 
 		#ok
 		printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
+		printf 'true' > "$my_atual_dir/ok.log"
 		exit 0;   # end ;-)
 	fi
 

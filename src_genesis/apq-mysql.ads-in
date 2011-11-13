@@ -85,9 +85,13 @@ private
 	procedure Free is new Ada.Unchecked_Deallocation(Option_Argument_Ptr_Array,Option_Argument_Ptr_Array_Access);
 	----
 	type Option_Enum_Type is (
-		%Option_Enum_My%
+%OPTION_ENUM_MY%
 	);
-	pragma Convention( C , Option_Enum_Type );
+	for Option_Enum_Type use (
+%USE_OPTION_ENUM_MY%
+	);
+	for  Option_Enum_Type'Size use 32;
+
 	type Option_Enum_Ptr is access all Option_Enum_Type;
 	type Option_Enum_Ptr_Array is array(Natural range <>) of Option_Enum_Ptr;
 	type Option_Enum_Ptr_Array_Access is access all Option_Enum_Ptr_Array;
@@ -96,21 +100,21 @@ private
 	procedure Free is new Ada.Unchecked_Deallocation(Option_Enum_Ptr_Array,Option_Enum_Ptr_Array_Access);
 	----
 
-	type MySQL_Enum_Option is mod 2**32;
+	-- type MySQL_Enum_Option is mod 2**32;
 
-	type MySQL_Option is
-		record
-		Name :      String(1..18);
-		Length :    Positive;
-		MySQL_Enum: MySQL_Enum_Option;
-		Argument :  Option_Argument_Type;
-		end record;
+	-- type MySQL_Option is
+	--	record
+	--	Name :      String(1..18);
+	--	Length :    Positive;
+	--	MySQL_Enum: MySQL_Enum_Option;
+	--	Argument :  Option_Argument_Type;
+	--	end record;
 
-	type MySQL_Options is array(Positive range <>) of MySQL_Option;
+	-- type MySQL_Options is array(Positive range <>) of MySQL_Option;
 
-	Options : constant MySQL_Options := (
-		%MYSQL_OPTIONS%
-	);
+	-- Options : constant MySQL_Options := (
+	--	%MYSQL_OPTIONS%
+	-- );
 
 	type MYSQL       is new System.Address;   -- Connection
 	type MYSQL_RES   is new System.Address;   -- Result
