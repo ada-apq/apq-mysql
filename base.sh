@@ -454,7 +454,7 @@ do
 #				printf	"${my_system_libs_paths}  \n"
 #			}>"$my_tmp/logged/kov.log"
 			
-			printf "$kov_log" > "$my_tmp/logged/kov.log"
+			printf "$kov_log" > "$my_tmp/logged/kov.log"  2>>"$my_atual_dir/apq_mysql_error.log"
 
 #			local madeit3=
 #			local at_count_tmp=
@@ -475,7 +475,7 @@ do
 #
 #			}>"$my_tmp/logged/kov.def"
 
-			printf "$kov_def" > "$my_tmp/logged/kov.def"
+			printf "$kov_def" > "$my_tmp/logged/kov.def" 2>>"$my_atual_dir/apq_mysql_error.log"
 
 #			cat "$my_atual_dir/apq_mysql_part1.gpr.in.in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 #			printf  '   system_libs  := ( ) & ( ' >> "$my_tmp/apq_mysql.gpr.in"
@@ -484,7 +484,7 @@ do
 #			cat "$my_atual_dir/apq_mysql_part3.gpr.in.in" >> "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 #apq_mysql_gpr_in
 			
-			echo "$apq_mysql_gpr_in" > "$my_tmp/apq_mysql.gpr.in"
+			echo "$apq_mysql_gpr_in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 
 			gnatprep "$my_tmp/apq_mysql.gpr.in"  "$my_tmp/apq_mysql.gpr"  "$my_tmp/logged/kov.def"  2>>"$my_atual_dir/apq_mysql_error.log"
 			
@@ -495,7 +495,7 @@ do
 				mkdir -p "$my_tmp"/$support_dirs  2>>"$my_atual_dir/apq_mysql_error.log"
 			done # support_dirs
 			
-			echo "$my_apq_mysql_ads" > "$my_tmp/apq-mysql.ads"
+			echo "$my_apq_mysql_ads" > "$my_tmp/src/apq-mysql.ads"  2>>"$my_atual_dir/apq_mysql_error.log"
 			
 
 		done # debuga
