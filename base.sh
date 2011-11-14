@@ -438,9 +438,9 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	
 	local apq_mysql_gpr_in=$(
 		cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-		echo  '   system_libs  := ( ) & ( ' 
-		echo  " $madeit3 " 
-		echo  ' ); ' 
+		printf  '   system_libs  := ( ) & (' 
+		printf  "$madeit3 " 
+		printf  '); ' 
 		cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
 	)
 
@@ -509,17 +509,17 @@ _compile(){
 
 	local my_atual_dir=$(pwd)
 	# Silent Reporting, because apq_error.log or don't exist or don't is a regular file or is a link
-	if [ ! -f "$my_atual_dir"/apq_error.log ] || [ -L "$my_atual_dir"/apq_error.log ] || [ -L "$my_atual_dir"/ok.log ]; then
+	if [ ! -f "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/ok.log" ]; then
 		exit 1
 	fi
 	# remove old content from apq_error.log
-	printf "" > "$my_atual_dir/apq_error.log"
+	printf "" > "$my_atual_dir/apq_mysql_error.log"
 
 	if [ $# -ne 1 ]; then
 		{	printf "\n"
 			printf 'usage: compile "OSes" '
 			printf "\n\n not ok. \n"
-		}>"$my_atual_dir/apq_error.log"
+		}>"$my_atual_dir/apq_mysql_error.log"
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
@@ -538,7 +538,7 @@ _compile(){
 			printf ' "build" dir '
 			printf "don't exist or don't is a directory."
 			printf "\n\n not ok. \n\n"
-		}>> "$my_atual_dir/apq_error.log"
+		}>> "$my_atual_dir/apq_mysql_error.log"
 		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
 	fi
@@ -551,18 +551,15 @@ _compile(){
 	local line6_gprconfig_path=
 	local line7_gprbuild_path=
 	local line8_pg_config_path=
-
-	IFS=",$ifsbackup"
-
 	local sist_oses=
 	local libbuildtype=
 	local debuga=
 	local my_tmp=
-
 	local erro_msg_gprconfig_part=
 	local erro_msg_gprbuild_part=
 	local erro_msg_my_config_part=
-
+	
+	IFS=",$ifsbackup"
 			
 	for sist_oses in $my_oses
 	do
@@ -570,17 +567,16 @@ _compile(){
 		do
 			for debuga in $my_with_debug_too
 			do
-				my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
+				my_tmp="$made_dirs/$sist_oses/$libbuildtype/$debuga"
 				
 				if [ -f "$my_tmp/logged/kov.log" ] && \
 					[ $(wc -l < "$my_tmp/logged/kov.log" ) -ge 6 ] && \
-					[ -f "$my_tmp/apq.gpr" ];
+					[ -f "$my_tmp/apq_mysql.gpr" ];
 				then
-					
-						line1_my_tmp="$my_tmp"
-						line2_debuga="$debuga"
-						line3_libtype="$libbuildtype"
-						line4_os="$sist_oses"
+					line1_my_tmp="$my_tmp"
+					line2_debuga="$debuga"
+					line3_libtype="$libbuildtype"
+					line4_os="$sist_oses"
 				
 					{	read line9_ssl_include_path
 						read line5_compile_paths
@@ -684,15 +680,19 @@ _compile(){
 				madeit2="yes";
 			fi
 
-			my_include=$( "$madeit8"/mysql_config --include 2> "$madeit1/logged/mysql_config_error.log" )
-			if [ -s  "$madeit1/logged/mysql_config_error.log" ]; then
+			local mysql_include_error2=$( "$madeit8"/mysql_config --include 2>&1 >/dev/null)
+			local mysql_include2=$( "$madeit8"/mysql_config --include | sed  -e  's/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
+
+			if [ -n  "$mysql_include_error" ] || [ ! -d "$mysql_include" ]; then
+				echo "mysql_include_error2" > "$madeit1/logged/mysql_config_error.log"
+				echo "mysql_include2" >> "$madeit1/logged/mysql_config_error.log"
 				erro_msg_my_config_part="$my_hold_tmp1"
 				printf "mysql_config:\tnot ok\t:lib\t$madeit3\t$madeit4\t$erro_msg_my_config_part\t:Aborting matched's gprconfig & gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 				my_count2=$(( $my_count2 + 1 ))
 				continue
-			else
-				printf "mysql_config:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Trying matched's gprconfig & gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 			fi
+			printf "mysql_config:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Trying matched's gprconfig & gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
+			my_include="mysql_include2"
 
 			# a explanation: with PATH="$my_path:$madeit5" I made preference for gcc and g++ for native compilers in system. this solve problems with multi-arch in Debian sid
 			# using gnat and gprbuild from toolchain Act-San :-)
@@ -704,52 +704,47 @@ _compile(){
 				printf "gprconfig:\tnot ok\t:lib\t$madeit3\t$madeit4\t$erro_msg_gprconfig_part\t:Aborting matched gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 				my_count2=$(( $my_count2 + 1 ))
 				continue
-			else
-				printf "gprconfig:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Trying matched gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 			fi
+			printf "gprconfig:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Trying matched gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 
-#			$(PATH="$madeit5:$my_path" && cd "$madeit1" && "$madeit7"/gprbuild -d -f --config=./kov.cgpr -Xstatic_or_dynamic=$madeit3 -Xos=$madeit4 -Xdebug_information=$madeit2  -P./apq.gpr -cargs -I "$madeit10" -I $pq_include -I $madeit9 >"./logged/gprbuild.log"  2>"./logged/gprbuild_error.log" )
-			$(PATH="$madeit5:$my_path" && cd "$madeit1" && "$madeit7"/gprbuild -d -f --config=./kov.cgpr -Xstatic_or_dynamic=$madeit3 -Xos=$madeit4 -Xdebug_information=$madeit2  -P./apq.gpr -cargs -I "$madeit10" $my_include -I $madeit9 >"./logged/gprbuild.log"  2>"./logged/gprbuild_error.log" )
+			$(PATH="$madeit5:$my_path" && cd "$madeit1" && "$madeit7"/gprbuild -d -f --config=./kov.cgpr -Xstatic_or_dynamic=$madeit3 -Xos=$madeit4 -Xdebug_information=$madeit2  -P./apq.gpr -cargs -I "$madeit10" -I "$my_include" -I $madeit9 >"./logged/gprbuild.log"  2>"./logged/gprbuild_error.log" )
 
 			if [ -s  "$madeit1/logged/gprbuild_error.log" ]; then
 				erro_msg_gprbuild_part="$my_hold_tmp1"
 				printf " gprbuild:\tnot ok\t:lib\t$madeit3\t$madeit4\t$erro_msg_gprbuild_part\n" >> "$my_atual_dir/apq_mysql_error.log"
 				my_count2=$(( $my_count2 + 1 ))
 				continue
-			else
-				printf " gprbuild:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Ok\n" >> "$my_atual_dir/apq_mysql_error.log"
 			fi
+			printf " gprbuild:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Ok\n" >> "$my_atual_dir/apq_mysql_error.log"
 			
 			my_count2=$(( $my_count2 + 1 ))
 			my_count3=$(( $my_count3 + 1 ))
 
 		done
 		# ok
-#		if [ -z "$erro_msg_gprconfig_part" ] && [ -z "$erro_msg_gprbuild_part" ] && [ -z "$erro_msg_pg_config_part" ]; then
 		if [ -z "$erro_msg_gprconfig_part" ] && [ -z "$erro_msg_gprbuild_part" ] && [ -z "$erro_msg_my_config_part" ]; then
 			printf "\n ok. \n\n"  >> "$my_atual_dir/apq_mysql_error.log"
 			printf 'true' > "$my_atual_dir/ok.log"
 			exit 0
-		else
-		# not ok
-			if [ -n "$erro_msg_my_config_part" ]; then
-				printf "mysql_config error log: verify matched mysql_config_error.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
-			fi
-			if [ -n "$erro_msg_gprconfig_part" ]; then
-				printf "gprconfig error log: verify matched's gprconfig_error.log and gprconfig.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
-			fi
-			if [ -n "$erro_msg_gprbuild_part" ]; then
-				printf "gprbuild error log: verify matched's gprbuild_error.log and gprbuild.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
-			fi
-			if [ "$my_count3" -ge 1 ]; then
-				printf "\n not ok. but one or more things worked\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
-				printf 'false' > "$my_atual_dir/ok.log"
-			else 
-				printf "\n not ok.\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
-				printf 'false' > "$my_atual_dir/ok.log"
-			fi
-			exit 1
 		fi
+		# not ok
+		if [ -n "$erro_msg_my_config_part" ]; then
+			printf "mysql_config error log: verify matched mysql_config_error.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
+		fi
+		if [ -n "$erro_msg_gprconfig_part" ]; then
+			printf "gprconfig error log: verify matched's gprconfig_error.log and gprconfig.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
+		fi
+		if [ -n "$erro_msg_gprbuild_part" ]; then
+			printf "gprbuild error log: verify matched's gprbuild_error.log and gprbuild.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
+		fi
+		if [ "$my_count3" -ge 1 ]; then
+			printf "\n not ok. but one or more things worked\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
+			printf 'false' > "$my_atual_dir/ok.log"
+		else 
+			printf "\n not ok.\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
+			printf 'false' > "$my_atual_dir/ok.log"
+		fi
+		exit 1
 		
 	else
 		{	printf " Nothing to compile. \n"
