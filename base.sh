@@ -436,14 +436,16 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	kov_def1=
 	kov_def2=
 	
-	apq_mysql_gpr_in=$(cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-					printf  '   system_libs  := ( ) & ( ' 
-					printf  " $madeit3 " 
-					printf  ' ); ' 
-					cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
-					)
-	echo "$apq_mysql_gpr_in">"$my_atual_dir/daniteste.log"
- exit 1
+	local apq_mysql_gpr_in=$(
+		cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
+		echo  '   system_libs  := ( ) & ( ' 
+		echo  " $madeit3 " 
+		echo  ' ); ' 
+		cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
+	)
+
+#	echo "$apq_mysql_gpr_in">"$my_atual_dir/daniteste.log"
+# exit 1
 
 IFS=",$ifsbackup"
 
@@ -470,11 +472,10 @@ do
 
 			for support_dirs in obj lib ali obj_c lib_c ali_c src
 			do
-				mkdir -p "$my_tmp"/$support_dirs  2>>"$my_atual_dir/apq_mysql_error.log"
+				mkdir -p "$my_tmp/$support_dirs"  2>>"$my_atual_dir/apq_mysql_error.log"
 			done # support_dirs
 			
 			echo "$my_apq_mysql_ads" > "$my_tmp/src/apq-mysql.ads"  2>>"$my_atual_dir/apq_mysql_error.log"
-			
 
 		done # debuga
 	done # libbuildtype
@@ -487,12 +488,11 @@ IFS="$ifsbackup"
 		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
 		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
-	else 
-		#ok
-		printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log" ;
-		printf 'true' > "$my_atual_dir/ok.log" ;
-		exit 0;   # end ;-)
-	fi
+	fi 
+	#ok
+	printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log" ;
+	printf 'true' > "$my_atual_dir/ok.log" ;
+	exit 0;   # end ;-)
 
 } #end _configure
 
