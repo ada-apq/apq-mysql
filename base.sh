@@ -314,7 +314,7 @@ mkdir -p "$my_tmp0/logged"
 local mysql_include=$( "$my_my_config"/mysql_config --include 2>"$my_tmp0/logged/mysql_config_error.log" | sed -n -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/p'  )
 
 if [ -s  "$my_tmp0/logged/mysql_config_error.log" ] || [ ! -d "$mysql_include" ]; then
-	printf "mysql_config setup:\tnot ok\t: or $my_my_config/mysql_config  don't exist or '$mysql_include' don't is a directory\n" >> "$my_atual_dir/apq_mysql_error.log"
+	printf "\n\nmysql_config\t:\t setup:\tnot ok\n Or $my_my_config/mysql_config  don't exist\n or mysql include dir '$mysql_include' don't is a directory.\n This can being caused by a invalid my_config_path,too.\n" >> "$my_atual_dir/apq_mysql_error.log"
 				
 else
 
@@ -473,7 +473,7 @@ IFS="$ifsbackup"
 
 	#not ok
 	if [ -s  "$my_atual_dir/apq_mysql_error.log" ]; then
-		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n not ok. \n " >> "$my_atual_dir/apq_mysql_error.log" ;
+		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log" ;
 		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
 	else 
