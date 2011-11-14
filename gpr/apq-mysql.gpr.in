@@ -49,6 +49,15 @@ project Apq.mysql is
    Debug_option_list_builder_C  := ();  -- null string_list
    Debug_option_list_compiler_C := (); -- null string_list
 
+   NameDir_Static_Or_Shared:= "";
+
+	case Static_Or_Dynamic is
+			when "dynamic" | "relocatable" =>
+				NameDir_Static_Or_Shared:= "shared";
+			when "dynamic" | "relocatable" =>
+				NameDir_Static_Or_Shared:= "static";
+	end case;
+
    case debug_information is
       when "yes" =>
          Debug := Debug & "debug";
@@ -134,31 +143,14 @@ project Apq.mysql is
 		  null;
    end case; -- end Debug_information
 
-   mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & debug & "/src" ) ;
+   mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & NameDir_Static_Or_Shared & "/" & debug & "/src" ) ;
 
    for Languages use ("Ada" , "C" );
    for Source_Dirs use mysource ;
    for Library_Name use "apq-mysql" ;
-   case debug_information is
-	   when "yes" =>
-		   case static_or_dynamic is
-				when "dynamic" | "relocatable" =>
-					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/shared/debug/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/shared/debug/ali/" ;
-				when "static" =>
-					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/static/debug/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/static/debug/ali/" ;
-		   end case;
-	   when "no"  =>
-		   case static_or_dynamic is
-				when "dynamic" | "relocatable" =>
-					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/shared/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/shared/ali/" ;
-				when "static" =>
-					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/static/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/static/ali/" ;
-		   end case;
-   end case;
+   for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/" & NameDir_Static_Or_Shared & "/" & debug & "/"  ;
+	for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/" & NameDir_Static_Or_Shared & "/" & debug & "/ali/" ;
+
 
    for Library_Kind use Static_Or_Dynamic;
    for Externally_Built use "true";

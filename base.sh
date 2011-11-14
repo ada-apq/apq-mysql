@@ -828,6 +828,8 @@ _installe(){
 
 	local my_count=1
 	local my_made_install=
+	local madeit1=
+	local madeit2=
 
 	for sist_oses in $my_oses
 	do
@@ -848,7 +850,6 @@ _installe(){
 				
 				[ ! -d "$my_tmp4" ] && continue
 				[ "$debuga" = "normal" ] && my_tmp5="" || my_tmp5="$debuga"
-	# mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & debug & "/src" ) ;
 
 				install -d "$my_prefix/lib/apq-mysql/$sist_oses/$my_tmp6/$my_tmp5/ali"  2>"$my_tmp4/logged/install_error.log"
 				if [ -s  "$my_tmp4/logged/install_error.log" ]; then
@@ -898,6 +899,54 @@ _installe(){
 	else
 		printf "install includes:\tOk\t:Created directory! \n" >> "$my_atual_dir/apq_mysql_error.log"
 	fi
+
+	IFS=",$ifsbackup"
+
+	sist_oses=
+	libbuildtype=
+	debuga=
+	my_tmp=
+	my_tmp2=
+	my_tmp3=
+	my_tmp4=
+	my_tmp5=
+	my_tmp6=
+	my_count="1"
+	
+	for sist_oses in $my_oses
+	do
+		[ ! -d "$made_dirs/$sist_oses" ] && continue
+
+		for libbuildtype in $my_libtypes
+		do
+			[ ! -d "$made_dirs/$sist_oses/$libbuildtype" ] && continue
+			[ "$libbuildtype" = "relocatable" -o "$libbuildtype" = "dynamic"  ] && my_tmp="shared" || my_tmp="static"
+
+			for debuga in $my_with_debug_too
+			do
+				my_tmp2="$made_dirs/$sist_oses/$libbuildtype/$debuga/src"
+				[ ! -d "$my_tmp2" ] && continue
+				[ ! -f "$my_tmp2/apq-mysql.ads" ] && continue
+				[ ! -s "$my_tmp2/apq-mysql.ads" ] && continue
+
+				[ "$debuga" = "normal" ] && my_tmp3="" || my_tmp3="$debuga"
+
+				my_tmp4="$my_tmp2/apq-mysql.ads"
+				madeit1=" from_$my_count=\"$my_tmp4\"  "
+
+				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$debuga/src"
+
+				
+				madeit2=" to_$my_count=\"$my_tmp5\" "
+
+				eval "$madeit1"
+				my_count=$(( $my_count + 1 ))
+			done # debuga
+		done # libbuildtype
+	done # sist_oses
+	# mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & "/" & debug & "/src" ) ;
+
+
 
 
 	install "$my_atual_dir"/src/* -t "$my_prefix/include/apq-mysql"  2>"$made_dirs/install_src_error.log"
