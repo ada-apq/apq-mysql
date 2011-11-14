@@ -133,8 +133,10 @@ project Apq.mysql is
 		  null;
    end case; -- end Debug_information
 
+   mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & debug & "/src" ) ;
+
    for Languages use ("Ada" , "C" );
-   for Source_Dirs use () & ( prefix & "/include/apq-mysql" , prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & debug & "/src" ) ;
+   for Source_Dirs use mysource ;
    for Library_Name use "apq" ;
    case debug_information is
 	   when "yes" =>
