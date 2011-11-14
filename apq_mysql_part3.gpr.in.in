@@ -168,7 +168,7 @@
 
 
    for Languages use ("Ada" , "C" );
-   for Source_Dirs use () & mysource & ("" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/src/" ) ;
+   for Source_Dirs use ( mysource ,  basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/src/" ) ;
    for Object_Dir use "" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/obj/";
    for Library_Name use "apq-mysql" ;
    for Library_Dir use "" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/lib/" ;

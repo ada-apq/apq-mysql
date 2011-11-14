@@ -223,8 +223,9 @@ _configure(){
 local my_atual_dir=$(pwd)
 
 # Silent Reporting, because apq_mysql_error.log or  don't exist or don't is a regular file or is a link
-if [ ! -f "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/apq_mysql_error.log ] || [ -L "$my_atual_dir"/ok.log ]; then
+if [ ! -f "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/ok.log" ]; then
 	exit 1
+	echo "oi"
 fi
 
 if [ $# -ne 9 ]; then
@@ -234,9 +235,10 @@ if [ $# -ne 9 ]; then
 		printf 'configura "OSes" "libtype,libtype_n" "compiler_path1:compiler_path_n" "system_libs_path1:system_libs_paths_n"  "ssl_include_path" "mysql_config_path"  "gprconfig_path"  "gprbuild_path"  "build_with_debug_too" '
 		printf "\n"
 	}>"$my_atual_dir/apq_mysql_error.log"
-	printf 'false' > "$my_atual_dir/ok.log"
+
+	printf 'false'>"$my_atual_dir/ok.log"
 	exit 1
-fi;
+fi
 # remove old content from apq_mysql_error.log
 printf "" > "$my_atual_dir/apq_mysql_error.log"
 
@@ -266,13 +268,13 @@ local my_with_debug_too=$(_choose_debug "$9" )
 # need more sanitization
 _mysql_config_path=${_mysql_config_path:=$(_discover_acmd_path "mysql_config" "$my_compiler_paths" "/usr/bin" )}
 #_pg_config_path=${_pg_config_path//[''``]/""}
-my_mysql_config_path=$_mysql_config_path
+my_mysql_config_path="$_mysql_config_path"
 
 _gprconfig_path=${_gprconfig_path:=$(_discover_acmd_path "gprconfig" "$my_compiler_paths" "/usr/bin" )}
-my_gprconfig_path=$_gprconfig_path
+my_gprconfig_path="$_gprconfig_path"
 
 _gprbuild_path=${_gprbuild_path:=$(_discover_acmd_path "gprbuild" "$my_compiler_paths" "/usr/bin" )}
-my_gprbuild_path=$_gprbuild_path
+my_gprbuild_path="$_gprbuild_path"
 
 _ssl_include_path=${_ssl_include_path:=/usr/lib/openssl}
 my_ssl_include_path=${_ssl_include_path}
@@ -284,6 +286,7 @@ local max_count=11
 # 10(ten) libs is a reasonable value for now.
 # if you need more , feel free to contact us and suggest changes. :-)
 IFS=";:$ifsbackup"
+
 for alibdirsystem in $_system_libs_paths
 do
 	[ ${at_count:=1} -ge ${max_count:=11} ] && break;
@@ -297,7 +300,7 @@ IFS=",$ifsbackup"
 
 local made_dirs="$my_atual_dir/build"
 local src_genesis="$my_atual_dir/src_genesis"
-local my_my_config=$my_mysql_config_path
+local my_my_config="$my_mysql_config_path"
 
 while true;
 do
@@ -305,19 +308,17 @@ do
 	my_my_config=$(dirname "$my_my_config" )
 done
 
-local sist_oses0=$( printf "$my_oses" | grep  -o '^[^ ,]*' )
-local libbuildtype0=$( printf "$my_libtypes" | grep  -o '^[^ ,]*' )
-local debuga0=$( printf "$my_with_debug_too" | grep  -o '^[^ ,]*' )
+local mysql_include_error=$( "$my_my_config"/mysql_config --include 2>&1 >/dev/null)
+local mysql_include=$( "$my_my_config"/mysql_config --include | sed  -e  's/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
 
-local my_tmp0="$made_dirs"/$sist_oses0/$libbuildtype0/$debuga0
-mkdir -p "$my_tmp0/logged"
-local mysql_include=$( "$my_my_config"/mysql_config --include 2>"$my_tmp0/logged/mysql_config_error.log" | sed -n -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/p'  )
+if [ -n  "$mysql_include_error" ] || [ ! -d "$mysql_include" ]; then
+	{ printf "\n\nmysql_config\t:\t setup:\tnot ok\n Or $my_my_config/mysql_config  don't exist\n or mysql include dir '$mysql_include' don't is a directory.\n This can being caused by a invalid my_config_path,too.\n" 
+	printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" 
+	}>>"$my_atual_dir/apq_mysql_error.log"
 
-if [ -s  "$my_tmp0/logged/mysql_config_error.log" ] || [ ! -d "$mysql_include" ]; then
-	printf "\n\nmysql_config\t:\t setup:\tnot ok\n Or $my_my_config/mysql_config  don't exist\n or mysql include dir '$mysql_include' don't is a directory.\n This can being caused by a invalid my_config_path,too.\n" >> "$my_atual_dir/apq_mysql_error.log"
-				
-else
-
+	printf 'false' > "$my_atual_dir/ok.log" ;
+	exit 1
+fi
 	local my_enum_option_tmp=$( sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[mM][yY][sS][qQ][lL]_[oO][pP][tT][iI][oO][nN]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
 	
 	local my_field_types_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql_com.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[eE][nN][uU][mM]_[fF][iI][eE][lL][dD]_[tT][yY][pP][eE][sS]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
@@ -367,7 +368,7 @@ else
 						echo "pragma Linker_Options(\"$miarg\");"
 					done
 					;;
-					esac
+		esac;
 	)
 
 ## because quotes , _IS Mandatory_  a one or more(1+) espaces characters before the closing "/" or  "\n/" in each sed script :-)
@@ -381,10 +382,10 @@ sed -e "s/%OPTION_ENUM_MY%/$enum_option_label_only_esc  \n/" |
 sed -e "s/%USE_OPTION_ENUM_MY%/$enum_option_value_esc  \n/"  |
 sed -e 's/%MYSQL_ROW_NO%/64 /')
 
-my_apq_mysql_ads_1=$( echo "$my_apq_mysql_ads_0" | sed -n -e '1,/%mysql_linker_options%/ p' | sed -e '/%mysql_linker_options%/ d' )
-my_apq_mysql_ads_2=$( echo "$my_apq_mysql_ads_0" | sed -n -e '/%mysql_linker_options%/,$ p' | sed -e '/%mysql_linker_options%/ d' )
+local my_apq_mysql_ads_1=$( echo "$my_apq_mysql_ads_0" | sed -n -e '1,/%mysql_linker_options%/ p' | sed -e '/%mysql_linker_options%/ d' )
+local my_apq_mysql_ads_2=$( echo "$my_apq_mysql_ads_0" | sed -n -e '/%mysql_linker_options%/,$ p' | sed -e '/%mysql_linker_options%/ d' )
 
-my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo "$my_apq_mysql_ads_2" )
+local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo "$my_apq_mysql_ads_2" )
 
 	my_field_types_value_esc=
 	my_field_types_label_only_esc=
@@ -399,39 +400,50 @@ my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"; echo
 
 	IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
 
-	#min two spaces before "\n" because quotes
-	local kov_log=$(	printf	"$my_ssl_include_path  \n"
-				printf	"$my_compiler_paths  \n"
-				printf	"$my_gprconfig_path  \n"
-				printf	"$my_gprbuild_path  \n"
-				printf	"${my_mysql_config_path}  \n"
-				printf	"${my_system_libs_paths}  \n"
-				)
+	local kov_log=$(
+		echo "$my_ssl_include_path"
+		echo "$my_compiler_paths"
+		echo "$my_gprconfig_path"
+		echo "$my_gprbuild_path"
+		echo "$my_my_config"
+		echo "$my_system_libs_paths"
+	)
 
 	local madeit3=
 	local at_count_tmp=
 	local madeit2=
+	local at_count_tmp="1"
 
-	#min two spaces before "\n" because quotes  ;
-	kov_def=$(	printf	"version:=\"$my_version\"  \n"
-				printf	"mysource:=\"$my_atual_dir/src/\"  \n"
-				printf	"basedir:=\"$my_atual_dir/build\"  \n"	
-				while [ ${at_count_tmp:=1} -lt ${at_count:=11} ];
-				do
-					madeit2="lib_system$at_count_tmp" ;
-					madeit3="${madeit3:+${madeit3},} \$$madeit2 " ;
-					printf  "${madeit2}:=\"${!madeit2}\"  \n" ;				
-					at_count_tmp=$(( $at_count_tmp + 1 )) ;
-				done ;
-				printf "\n"
-			)
+	local kov_def1=$(
+		echo "version:=\"$my_version\""
+		echo "mysource:=\"$my_atual_dir/src/\""
+		echo "basedir:=\"$my_atual_dir/build\""
+	)
+	while [ $at_count_tmp -lt ${at_count:=11} ];
+	do
+		madeit2="lib_system$at_count_tmp"
+		madeit3="${madeit3:+${madeit3},} \$$madeit2 "
+		local kov_def2=$(
+			echo "${madeit2}:=\"${!madeit2}\""
+		)
+		at_count_tmp=$(( $at_count_tmp + 1 ))
+	done
 
+	local kov_def=$(
+		echo "$kov_def1"
+		echo "$kov_def2"
+	)
+	kov_def1=
+	kov_def2=
+	
 	apq_mysql_gpr_in=$(cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 					printf  '   system_libs  := ( ) & ( ' 
 					printf  " $madeit3 " 
 					printf  ' ); ' 
 					cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
 					)
+	echo "$apq_mysql_gpr_in">"$my_atual_dir/daniteste.log"
+ exit 1
 
 IFS=",$ifsbackup"
 
@@ -467,13 +479,12 @@ do
 		done # debuga
 	done # libbuildtype
 done # sist_oses
-fi
 
 IFS="$ifsbackup"
 
 	#not ok
 	if [ -s  "$my_atual_dir/apq_mysql_error.log" ]; then
-		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log" ;
+		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
 		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
 	else 
