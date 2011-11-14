@@ -29,7 +29,7 @@ project Apq_mysql is
 
    version   := $version ;    --  eg.: "3.0.1"
 
-   mysource	:= ( ) & $mysource ;
+   mysource	:= ( ) & $mysource & ( "./src/" ) ;
    basedir	:= "" & $basedir ;
 
 

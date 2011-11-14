@@ -407,6 +407,7 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 		echo "$my_gprbuild_path"
 		echo "$my_my_config"
 		echo "$my_system_libs_paths"
+		printf "\n"
 	)
 
 	local madeit3=
@@ -415,11 +416,11 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	local at_count_tmp="1"
 
 	local kov_def1=$(
-		echo "version:=\"$my_version\""
-		echo "mysource:=\"$my_atual_dir/src/\""
-		echo "basedir:=\"$my_atual_dir/build\""
+		echo "version:=\"$my_version\"  "
+		echo "mysource:=\"$my_atual_dir/src/\"  "
+		echo "basedir:=\"$my_atual_dir/build\"  "
 	)
-	while [ $at_count_tmp -lt ${at_count:=11} ];
+	while [ "$at_count_tmp" -lt ${at_count:=11} ];
 	do
 		madeit2="lib_system$at_count_tmp"
 		madeit3="${madeit3:+${madeit3},} \$$madeit2 "
@@ -444,9 +445,6 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 		cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
 	)
 
-#	echo "$apq_mysql_gpr_in">"$my_atual_dir/daniteste.log"
-# exit 1
-
 IFS=",$ifsbackup"
 
 for sist_oses in $my_oses
@@ -459,10 +457,11 @@ do
 			mkdir -p "$my_tmp/logged"
 			
 			IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
-			
-			printf "$kov_log" > "$my_tmp/logged/kov.log"  2>>"$my_atual_dir/apq_mysql_error.log"
 
-			printf "$kov_def" > "$my_tmp/logged/kov.def" 2>>"$my_atual_dir/apq_mysql_error.log"
+			# because use of vars, I added a "\n" :-) in 
+			printf "$kov_log\n" > "$my_tmp/logged/kov.log"  2>>"$my_atual_dir/apq_mysql_error.log"
+
+			printf "$kov_def\n" > "$my_tmp/logged/kov.def" 2>>"$my_atual_dir/apq_mysql_error.log"
 
 			echo "$apq_mysql_gpr_in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 
@@ -532,7 +531,8 @@ _compile(){
 	local my_libtypes=$(_choose_libtype "all" )
 	local my_with_debug_too=$(_choose_debug "yes" )
 	local made_dirs="$my_atual_dir/build"
-	local my_count=1
+	local my_count="1"
+
 	if [ ! -d "$made_dirs" ]; then
 		{	printf "\n"
 			printf ' "build" dir '
@@ -550,27 +550,39 @@ _compile(){
 	local line5_compile_paths=
 	local line6_gprconfig_path=
 	local line7_gprbuild_path=
-	local line8_pg_config_path=
-	local sist_oses=
-	local libbuildtype=
-	local debuga=
+	local line8_my_config_path=	
 	local my_tmp=
 	local erro_msg_gprconfig_part=
 	local erro_msg_gprbuild_part=
 	local erro_msg_my_config_part=
+	local madeit1=
+	local madeit2=
+	local madeit3=
+	local madeit4=
+	local madeit5=
+	local madeit6=
+	local madeit7=
+	local madeit8=
+	local madeit9=
+	local madeit10=
+	local aab=
 	
 	IFS=",$ifsbackup"
-			
+
+	local sist_oses=
+	local libbuildtype=
+	local debuga=
+
 	for sist_oses in $my_oses
 	do
 		for libbuildtype in $my_libtypes
 		do
 			for debuga in $my_with_debug_too
 			do
-				my_tmp="$made_dirs/$sist_oses/$libbuildtype/$debuga"
+				my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
 				
 				if [ -f "$my_tmp/logged/kov.log" ] && \
-					[ $(wc -l < "$my_tmp/logged/kov.log" ) -ge 6 ] && \
+					[ $(sed -n -e '$=' "$my_tmp/logged/kov.log" ) -ge 6 ] && \
 					[ -f "$my_tmp/apq_mysql.gpr" ];
 				then
 					line1_my_tmp="$my_tmp"
@@ -613,8 +625,7 @@ _compile(){
 							[ -d "$line9_ssl_include_path" ] && break
 							line9_ssl_include_path=$(dirname "$line9_ssl_include_path" )
 						done
-
-						my_count=${my_count:=1}
+	
 						madeit1=" line1_$my_count=\"$my_tmp\" "
 						madeit2=" line2_$my_count=\"$debuga\" "
 						madeit3=" line3_$my_count=\"$libbuildtype\" "
@@ -626,17 +637,17 @@ _compile(){
 						madeit9=" line9_$my_count=\"$line9_ssl_include_path\" "
 						madeit10=" line10_$my_count=\"$line10_my_system_libs_paths\" "
 
-						eval $madeit1
-						eval $madeit2
-						eval $madeit3
-						eval $madeit4
-						eval $madeit5
-						eval $madeit6
-						eval $madeit7
-						eval $madeit8
-						eval $madeit9
-						eval $madeit10
-						
+						eval "$madeit1"
+						eval "$madeit2"
+						eval "$madeit3"
+						eval "$madeit4"
+						eval "$madeit5"
+						eval "$madeit6"
+						eval "$madeit7"
+						eval "$madeit8"
+						eval "$madeit9"
+						eval "$madeit10"
+
 						my_count=$(( $my_count + 1 ))
 					fi
 				fi
@@ -644,55 +655,55 @@ _compile(){
 		done # libbuildtype
 	done # sist_oses
 	
-	local my_count3=0
+	local my_count3="0"
 	local my_hold_tmp1=
-		
-	if [ $my_count -gt 1 ]; then
-		while [ ${my_count2:=1} -lt $my_count ];
+	local my_count2="1"
+
+	if [ "$my_count" -gt 1 ]; then
+		while [ "$my_count2" -lt "$my_count" ];
 		do
-			aab="line1_${my_count2}"
-			madeit1=${!aab}
-			aab="line2_${my_count2}"
-			madeit2=${!aab}
-			aab="line3_${my_count2}"
-			madeit3=${!aab}
-			aab="line4_${my_count2}"
-			madeit4=${!aab}
-			aab="line5_${my_count2}"
-			madeit5=${!aab}
-			aab="line6_${my_count2}"
-			madeit6=${!aab}
-			aab="line7_${my_count2}"
-			madeit7=${!aab}
-			aab="line8_${my_count2}"
-			madeit8=${!aab}
-			aab="line9_${my_count2}"
-			madeit9=${!aab}
-			aab="line10_${my_count2}"
-			madeit10=${!aab}
+			aab="line1_$my_count2"
+			madeit1="${!aab}"
+			aab="line2_$my_count2"
+			madeit2="${!aab}"
+			aab="line3_$my_count2"
+			madeit3="${!aab}"
+			aab="line4_$my_count2"
+			madeit4="${!aab}"
+			aab="line5_$my_count2"
+			madeit5="${!aab}"
+			aab="line6_$my_count2"
+			madeit6="${!aab}"
+			aab="line7_$my_count2"
+			madeit7="${!aab}"
+			aab="line8_$my_count2"
+			madeit8="${!aab}"
+			aab="line9_$my_count2"
+			madeit9="${!aab}"
+			aab="line10_$my_count2"
+			madeit10="${!aab}"
 
 			my_hold_tmp1="$madeit2"
+			madeit2="yes"
 
 			if [ "$madeit2" = "normal" ];
 			then
-				madeit2="no"; 
-			else
-				madeit2="yes";
+				madeit2="no"
 			fi
 
 			local mysql_include_error2=$( "$madeit8"/mysql_config --include 2>&1 >/dev/null)
-			local mysql_include2=$( "$madeit8"/mysql_config --include | sed  -e  's/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
+			local mysql_include2=$( "$madeit8"/mysql_config --include | sed  -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
 
-			if [ -n  "$mysql_include_error" ] || [ ! -d "$mysql_include" ]; then
-				echo "mysql_include_error2" > "$madeit1/logged/mysql_config_error.log"
-				echo "mysql_include2" >> "$madeit1/logged/mysql_config_error.log"
+			if [ -n  "$mysql_include_error2" ] || [ ! -d "$mysql_include2" ]; then
+				echo "$mysql_include_error2" > "$madeit1/logged/mysql_config_error.log"
+				echo "$mysql_include2" >> "$madeit1/logged/mysql_config_error.log"
 				erro_msg_my_config_part="$my_hold_tmp1"
 				printf "mysql_config:\tnot ok\t:lib\t$madeit3\t$madeit4\t$erro_msg_my_config_part\t:Aborting matched's gprconfig & gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 				my_count2=$(( $my_count2 + 1 ))
 				continue
 			fi
 			printf "mysql_config:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Trying matched's gprconfig & gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
-			my_include="mysql_include2"
+			my_include="$mysql_include2"
 
 			# a explanation: with PATH="$my_path:$madeit5" I made preference for gcc and g++ for native compilers in system. this solve problems with multi-arch in Debian sid
 			# using gnat and gprbuild from toolchain Act-San :-)
@@ -707,7 +718,7 @@ _compile(){
 			fi
 			printf "gprconfig:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Trying matched gprbuild... \n" >> "$my_atual_dir/apq_mysql_error.log"
 
-			$(PATH="$madeit5:$my_path" && cd "$madeit1" && "$madeit7"/gprbuild -d -f --config=./kov.cgpr -Xstatic_or_dynamic=$madeit3 -Xos=$madeit4 -Xdebug_information=$madeit2  -P./apq.gpr -cargs -I "$madeit10" -I "$my_include" -I $madeit9 >"./logged/gprbuild.log"  2>"./logged/gprbuild_error.log" )
+			$(PATH="$madeit5:$my_path" && cd "$madeit1" && "$madeit7"/gprbuild -d -f --config=./kov.cgpr -Xstatic_or_dynamic=$madeit3 -Xos=$madeit4 -Xdebug_information=$madeit2  -P./apq_mysql.gpr -cargs -I "$madeit10" -I "$my_include" -I $madeit9 >"./logged/gprbuild.log"  2>"./logged/gprbuild_error.log" )
 
 			if [ -s  "$madeit1/logged/gprbuild_error.log" ]; then
 				erro_msg_gprbuild_part="$my_hold_tmp1"
@@ -739,22 +750,19 @@ _compile(){
 		fi
 		if [ "$my_count3" -ge 1 ]; then
 			printf "\n not ok. but one or more things worked\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
-			printf 'false' > "$my_atual_dir/ok.log"
 		else 
 			printf "\n not ok.\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
-			printf 'false' > "$my_atual_dir/ok.log"
 		fi
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 		
-	else
+	fi
 		{	printf " Nothing to compile. \n"
 			printf " Maybe 'oses' not yet (or erroneously) configured ? "
 			printf "\n\n Not ok. \n\n"
 		}>>"$my_atual_dir/apq_mysql_error.log"
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
-	fi
-
 
 } #end _compile
 

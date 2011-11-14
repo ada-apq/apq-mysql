@@ -166,9 +166,10 @@
 		  null;
    end case;
 
-
-   for Languages use ("Ada" , "C" );
-   for Source_Dirs use ( mysource ,  basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/src/" ) ;
+	--  e.g: mysource:= mysource & ( "" &  basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/src/" ) ;
+   --
+   for Languages use ("Ada" , "C" , "C++");
+   for Source_Dirs use mysource ;
    for Object_Dir use "" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/obj/";
    for Library_Name use "apq-mysql" ;
    for Library_Dir use "" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/lib/" ;
@@ -181,11 +182,13 @@
    package Compiler is
       for Default_Switches ("ada") use ("-O2", "-gnat05", "-gnatn" , "-fPIC" ) & Debug_option_list_compiler ;
 	  for Default_Switches ("C") use ("-O2" , "-fPIC" ) & Debug_option_list_compiler_C ;
+	  for Default_Switches ("C++") use ("-O2" , "-fPIC" ) & Debug_option_list_compiler_C ;
    end Compiler;
 
    package Builder  is
       for Default_Switches ("ada") use ("-O2", "-gnat05", "-gnatn" , "-fPIC" ) & Debug_option_list_builder ;
 	  for Default_Switches ("C") use ("-O2" , "-fPIC" ) & Debug_option_list_builder_C ;
+	  for Default_Switches ("C++") use ("-O2" , "-fPIC" ) & Debug_option_list_compiler_C ;
    end Builder;
 
 end Apq_mysql;
