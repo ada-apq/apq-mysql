@@ -8,7 +8,7 @@
 ---- obs.: "make system_libs=<path_value>" can be used for it. (e.g cross-compiling
 ----       or just change the base lib , in per compiling base. For The Braves and Sagacious ^_^!!!
 
----- 	IMPORTANT!!!  You NEED INSTALL the gpr/apq-postgresql.gpr
+---- 	IMPORTANT!!!  You NEED INSTALL the gpr/apq-mysql.gpr
 ----                   and apq_postgresql_version in ONE(1) local Only if you want access all
 ----                   compileds libs. the build system take care for you where are all them ;-)
 ----                   just hit " make install oses=system_operation1,system_operation_n --prefix=/where_path_to_install " ;
