@@ -772,24 +772,25 @@ _installe(){
 #: date		: 2011-jul-09
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.04
+#: version	: 1.05
 #: Description: If possible, install libs and includes from os(es) in prefix,
 #: Description: You don't need run this script manually.
 #: Options	:  "OSes" "prefix"
 
 	local my_atual_dir=$(pwd)
 	# Silent Reporting, because apq_error.log or don't exist or don't is a regular file or is a link
-	if [ ! -f "$my_atual_dir"/apq_error.log ] || [ -L "$my_atual_dir"/apq_error.log ]; then
+	if [ ! -f "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/ok.log" ]; then
 		exit 1
 	fi
 	# remove old content from apq_error.log
-	printf "" > "$my_atual_dir/apq_error.log"
+	printf "" > "$my_atual_dir/apq_mysql_error.log"
 
 	if [ $# -ne 2 ]; then
 		{	printf "\n"
 			printf 'usage: installe "OSes" "prefix" '
 			printf "\n\n not ok. \n"
-		}>"$my_atual_dir/apq_error.log"
+		}>"$my_atual_dir/apq_mysql_error.log"
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
 	local ifsbackup="$IFS"
@@ -808,7 +809,8 @@ _installe(){
 			printf ' "build" dir '
 			printf "don't exist or don't is a directory."
 			printf "\n\n not ok. \n\n"
-		}>> "$my_atual_dir/apq_error.log"
+		}>> "$my_atual_dir/apq_mysql_error.log"
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
 	
@@ -826,7 +828,7 @@ _installe(){
 
 	local my_count=1
 	local my_made_install=
-# > "$my_atual_dir/apq_error.log"
+
 	for sist_oses in $my_oses
 	do
 		my_tmp2="$made_dirs"/$sist_oses
@@ -846,30 +848,31 @@ _installe(){
 				
 				[ ! -d "$my_tmp4" ] && continue
 				[ "$debuga" = "normal" ] && my_tmp5="" || my_tmp5="$debuga"
+	# mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & debug & "/src" ) ;
 
-				install -d "$my_prefix/lib/apq/$sist_oses/$my_tmp6/$my_tmp5/ali"  2>"$my_tmp4/logged/install_error.log"
+				install -d "$my_prefix/lib/apq-mysql/$sist_oses/$my_tmp6/$my_tmp5/ali"  2>"$my_tmp4/logged/install_error.log"
 				if [ -s  "$my_tmp4/logged/install_error.log" ]; then
 					my_made_install="$debuga"
-					printf "install:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_error.log"
+					printf "install:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
 				else
-					printf "install:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Created directory! \n" >> "$my_atual_dir/apq_error.log"
+					printf "install:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Created directory! \n" >> "$my_atual_dir/apq_mysql_error.log"
 				fi
 
 				install -m0555 "$my_tmp4"/ali/* -t "$my_prefix/lib/apq/$sist_oses/$my_tmp6/$my_tmp5/ali"  2>"$my_tmp4/logged/install_error.log"
 				if [ -s  "$my_tmp4/logged/install_error.log" ]; then
 					my_made_install="$debuga"
-					printf "install ali:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_error.log"
+					printf "install ali:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
 				else
-					printf "install ali:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Installed .ali files! \n" >> "$my_atual_dir/apq_error.log"
+					printf "install ali:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Installed .ali files! \n" >> "$my_atual_dir/apq_mysql_error.log"
 				fi
 
 				# using "cp -a" to getrid from transforming symlinks in normal links
-				cp -a "$my_tmp4"/lib/* "$my_prefix/lib/apq/$sist_oses/$my_tmp6/$my_tmp5/"  2>"$my_tmp4/logged/install_error.log"
+				cp -a "$my_tmp4"/lib/* "$my_prefix/lib/apq-mysql/$sist_oses/$my_tmp6/$my_tmp5/"  2>"$my_tmp4/logged/install_error.log"
 				if [ -s  "$my_tmp4/logged/install_error.log" ]; then
 					my_made_install="$debuga"
-					printf "install lib:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_error.log"
+					printf "install lib:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
 				else
-					printf "install lib:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Installed lib files! \n" >> "$my_atual_dir/apq_error.log"
+					printf "install lib:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Installed lib files! \n" >> "$my_atual_dir/apq_mysql_error.log"
 				fi
 				
 				my_count=$(( $my_count + 1 ))
@@ -877,59 +880,68 @@ _installe(){
 			done # debuga
 		done # libbuildtype
 	done # sist_oses
-	if [ $my_count -ge 2 ]; then
-		install -d "$my_prefix/include/apq"  2>"$made_dirs/install_src_error.log"
-		if [ -s  "$made_dirs/install_src_error.log" ]; then
-			my_made_install="hi"
-			printf "install includes:\tnot ok\t: ... \n" >> "$my_atual_dir/apq_error.log"
-		else
-			printf "install includes:\tOk\t:Created directory! \n" >> "$my_atual_dir/apq_error.log"
-		fi
-		install "$my_atual_dir"/src/* -t "$my_prefix/include/apq"  2>"$made_dirs/install_src_error.log"
-		if [ -s  "$made_dirs/install_src_error.log" ]; then
-			my_made_install="hi"
-			printf "install includes:\tnot ok\t: ... \n" >> "$my_atual_dir/apq_error.log"
-		else
-			printf "install includes:\tOk\t:Installed includes! \n" >> "$my_atual_dir/apq_error.log"
-		fi
 
-		install -d "$my_prefix/lib/gnat"  2>"$made_dirs/install_gpr_error.log"
-		if [ -s  "$made_dirs/install_gpr_error.log" ]; then
-			my_made_install="hi"
-			printf "install gpr(s):\tnot ok\t: ... \n" >> "$my_atual_dir/apq_error.log"
-		else
-			printf "install gpr(s):\tOk\t:Created directory! \n" >> "$my_atual_dir/apq_error.log"
-		fi
-		gnatprep "-Dprefix=\"$my_prefix\"" "$my_atual_dir"/gpr/apq.gpr.in "$my_prefix/lib/gnat"/apq.gpr  2>"$made_dirs/install_gpr_error.log"
-		if [ -s  "$made_dirs/install_gpr_error.log" ]; then
-			my_made_install="hi"
-			printf "install gpr(s):\tnot ok\t: ... \n" >> "$my_atual_dir/apq_error.log"
-		else
-			printf "install gpr(s):\tOk\t:Installed GPR(s)! \n" >> "$my_atual_dir/apq_error.log"
-		fi
-		#
-		if [ -z "$my_made_install" ]; then
-			{	printf "\n\n Install libs now success finished. \n"
-				printf " Read the inline text in file $my_prefix/lib/gnat/apq.gpr \n"
-				printf " for hints and example usage :-)\n"
-				printf "\n ok. \n\n"
-			}>>"$my_atual_dir/apq_error.log"
-			exit 0
-		else
-			{	printf "\n\n there were some errors during this install process \n"
-				printf " read the install_*error.logs \n"
-				printf " for hints to fixes these errors :-)\n"
-				printf "\n not ok. \n\n"
-			}>>"$my_atual_dir/apq_error.log"
-			exit 1
-		fi
-	else
+	# nothing was installed
+	if [ $my_count -lt 2 ]; then
 		{	printf "nothing was installed. \n"
 			printf "maybe a wrong 'oses' ? or a not already compiled libs for install ? "
 			printf "not ok.\n\n"
-		}>>"$my_atual_dir/apq_error.log"
+		}>>"$my_atual_dir/apq_mysql_error.log"
+		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
+
+	install -d "$my_prefix/include/apq-mysql"  2>"$made_dirs/install_src_error.log"
+	if [ -s  "$made_dirs/install_src_error.log" ]; then
+		my_made_install="hi"
+		printf "install includes:\tnot ok\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
+	else
+		printf "install includes:\tOk\t:Created directory! \n" >> "$my_atual_dir/apq_mysql_error.log"
+	fi
+
+
+	install "$my_atual_dir"/src/* -t "$my_prefix/include/apq-mysql"  2>"$made_dirs/install_src_error.log"
+	if [ -s  "$made_dirs/install_src_error.log" ]; then
+		my_made_install="hi"
+		printf "install includes:\tnot ok\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
+	else
+		printf "install includes:\tOk\t:Installed includes! \n" >> "$my_atual_dir/apq_mysql_error.log"
+	fi
+
+
+
+	install -d "$my_prefix/lib/gnat"  2>"$made_dirs/install_gpr_error.log"
+	if [ -s  "$made_dirs/install_gpr_error.log" ]; then
+		my_made_install="hi"
+		printf "install gpr(s):\tnot ok\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
+	else
+		printf "install gpr(s):\tOk\t:Created directory! \n" >> "$my_atual_dir/apq_mysql_error.log"
+	fi
+	gnatprep "-Dprefix=\"$my_prefix\"" "$my_atual_dir/gpr/apq-mysql.gpr.in" "$my_prefix/lib/gnat/apq-mysql.gpr"  2>"$made_dirs/install_gpr_error.log"
+	if [ -s  "$made_dirs/install_gpr_error.log" ]; then
+		my_made_install="hi"
+		printf "install gpr(s):\tnot ok\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
+	else
+		printf "install gpr(s):\tOk\t:Installed GPR(s)! \n" >> "$my_atual_dir/apq_mysql_error.log"
+	fi
+	#ok
+	if [ -z "$my_made_install" ]; then
+		{	printf "\n\n Install libs now success finished. \n"
+			printf " Read the inline text in file $my_prefix/lib/gnat/apq-mysql.gpr \n"
+			printf " for hints and example usage :-)\n"
+			printf "\n ok. \n\n"
+		}>>"$my_atual_dir/apq_mysql_error.log"
+		printf 'true' > "$my_atual_dir/ok.log"
+		exit 0
+	fi
+	#mostly ok
+	{	printf "\n\n there were some errors during this install process \n"
+		printf " read the install_*error.logs \n"
+		printf " for hints to fixes these errors :-)\n"
+		printf "\n not ok. \n\n"
+	}>>"$my_atual_dir/apq_mysql_error.log"
+	printf 'false' > "$my_atual_dir/ok.log"
+	exit 1
 	
 } #end _installe
 
