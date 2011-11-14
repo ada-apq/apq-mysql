@@ -18,7 +18,7 @@
 --			to compile your program with lib shared+debug+mswindows. if the combination 
 --			don't exist, usually the compiler/linker will hit
 --			a error message. these combination was determined by the time the libs was compiled and installed.
---			Of course you can use "gprbuild" instead og gnatmake. :-)
+--			Of course you can use "gprbuild" instead of gnatmake. :-)
 --		    the gpr file will take  care for you where are the libs;
 --
 ----        But you will need , in system specific manner,  a way for
