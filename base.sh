@@ -740,13 +740,13 @@ _compile(){
 		fi
 		# not ok
 		if [ -n "$erro_msg_my_config_part" ]; then
-			printf "mysql_config error log: verify matched mysql_config_error.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
+			printf "\n\nmysql_config error log: verify matched mysql_config_error.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
 		fi
 		if [ -n "$erro_msg_gprconfig_part" ]; then
-			printf "gprconfig error log: verify matched's gprconfig_error.log and gprconfig.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
+			printf "\n\ngprconfig error log: verify matched's gprconfig_error.log and gprconfig.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
 		fi
 		if [ -n "$erro_msg_gprbuild_part" ]; then
-			printf "gprbuild error log: verify matched's gprbuild_error.log and gprbuild.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
+			printf "\n\ngprbuild error log: verify matched's gprbuild_error.log and gprbuild.log, in 'logged' subdir\n"  >> "$my_atual_dir/apq_mysql_error.log"
 		fi
 		if [ "$my_count3" -ge 1 ]; then
 			printf "\n not ok. but one or more things worked\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
