@@ -912,6 +912,7 @@ _installe(){
 	my_tmp5=
 	my_tmp6=
 	my_count="1"
+	local my_count4=1
 	
 	for sist_oses in $my_oses
 	do
@@ -934,30 +935,48 @@ _installe(){
 				my_tmp4="$my_tmp2/apq-mysql.ads"
 				madeit1=" from_$my_count=\"$my_tmp4\"  "
 
-				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$debuga/src"
-
-				
+				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$my_tmp3/src"
 				madeit2=" to_$my_count=\"$my_tmp5\" "
-
+				
 				eval "$madeit1"
+				eval "$madeit2"
+
 				my_count=$(( $my_count + 1 ))
+
 			done # debuga
 		done # libbuildtype
 	done # sist_oses
-	# mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & Static_or_dynamic & "/" & debug & "/src" ) ;
+	# mysource:=( "" & prefix & "/include/apq-mysql" , "" & prefix & "/include/apq-mysql/generated_source/" & OS & "/" & NameDir_Static_Or_Shared & "/" & debug & "/src" ) ;
 
-
-
+	my_tmp=
+	my_tmp2=
+	my_tmp3=
+	my_tmp4=
+	madeit=
+	local  from0=
+	local to0=
 
 	install "$my_atual_dir"/src/* -t "$my_prefix/include/apq-mysql"  2>"$made_dirs/install_src_error.log"
+	if [ "$my_count" -ge 2 ]; then
+		while [ "$my_count4" -lt "$my_count" ];
+		do
+			madeit="from_$my_count4"
+			from0="${!madeit}"
+			madeit="to_$my_count4"
+			to0="${!madeit}"
+
+			install "$from0" -t "$to0"  2>>"$made_dirs/install_src_error.log"
+
+			my_count4=$(( $my_count4 + 1 ))
+		done
+	fi
 	if [ -s  "$made_dirs/install_src_error.log" ]; then
 		my_made_install="hi"
-		printf "install includes:\tnot ok\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
+		printf "install includes :\tnot ok\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
 	else
-		printf "install includes:\tOk\t:Installed includes! \n" >> "$my_atual_dir/apq_mysql_error.log"
+		printf "install includes :\tOk\t:Installed includes! \n" >> "$my_atual_dir/apq_mysql_error.log"
 	fi
-
-
+	
 
 	install -d "$my_prefix/lib/gnat"  2>"$made_dirs/install_gpr_error.log"
 	if [ -s  "$made_dirs/install_gpr_error.log" ]; then
