@@ -11,18 +11,19 @@
 --			program project file these three(3) environment variables:
 --			 "Static_Or_Dynamic" , "Os" and "Debug_information". this is made
 --			 by the "-Xvariable=value" (without double quotes)
---			eg: if your program import apq-mysql.gpr in your my_program.gpr made 
+--			eg: if your program import apq-mysql.gpr in your my_program.gpr made: 
 --
 --			gnatmake -Pmy_program.gpr -Xstatic_or_dynamic=dynamic -XOs=mswindows -Xdebug_information=yes
 --
 --			to compile your program with lib shared+debug+mswindows. if the combination 
 --			don't exist, usually the compiler/linker will hit
 --			a error message. these combination was determined by the time the libs was compiled and installed.
---			of course you can use "gprbuil" instead og gnatmake :-)
---		    the gpr file will take  care for you where are the libs.
-----                   You will need however, in system specific manner,  a way for
-----                    your program using the libs "as being run/executing" locate the libs for him :-)
-----                   We just (just? ;-) take care of _compilation_ :-)
+--			Of course you can use "gprbuild" instead og gnatmake. :-)
+--		    the gpr file will take  care for you where are the libs;
+--
+----        But you will need , in system specific manner,  a way for
+----            your program using the libs "as being run/executing" locate the libs for him. :-)
+----              We just (just? ;-) take care of _compilation_ :-)
 ----       p.s.: You can use gnat-gps. gnat-gps will permit you choose in a Gui , the enviroment variables on-the-fly :-)
 ----  Enjoy!!! :-)
 
@@ -137,25 +138,25 @@ project Apq.mysql is
 
    for Languages use ("Ada" , "C" );
    for Source_Dirs use mysource ;
-   for Library_Name use "apq" ;
+   for Library_Name use "apq-mysql" ;
    case debug_information is
 	   when "yes" =>
 		   case static_or_dynamic is
 				when "dynamic" | "relocatable" =>
-					for Library_Dir use "" & prefix & "/lib/apq/" & Os & "/shared/debug/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq/" & Os & "/shared/debug/ali/" ;
+					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/shared/debug/"  ;
+					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/shared/debug/ali/" ;
 				when "static" =>
-					for Library_Dir use "" & prefix & "/lib/apq/" & Os & "/static/debug/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq/" & Os & "/static/debug/ali/" ;
+					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/static/debug/"  ;
+					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/static/debug/ali/" ;
 		   end case;
 	   when "no"  =>
 		   case static_or_dynamic is
 				when "dynamic" | "relocatable" =>
-					for Library_Dir use "" & prefix & "/lib/apq/" & Os & "/shared/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq/" & Os & "/shared/ali/" ;
+					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/shared/"  ;
+					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/shared/ali/" ;
 				when "static" =>
-					for Library_Dir use "" & prefix & "/lib/apq/" & Os & "/static/"  ;
-					for Library_ALI_Dir use  "" & prefix & "/lib/apq/" & Os & "/static/ali/" ;
+					for Library_Dir use "" & prefix & "/lib/apq-mysql/" & Os & "/static/"  ;
+					for Library_ALI_Dir use  "" & prefix & "/lib/apq-mysql/" & Os & "/static/ali/" ;
 		   end case;
    end case;
 
