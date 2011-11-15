@@ -3,7 +3,7 @@
 #: date		: 2011-jul-09
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.2.3
+#: version	: 1.2.6
 #: Description: base scripts and functions for configuring,compiling and installing.
 #: Description: You don't need run this script manually.
 #: Description: For It use makefile targets. See INSTALL file.
