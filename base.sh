@@ -215,7 +215,7 @@ _configure(){
 #: date		: 2011-oct-25
 #: Authors	: "Daniel Norte de Moraes" <danielcheagle@gmail.com>
 #: Authors	: "Marcelo Coraça de Freitas" <marcelo.batera@gmail.com>
-#: version	: 1.05
+#: version	: 1.06
 #: Description: made configuration for posterior compiling by gprbuild.
 #: Description: You don't need run this script manually.
 #: Options	:  "OSes" "libtypes,libtypes_n" "compiler_path1:compiler_pathn"  \
@@ -372,7 +372,10 @@ fi
 					;;
 		esac;
 	)
-
+	pragma_linker_oopt=$(echo "$pragma_linker_oopt" | sed -e '1 s/^/\n/' )
+	if [ $(echo "$pragma_linker_oopt" | sed -n -e '$=' ) -ge 2 ];  then
+		pragma_linker_oopt=$(echo "$pragma_linker_oopt" | sed -e '2,$ s/^/\t/' )
+	fi
 ## because quotes , _IS Mandatory_  a one or more(1+) espaces characters before the closing "/" or  "\n/" in each sed script :-)
 ## THANKS Jesus! et al ;-) Enjoy!
 	local my_apq_mysql_ads_0=$(cat "$src_genesis/apq-mysql.ads-in" | 
