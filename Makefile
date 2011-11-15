@@ -40,7 +40,16 @@
 			system_libs_paths=/usr/source:/usr/local:/lib/got \
 			build_with_debug_too=yes
 
-	OK = $(shell cat ok.log)
+#	OK = $(shell cat ok.log)
+	OK = $(shell \
+		 oper="" ; \
+		 temporary=$(shell cat ok.log) ; \
+		 case "$$temporary" in \
+		 	( *fal* ) oper="false" ;; \
+			( *tru* ) oper="true" ;; \
+		esac; \
+		echo "$$oper" ; \
+	)
 
 ifndef ($(prefix))
 	prefix=/usr/local
