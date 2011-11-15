@@ -199,7 +199,9 @@ _sanatize_enum_remove_values(){
 		exit 1;
 	fi;
 	local my_enum_list="$1"
-	my_enum_list=$( printf "$my_enum_list" | sed -e 's/[=].*$/,/ ' | sed -e '$ s/[ ,]*$//' )
+#	my_enum_list=$( printf "$my_enum_list" | sed -e 's/[=].*$/,/ ' | sed -e '$ s/[ ,]*$//' )
+	my_enum_list=$( printf "$my_enum_list" | sed -e 's/[[:blank:][:space:]]*[=].*$/,/ ' | sed -e '$ s/[ ,]*$//' )
+
 	printf "$my_enum_list"
 } #end
 
@@ -329,9 +331,9 @@ fi
 	local my_field_types_value=$(_sanatize_enum "$my_field_types_tmp" )
 	local my_field_types_label_only=$(_sanatize_enum_remove_values "$my_field_types_value" )
 
-	local my_result_type_er_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysqld_error.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep '^#define[ ]*ER_.*' | grep -o 'ER_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[0-9]*[[:blank:][:space:]]*$/=> &,/' )
+	local my_result_type_er_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysqld_error.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep '^#define[ ]*ER_.*' | grep -o 'ER_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[[:blank:][:space:]]*\([0-9]*\)[[:blank:][:space:]]*$/ => \1,/' )
 	
-	local my_result_type_cr_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/errmsg.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep -v MIN_ERROR | grep -v MAX_ERROR | grep '^#define[ ]*CR_.*' | grep -o 'CR_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[0-9]*[[:blank:][:space:]]*$/=> &,/' | sed -e '$ s/,//' )
+	local my_result_type_cr_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/errmsg.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep -v MIN_ERROR | grep -v MAX_ERROR | grep '^#define[ ]*CR_.*' | grep -o 'CR_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[[:blank:][:space:]]*\([0-9]*\)[[:blank:][:space:]]*$/ => \1,/' | sed -e '$ s/,//' )
 
 	local my_result_type_value="$my_result_type_er_tmp\n$my_result_type_cr_tmp"
 	local a=$(printf "$my_result_type_value" | grep CR_NO_ERROR )
