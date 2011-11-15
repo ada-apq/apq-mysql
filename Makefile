@@ -14,6 +14,8 @@
 # New and clean update for the Build System.
 # Added cross-compiling and static and shared simultaneos generation
 #
+# 15 nov 2011 18:04:00 GMT-3
+# Better and more secure Error Reporting for makefile.
 #
 # IMPORTANT: for the guys making comercial software,
 #consider altering the parameters of _gprconfig_ if necessary,
@@ -32,7 +34,6 @@
 	known_version:=$(shell cat version)
 	atual_dir:=$(shell pwd)
 	name_base:=$(shell basename $(atual_dir))
-
 	path_backup:=$(shell printf "${PATH}" )
 
 ### (obs.: can be altered in command line :-)  ###
@@ -40,7 +41,6 @@
 			system_libs_paths=/usr/source:/usr/local:/lib/got \
 			build_with_debug_too=yes
 
-#	OK = $(shell cat ok.log)
 	OK = $(shell \
 		 oper="" ; \
 		 temporary=$(shell cat ok.log) ; \
@@ -48,8 +48,7 @@
 		 	( *fal* ) oper="false" ;; \
 			( *tru* ) oper="true" ;; \
 		esac; \
-		echo "$$oper" ; \
-	)
+		echo "$$oper" ; )
 
 ifndef ($(prefix))
 	prefix=/usr/local
@@ -93,7 +92,6 @@ endif
 ifndef ($(gprbuild_path)) #
 	gprbuild_path:=$(shell dirname $(shell PATH="$(add_compiler_paths):$(path_backup)" ;  which gprbuild || printf "/usr/bin/gprbuild" ))
 endif
-
 
 ##############################
 #### targets #################
