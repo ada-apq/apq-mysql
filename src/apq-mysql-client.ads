@@ -42,6 +42,8 @@ with Ada.Calendar;
 with Ada.Strings.Bounded;
 with Ada.Strings.Unbounded;
 with Interfaces.C_Streams;
+with ada.Strings.Fixed;
+with Interfaces.C;
 
 package APQ.MySQL.Client is
 
@@ -73,10 +75,10 @@ package APQ.MySQL.Client is
 
 	procedure Set_Instance(C : in out Connection_Type; Instance : String);
 
-	procedure Set_Options(C : in out Connection_Type; Options : String);
+   procedure Set_Options(C : in out Connection_Type; Options : String);
    function Options (C : Connection_Type) return String;
    -----
-      function quote_string( qkv : string ) return ada.Strings.Unbounded.Unbounded_String;
+   function quote_string( qkv : string ) return ada.Strings.Unbounded.Unbounded_String;
    function quote_string( qkv : string ) return String;
    procedure grow_key( C : in out Connection_Type); --
 
@@ -104,9 +106,11 @@ package APQ.MySQL.Client is
    -- if in the list of keywords have keywords equals the value used is the last value in list.
    -- remember to include the libs was needed
    procedure add_key_nameval( C : in out Connection_Type;
-                             kname,kval : string := "";
+			     kname,kval : string := "";
+			     kval_type : Option_Argument_Type := ARG_CHAR_PTR ;
                              knamecasele, kvalcasele : boolean := true;
-                             clear : boolean := false);
+			     clear : boolean := false);
+
 
    procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0);
 
@@ -224,13 +228,18 @@ private
 	 keyval      : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
 	 keyval_type : Option_Argument_Ptr_Array_Access;
 	 keycount      : natural := 0;
-         keyalloc : natural := 0;
+	 keyalloc : natural := 0;
+
+	 -- keyval_specific : Specific_Type_Array_Ptr;
 
          keyval_Caseless   : Boolean_Array_Access;
-         keyname_Caseless  : Boolean_Array_Access;
+	 keyname_Caseless  : Boolean_Array_Access;
 
-         keyname_val_cache : String_Ptr;       -- for bypass "the recreate it" ,
-         keyname_val_cache_uptodate : boolean := false; -- if keyname_val_cache_uptodate = true (True)
+	 keyname_val_cache_nonspe0 : Option_Enum_Type_Array_Ptr;
+	 keyname_val_cache_spec1 : Specific_Type_Array_Ptr;
+	 -- for bypass "the recreate it" ,
+	 -- if keyname_val_cache_uptodate = true (True)
+	 keyname_val_cache_uptodate : boolean := false;
 
          keyname_default_case : SQL_Case_Type := Lower_Case;
          keyval_default_case  : SQL_Case_Type := Preserve_Case;

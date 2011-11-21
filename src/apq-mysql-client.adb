@@ -503,42 +503,81 @@ package body APQ.MySQL.Client is
 	end Process_Connection_Options;
 
 
-	procedure Set_Options(C : in out Connection_Type; Options : String) is
-		use Ada.Strings.Unbounded;
-	begin
-		Replace_String(C.Options,Set_Options.Options);
 
-      		c.keyname_val_cache_uptodate := false;
+   procedure Set_Options(C : in out Connection_Type; Options : String) is
+		-- use Ada.Strings.Unbounded;
+   begin
+   	Raise_Exception(Not_Supported'Identity,
+		    "MY01: in MySQL, Set_Options() is obsolete. use add_key_nameval() (Set_Options).");
 
-      		if C.Options = null then
-			return;
-		end if;
-
-		if Is_Connected(C) then
-			Process_Connection_Options(C);
-		end if;
+--  		Replace_String(C.Options,Set_Options.Options);
+--
+--        		c.keyname_val_cache_uptodate := false;
+--
+--        		if C.Options = null then
+--  			return;
+--  		end if;
+--
+--  		if Is_Connected(C) then
+--  			Process_Connection_Options(C);
+--  		end if;
 	end Set_Options;
 
 
-	function Options(C : Connection_Type) return String is
-	begin
-		return To_String(C.Options);
-	end Options;
+   function Options(C : Connection_Type) return String is
+   begin
+
+      Raise_Exception(Not_Supported'Identity,
+		"MY01: in MySQL, options() is obsolete. use add_key_nameval() (Options).");
+   end Options;
    ------------
-   --
-   --
+   function return_address_type ( ustring : ada.Strings.Unbounded.Unbounded_String;
+				 argtype : Option_Argument_Type
+				) return system.Address
+   is
+   begin
+      case argtype is
+      when ARG_CHAR_PTR =>
+	 return ( new string(to_string(ustring)))'Address;
+
+      when ARG_NOT_USED =>
+	 return ( new Interfaces.c.unsigned(0))'Address;
+
+      when ARG_UINT =>
+	 return ( new interfaces.c.unsigned(
+	   interfaces.c.unsigned'Value(
+	     to_string(ustring)
+	    )))'Address;
+
+      when ARG_PTR_UINT =>
+	 if interfaces.c.unsigned'Value( to_string(ustring)) != 0 then
+	    return ( new Interfaces.c.unsigned(1))'Address;
+	 else
+	    return ( new Interfaces.c.unsigned(0))'Address;
+	 end if;
+
+      when others =>
+	 return system.Null_Address;
+
+      end case;
+
+   --  exception  part in off, for testing purposes.
+--     Exception
+--  	 when Constraint_Error => return system.Null_Address;
+   end return_address_type;
+
    function quote_string( qkv : string ) return String
    is
       use ada.Strings;
       use ada.Strings.Fixed;
 
-      function PQescapeString(to, from : System.Address; length : size_t) return size_t;
-      pragma Import(C,PQescapeString,"PQescapeString");
+      function mysql_escape_string( to, from : System.Address; length : u_long) return u_long;
+      pragma import(C,mysql_escape_string,"c_mysql_escape_string");
       src : string := trim ( qkv , both );
-      C_Length : size_t := src'Length * 2 + 1;
+      C_Length : u_long := src'Length * 2 + 1;
       C_From   : char_array := To_C(src);
       C_To     : char_array(0..C_Length-1);
-      R_Length : size_t := PQescapeString(C_To'Address,C_From'Address,C_Length);
+      R_Length : u_long := mysql_escape_string(C_To'Address,C_From'Address,C_Length);
       -- viva!!! :-)
    begin
       return To_Ada(C_To);
@@ -564,7 +603,8 @@ package body APQ.MySQL.Client is
          C.keyalloc := 32; -- this suffice for now :-)
 
          C.keyname := new String_Ptr_Array(1..C.keyalloc);
-         C.keyval  := new String_Ptr_Array(1..C.keyalloc);
+	 C.keyval  := new String_Ptr_Array(1..C.keyalloc);
+	 C.keyval_type := new Option_Argument_Ptr_Array(1..C.keyalloc);
 
          C.keyname_Caseless  := new Boolean_Array(1..C.keyalloc);
          C.keyval_Caseless   := new Boolean_Array(1..C.keyalloc);
@@ -573,27 +613,31 @@ package body APQ.MySQL.Client is
          declare
             New_keyAlloc : Natural := C.keyAlloc + 64;
             New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
-            New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
+	    New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
+	    New_Array_Keyval_Type : Option_Argument_Ptr_Array_Access := new Option_Argument_Ptr_Array(1..New_keyAlloc);
 
             New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
             New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
 
          begin
             New_Array_keyname(1..C.keyalloc) := C.keyname.all;
-            New_Array_keyval(1..C.keyalloc) := C.keyval.all;
+	    New_Array_keyval(1..C.keyalloc) := C.keyval.all;
+	    New_Array_Keyval_Type(1..C.keyalloc) := C.keyval_type.all;
 
             New_Case_keyname(1..C.keyalloc) := C.keyname_Caseless.all;
             New_Case_keyval(1..C.keyalloc)  := C.keyval_Caseless.all;
 
             Free(C.keyname);
-            Free(C.keyval);
+	    Free(C.keyval);
+	    Free(C.keyval_type)
             Free(C.keyname_Caseless);
             Free(C.keyval_Caseless);
 
             C.keyAlloc := New_keyAlloc;
 
             C.keyname := New_Array_keyname;
-            C.keyval := New_Array_keyval;
+	    C.keyval := New_Array_keyval;
+	    C.keyval_type := New_Array_Keyval_Type;
 
             C.keyname_Caseless := New_Case_keyname;
             C.keyval_Caseless := New_Case_keyval;
@@ -619,69 +663,117 @@ package body APQ.MySQL.Client is
       use ada.strings.Fixed;
       use ada.Strings;
       use Ada.Characters.Handling;
-      tmp_ub_cache : Unbounded_String := To_Unbounded_String(160); -- pre-allocate :-)
-      tmp_eq : Unbounded_String := to_Unbounded_String(" = '");
-      tmp_ap : Unbounded_String := to_Unbounded_String("' ");
+
       a : natural := c.keycount; -- number of keyname's and keyval's
+      bool1 : bool := false;
+      -- mint : integer := 0;
+      mi_count : integer := 0;
+      new_option_enum : option_enum_type_array_ptr := new option_enum_type_array( others => system.Null_Address);
+      new_specific_enum : specific_type_array_ptr := new specific_type_array( others => system.Null_Address);
+      tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(160);
+      tmp_ub_keyname : Unbounded_String := To_Unbounded_String(30);
+      tmp_ub_keyval : Unbounded_String := To_Unbounded_String(30);
 
    begin
       if cache_key_nameval_uptodate( C ) and force = false then return; end if; -- bahiii :-)
-      Free_Ptr(c.keyname_val_cache);
-      if c.Port_Format = UNIX_Port then
-         tmp_ub_cache := to_Unbounded_String("host")
-           & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Host_Name)))),ada.Strings.both) & tmp_ap
-           & to_Unbounded_String("port")
-           & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Port_Name)))),ada.Strings.both) & tmp_ap ;
-        elsif c.Port_Format = IP_Port then
-         tmp_ub_cache := to_Unbounded_String("hostaddr")
-           & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Host_Address)))),ada.Strings.both) & tmp_ap
-           & to_Unbounded_String("port")
-           & tmp_eq & trim(to_Unbounded_String(string'(Port_Integer'image(c.Port_Number))),ada.Strings.both) & tmp_ap;
-      else
+      Free(c.keyname_val_cache_nonspe0);
+      Free(c.keyname_val_cache_spec1);
+
+      if not (c.Port_Format = UNIX_Port or c.Port_Format = IP_Port ) then
          raise program_error;
       end if;
-      tmp_ub_cache := tmp_ub_cache
-        & to_Unbounded_String("dbname") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.DB_Name)))),ada.Strings.both) & tmp_ap
-        & to_Unbounded_String("user") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.User_Name)))),ada.Strings.both) & tmp_ap
-        & to_Unbounded_String("password") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.User_Password)))),ada.Strings.both) & tmp_ap;
-      if trim(string'(To_String(C.Options)), ada.Strings.Both) /= "" then
-         tmp_ub_cache := tmp_ub_cache
-         & to_Unbounded_String("options") & tmp_eq & trim(Unbounded_String'(quote_string(string'(To_String(C.Options)))), both) & tmp_ap ;
+
+      if not( a > 0 ) then
+	 c.keyname_val_cache_uptodate := true;
+	 return; -- bahiii :-)
       end if;
 
-      if a > 0 then --  a = c.keycount
-         for b in 1 .. a loop -- a = number of keyword names val par duuh :-)
-                                -- fixme if necessary: ? keyname need quoting  ? :-)
-                                -- I belive It not :-) but the Brighter user are encoraged to join and participate :-)
-            if c.keyname_Caseless(b) or c.keyname_default_case = Preserve_Case then
-               tmp_ub_cache := tmp_ub_cache & To_Unbounded_String(string'(to_string(c.keyname(b)))) & tmp_eq ;
-            else
-               if c.keyname_default_case = Lower_Case then
-                  tmp_ub_cache := tmp_ub_cache & To_Unbounded_String( To_Lower(string'(to_string(c.keyname(b))))) & tmp_eq ;
-               else
-                  tmp_ub_cache := tmp_ub_cache & To_Unbounded_String(To_Upper(string'(to_string(c.keyname(b))))) & tmp_eq ;
-               end if;
-            end if;
+      for b in 1 .. a loop
+	 tmp_ub_keyname := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyname(b))))),ada.Strings.both);
+
+	 if c.keyval_type(b) = ARG_CHAR_PTR then
             if c.keyval_Caseless(b) or c.keyval_default_case = Preserve_Case then
-               tmp_ub_cache := tmp_ub_cache & trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both) & tmp_ap ;
+               tmp_ub_keyval := tmp_ub_cache & trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both);
             else
                if c.keyname_default_case = Lower_Case then
-                  tmp_ub_cache := tmp_ub_cache & trim(Unbounded_String'(quote_string(To_Lower(string'(To_String(C.keyval(b)))))),ada.Strings.both) & tmp_ap;
+                  tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Lower(string'(To_String(C.keyval(b)))))),ada.Strings.both);
                else
-                  tmp_ub_cache := tmp_ub_cache & trim(Unbounded_String'(quote_string(To_Upper(string'(To_String(C.keyval(b)))))),ada.Strings.both) & tmp_ap;
+                  tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Upper(string'(To_String(C.keyval(b)))))),ada.Strings.both);
                end if;
-            end if;
+	    end if;
+	 else
+	    tmp_ub_keyval := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyval(b))))),ada.Strings.both);
+	 end if;
+	 bool1 := false;
 
-         end loop;
+	 declare -- verify, non-specific
+	    I_am : Option_Enum_Type := Option_Enum_Type'value(to_string(tmp_ub_keyname));
+	 begin
+	    new_option_enum(I_am) := return_address_type(ustring => tmp_ub_keyval,
+						  argtype => c.keyval_type(b) );
+	    bool1 := true;
+	    goto continua; -- well... really judicious, this was my the better option :-)
+	 exception
+	    when constraint_error =>
+	       bool1 := false;
+	 end; -- non-specific
+
+	 declare -- verify, specific , ssl
+	    I_am : ssl_Specific_Type := ssl_Specific_Type'value(to_string(tmp_ub_keyname));
+	 begin
+	    if new_specific_enum(ssl) = system.Null_Address then
+	       new_specific_enum(ssl) := (
+		 Specific_Type_Array_Ptr'(
+		   new Specific_Type_Array( others => system.Null_Address))
+		)'Address;
+	    end if;
+	    if new_specific_enum(ssl).all(I_am) != system.Null_Address then
+	       free_ptr(new_specific_enum(ssl).all(I_am));
+	    end if;
+	    new_specific_enum(ssl).all(I_am) := new string(string'(to_string(tmp_ub_keyval)));
+	    bool1 := true;
+	    goto continua; -- well... really judicious, this was my the better option :-)
+	    -- more specific options can be added in future. :-)
+	 exception
+	    when constraint_error =>
+	       bool1 := false;
+	 end; -- specific , ssl
+       -- more specific options from here
+
+	 <<continua>>
+	 if bool1 = false then
+	    mi_count := mi_count + 1 ;
+	    if mi_count = 1 then
+	       tmp_ub_dont_know_options := tmp_ub_keyname ;
+	    else
+	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & tmp_ub_keyname ;
+	    end if;
+	 end if;
+
+      end loop;
+
+      if mi_count > 0 then
+	 if mi_count < a then
+	    for I_am in Option_Enum_Type'range loop
+	       if  new_option_enum(I_am) != system.Null_Address then
+		   free(new_option_enum(I_am).all);
+	       end if;
+	    end loop;
+	    for I_am in Specific_Type'range loop
+	       if  new_specific_enum(I_am) != system.Null_Address then
+		   free(new_specific_enum(I_am).all);
+	       end if;
+	    end loop;
+	 end if;
+	 Raise_Exception(Failed'Identify ,
+		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
+	 return; -- :o]
       end if;
-      declare
-         cache_tmp_str : string := ada.strings.Fixed.trim(ada.Strings.Unbounded.to_string(tmp_ub_cache),both);
-         cache_tmp_len : natural := cache_tmp_str'length;
-      begin
-         C.keyname_val_cache := new string(1..cache_tmp_len);
-         c.keyname_val_cache.all(1..cache_tmp_len) := cache_tmp_str;
-         c.keyname_val_cache_uptodate := true;
-      end;
+
+      C.keyname_val_cache_nonspe0 := new_option_enum;
+      C.keyname_val_cache_spec1 := new_specific_enum;
+      C.keyname_val_cache_uptodate := true;
+
    end cache_key_nameval_create;--
    --
    procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0)
@@ -735,7 +827,8 @@ package body APQ.MySQL.Client is
 
 
    procedure add_key_nameval( C : in out Connection_Type;
-                             kname, kval : string := "";
+			     kname, kval : string := "";
+			     kval_type : Option_Argument_Type := ARG_CHAR_PTR ;
                              knamecasele, kvalcasele : boolean := true;
                             clear : boolean := false )
    is
@@ -765,6 +858,7 @@ package body APQ.MySQL.Client is
          C.keyval(ckc) := new String(1..tkv);
          C.keyval(ckc).all(1..tkv) := tmp_kval;
       end if;
+      C.keyval_type(ckc) := kval_type; --
       C.keyval_Caseless(ckc)       := kvalcasele;
       C.keyname_val_cache_uptodate := false;
 
