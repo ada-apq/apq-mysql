@@ -160,28 +160,37 @@ package body APQ.MySQL.Client is
 		to, from : System.Address; length : u_long) return u_long;
 	pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
 
-        function mysql_options_notused(connection : MYSQL;
-		opt : MySQL_Enum_Option) return Interfaces.C.int;
-	pragma import(C,mysql_options_notused,"c_mysql_options_notused");
+--          function mysql_options_notused(connection : MYSQL;
+--  		opt : MySQL_Enum_Option) return Interfaces.C.int;
+--  	pragma import(C,mysql_options_notused,"c_mysql_options_notused");
+--
+--  	function mysql_options_uint(connection : MYSQL;
+--  		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
+--  		return Interfaces.C.int;
+--  	pragma import(C,mysql_options_uint,"c_mysql_options_uint");
+--
+--  	function mysql_options_puint(connection : MYSQL;
+--  		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
+--  		return Interfaces.C.int;
+--  	pragma import(C,mysql_options_puint,"c_mysql_options_puint");
+--
+--  	function mysql_options_char(connection : MYSQL;
+--  		opt : MySQL_Enum_Option; arg : System.Address)
+--  		return Interfaces.C.int;
+--  	pragma import(C,mysql_options_char,"c_mysql_options_char");
 
-	function mysql_options_uint(connection : MYSQL;
-		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
-		return Interfaces.C.int;
-	pragma import(C,mysql_options_uint,"c_mysql_options_uint");
-
-	function mysql_options_puint(connection : MYSQL;
-		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
-		return Interfaces.C.int;
-	pragma import(C,mysql_options_puint,"c_mysql_options_puint");
-
-	function mysql_options_char(connection : MYSQL;
-		opt : MySQL_Enum_Option; arg : System.Address)
-		return Interfaces.C.int;
-	pragma import(C,mysql_options_char,"c_mysql_options_char");
+   function mysql_options_nonspecif(connection : MYSQL;
+				    opt : Option_Enum_Type;
+				    arg : System.Address
+				      )	return Interfaces.C.int;
+   pragma import(C,mysql_options_nonspecif,"c_mysql_options_nonspecif");
 
 
-        procedure my_set_ssl(conn : MYSQL;  kkey,ccert,cca,ccapath,ccipher: system.Address );
-        pragma import(c,my_set_ssl ,"c_mysql_ssl_set");
+   function my_set_ssl(conn : MYSQL;
+		       kkey,ccert,cca,ccapath,ccipher: system.Address
+		      ) return Interfaces.C.int ;
+   pragma import(c,my_set_ssl ,"c_mysql_ssl_set_v2");
+
 
 
         procedure Free(Results : in out MYSQL_RES) is

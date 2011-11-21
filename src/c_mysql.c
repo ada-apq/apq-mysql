@@ -272,6 +272,7 @@ c_cheat_mysql_error(MYSQL_RES *results) {
 	else	return mysql_error(conn);
 }
 
+/*
 EXPORT int
 c_mysql_options_notused(MYSQL *conn,unsigned option) {
 	enum mysql_option opt = option;
@@ -300,6 +301,13 @@ c_mysql_options_char(MYSQL *conn,unsigned option,char *arg) {
 	enum mysql_option opt = option;
 
 	return mysql_options(conn,opt,arg);
+} */
+
+EXPORT int
+c_mysql_options_nonspecif(MYSQL *conn,unsigned option,char *arg) {
+  enum mysql_option opt = option;
+  return mysql_options(conn,opt, &arg);
+  /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
 }
 
 /************************************************/

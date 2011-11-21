@@ -213,7 +213,7 @@ private
 
    type Connection_Type is new APQ.Root_Connection_Type with
       record
-	 Options       : String_Ptr;
+	 -- Options       : String_Ptr;
 	 -- MySQL database engine options
 	 Connection    : MYSQL := Null_Connection;
 	 -- MySQL connection object
@@ -227,10 +227,8 @@ private
 	 keyname     : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
 	 keyval      : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
 	 keyval_type : Option_Argument_Ptr_Array_Access;
-	 keycount      : natural := 0;
+	 keycount    : natural := 0;
 	 keyalloc : natural := 0;
-
-	 -- keyval_specific : Specific_Type_Array_Ptr;
 
          keyval_Caseless   : Boolean_Array_Access;
 	 keyname_Caseless  : Boolean_Array_Access;
