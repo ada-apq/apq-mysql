@@ -374,142 +374,142 @@ package body APQ.MySQL.Client is
 	end Set_Instance;
 
 
-	procedure Parse_Option (Options :   in out Ada.Strings.Unbounded.Unbounded_String;
-				Keyword :   in out Ada.Strings.Unbounded.Unbounded_String;
-				Argument :  in out Ada.Strings.Unbounded.Unbounded_String ) is
+--  	procedure Parse_Option (Options :   in out Ada.Strings.Unbounded.Unbounded_String;
+--  				Keyword :   in out Ada.Strings.Unbounded.Unbounded_String;
+--  				Argument :  in out Ada.Strings.Unbounded.Unbounded_String ) is
+--
+--  		use Ada.Strings.Unbounded;
+--
+--  		Option :  Unbounded_String;
+--  		The_End : Natural;
+--  		Value_X : Natural;
+--  	begin
+--  		Keyword := Null_Unbounded_String;
+--  		Argument := Null_Unbounded_String;
+--
+--  		while Length(Options) > 0 loop
+--  			exit when Slice(Options,1,1) /= ",";
+--  			Delete(Options,1,1);
+--  		end loop;
+--
+--  		if Length(Options) < 1 then
+--  			return;
+--  		end if;
+--
+--  		The_End := Index(Options, ",");
+--  		if The_End < 1 then
+--  			The_End := Length(Options)+1;
+--  		end if;
+--
+--  		Option := Options;
+--  		if The_End <= Length(Options) then
+--  			Delete(Option,The_End,Length(Options));
+--  		end if;
+--
+--  		if The_End <= Length(Options) then
+--  			Delete(Options,1,The_End);
+--  		else
+--  			Delete(Options,1,The_End-1);
+--  		end if;
+--
+--  		Value_X := Index(Option,"=");
+--  		if Value_X < 1 then
+--  			Keyword := Option;
+--  		else
+--  			Keyword := To_Unbounded_String(Slice(Option,1,Value_X-1));
+--  			Argument := To_Unbounded_String(Slice(Option,Value_X+1,Length(Option)));
+--  		end if;
+--  	end Parse_Option;
 
-		use Ada.Strings.Unbounded;
 
-		Option :  Unbounded_String;
-		The_End : Natural;
-		Value_X : Natural;
-	begin
-		Keyword := Null_Unbounded_String;
-		Argument := Null_Unbounded_String;
+--	procedure Process_Option(C : in out Connection_Type; Keyword, Argument : String) is
 
-		while Length(Options) > 0 loop
-			exit when Slice(Options,1,1) /= ",";
-			Delete(Options,1,1);
-		end loop;
-
-		if Length(Options) < 1 then
-			return;
-		end if;
-
-		The_End := Index(Options, ",");
-		if The_End < 1 then
-			The_End := Length(Options)+1;
-		end if;
-
-		Option := Options;
-		if The_End <= Length(Options) then
-			Delete(Option,The_End,Length(Options));
-		end if;
-
-		if The_End <= Length(Options) then
-			Delete(Options,1,The_End);
-		else
-			Delete(Options,1,The_End-1);
-		end if;
-
-		Value_X := Index(Option,"=");
-		if Value_X < 1 then
-			Keyword := Option;
-		else
-			Keyword := To_Unbounded_String(Slice(Option,1,Value_X-1));
-			Argument := To_Unbounded_String(Slice(Option,Value_X+1,Length(Option)));
-		end if;
-	end Parse_Option;
-
-
-	procedure Process_Option(C : in out Connection_Type; Keyword, Argument : String) is
-
-		use Interfaces.C;
-
-		L : Natural;
-		X : Natural := 0;
-		E : MySQL_Enum_Option;
-		T : Option_Argument_Type;
-		z : Interfaces.C.int;
-	begin
-		for Y in APQ.MySQL.Options'Range loop
-			L := APQ.MySQL.Options(Y).Length;
-
-			if APQ.MySQL.Options(Y).Name(1..L) = Keyword then
-				X := Y;
-				exit;
-			end if;
-		end loop;
-
-		if X = 0 then
-			Raise_Exception(Failed'Identity,
-			"MY03: Unknown option '" & Keyword & "'.");
-		end if;
-
-		E := APQ.MySQL.Options(X).MySQL_Enum;  -- Database option value
-		T := APQ.MySQL.Options(X).Argument;    -- Argument type
-
-		case T is
-			when ARG_NOT_USED =>
-				z := mysql_options_notused(C.Connection,E);
-				if z /= 0 then
-					Raise_Exception(Failed'Identity,
-					"MY04: Option " & Keyword & " has no argument.");
-				end if;
-			when ARG_UINT =>
-				declare
-					U : unsigned;
-				begin
-					U := unsigned'Value(Argument);
-					z := mysql_options_uint(C.Connection,E,U);
-				end;
-
-				if z /= 0 then
-					Raise_Exception(Failed'Identity,
-					"MY05: Option error for " & Keyword & "=" & Argument & ".");
-				end if;
-
-			when ARG_PTR_UINT =>
-				declare
-					U : unsigned;
-				begin
-					U := unsigned'Value(Argument);
-					z := mysql_options_puint(C.Connection,E,U);
-				end;
-
-				if z /= 0 then
-					Raise_Exception(Failed'Identity,
-					"MY06: Option error for " & Keyword & "=" & Argument & ".");
-				end if;
-
-			when ARG_CHAR_PTR =>
-				declare
-					S : char_array := To_C(Argument);
-				begin
-					z := mysql_options_char(C.Connection,E,S'Address);
-				end;
-
-				if z /= 0 then
-					Raise_Exception(Failed'Identity,
-					"MY07: Option error for " & Keyword & "=" & Argument & ".");
-				end if;
-
-			end case;
-	end Process_Option;
-
-	procedure Process_Connection_Options(C : in out Connection_Type) is
-		use Ada.Strings.Unbounded, Ada.Characters.Handling;
-
-		Opts :     Unbounded_String;
-		Keyword :  Unbounded_String;
-		Argument : Unbounded_String;
-	begin
-		Opts := To_Unbounded_String(C.Options.all);
-		while Length(Opts) > 0 loop
-			Parse_Option(Opts,Keyword,Argument);
-			Process_Option(C,To_Upper(To_String(Keyword)),To_String(Argument));
-		end loop;
-	end Process_Connection_Options;
+--  		use Interfaces.C;
+--
+--  		L : Natural;
+--  		X : Natural := 0;
+--  		E : MySQL_Enum_Option;
+--  		T : Option_Argument_Type;
+--  		z : Interfaces.C.int;
+--  	begin
+--  		for Y in APQ.MySQL.Options'Range loop
+--  			L := APQ.MySQL.Options(Y).Length;
+--
+--  			if APQ.MySQL.Options(Y).Name(1..L) = Keyword then
+--  				X := Y;
+--  				exit;
+--  			end if;
+--  		end loop;
+--
+--  		if X = 0 then
+--  			Raise_Exception(Failed'Identity,
+--  			"MY03: Unknown option '" & Keyword & "'.");
+--  		end if;
+--
+--  		E := APQ.MySQL.Options(X).MySQL_Enum;  -- Database option value
+--  		T := APQ.MySQL.Options(X).Argument;    -- Argument type
+--
+--  		case T is
+--  			when ARG_NOT_USED =>
+--  				z := mysql_options_notused(C.Connection,E);
+--  				if z /= 0 then
+--  					Raise_Exception(Failed'Identity,
+--  					"MY04: Option " & Keyword & " has no argument.");
+--  				end if;
+--  			when ARG_UINT =>
+--  				declare
+--  					U : unsigned;
+--  				begin
+--  					U := unsigned'Value(Argument);
+--  					z := mysql_options_uint(C.Connection,E,U);
+--  				end;
+--
+--  				if z /= 0 then
+--  					Raise_Exception(Failed'Identity,
+--  					"MY05: Option error for " & Keyword & "=" & Argument & ".");
+--  				end if;
+--
+--  			when ARG_PTR_UINT =>
+--  				declare
+--  					U : unsigned;
+--  				begin
+--  					U := unsigned'Value(Argument);
+--  					z := mysql_options_puint(C.Connection,E,U);
+--  				end;
+--
+--  				if z /= 0 then
+--  					Raise_Exception(Failed'Identity,
+--  					"MY06: Option error for " & Keyword & "=" & Argument & ".");
+--  				end if;
+--
+--  			when ARG_CHAR_PTR =>
+--  				declare
+--  					S : char_array := To_C(Argument);
+--  				begin
+--  					z := mysql_options_char(C.Connection,E,S'Address);
+--  				end;
+--
+--  				if z /= 0 then
+--  					Raise_Exception(Failed'Identity,
+--  					"MY07: Option error for " & Keyword & "=" & Argument & ".");
+--  				end if;
+--
+--  			end case;
+--  	end Process_Option;
+--
+--  	procedure Process_Connection_Options(C : in out Connection_Type) is
+--  		use Ada.Strings.Unbounded, Ada.Characters.Handling;
+--
+--  		Opts :     Unbounded_String;
+--  		Keyword :  Unbounded_String;
+--  		Argument : Unbounded_String;
+--  	begin
+--  		Opts := To_Unbounded_String(C.Options.all);
+--  		while Length(Opts) > 0 loop
+--  			Parse_Option(Opts,Keyword,Argument);
+--  			Process_Option(C,To_Upper(To_String(Keyword)),To_String(Argument));
+--  		end loop;
+--	end Process_Connection_Options;
 
 
 
@@ -517,7 +517,7 @@ package body APQ.MySQL.Client is
 		-- use Ada.Strings.Unbounded;
    begin
    	Raise_Exception(Not_Supported'Identity,
-		    "MY01: in MySQL, Set_Options() is obsolete. use add_key_nameval() (Set_Options).");
+		    "MY01: MySQL, Set_Options() is obsolete. use add_key_nameval() (Set_Options).");
 
 --  		Replace_String(C.Options,Set_Options.Options);
 --
@@ -537,7 +537,7 @@ package body APQ.MySQL.Client is
    begin
 
       Raise_Exception(Not_Supported'Identity,
-		"MY01: in MySQL, options() is obsolete. use add_key_nameval() (Options).");
+		"MY01: MySQL, options() is obsolete. use add_key_nameval() (Options).");
    end Options;
    ------------
    function return_address_type ( ustring : ada.Strings.Unbounded.Unbounded_String;
@@ -546,8 +546,8 @@ package body APQ.MySQL.Client is
    is
    begin
       case argtype is
-      when ARG_CHAR_PTR =>
-	 return ( new string(to_string(ustring)))'Address;
+      when ARG_CHAR_PTR => -- char_array ?
+	 return ( new char_array'(To_C(string'(to_string(ustring)))))'Address;
 
       when ARG_NOT_USED =>
 	 return ( new Interfaces.c.unsigned(0))'Address;
@@ -774,6 +774,9 @@ package body APQ.MySQL.Client is
 	       end if;
 	    end loop;
 	 end if;
+	 free(new_option_enum);
+	 free(new_specific_enum);
+
 	 Raise_Exception(Failed'Identify ,
 		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
 	 return; -- :o]
@@ -783,7 +786,7 @@ package body APQ.MySQL.Client is
       C.keyname_val_cache_spec1 := new_specific_enum;
       C.keyname_val_cache_uptodate := true;
 
-   end cache_key_nameval_create;--
+   end cache_key_nameval_create;
    --
    procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0)
    is
@@ -808,14 +811,16 @@ package body APQ.MySQL.Client is
 
       declare
          New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
-         New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+	 New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+	 New_Array_Keyval_Type : Option_Argument_Ptr_Array_Access := new Option_Argument_Ptr_Array(1..len);
 
          New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
          New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
 
       begin
          Free(C.keyname);
-         Free(C.keyval);
+	 Free(C.keyval);
+	 Free(C.keyval_type);
          Free(C.keyname_Caseless);
          Free(C.keyval_Caseless);
 
@@ -931,19 +936,23 @@ package body APQ.MySQL.Client is
       declare
          len        : natural := keycount_from;
          New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
-         New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+	 New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
+	 New_Array_Keyval_Type : Option_Argument_Ptr_Array_Access := new Option_Argument_Ptr_Array(1..len);
 
          New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
          New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
 
       begin
          New_Array_keyname.all := from.keyname.all;
-         New_Array_keyval.all  := from.keyval.all;
+	 New_Array_keyval.all  := from.keyval.all;
+	 New_Array_keyval_Type.all  := from.keyval_type.all;
+
          New_Case_keyname.all  := from.keyname_Caseless.all;
          New_Case_keyval.all  := from.keyval_Caseless.all;
 
          to.keyname(1..len) := New_Array_keyname.all;
-         to.keyval(1..len) := New_Array_keyval.all;
+	 to.keyval(1..len) := New_Array_keyval.all;
+	 to.keyval_type(1..len) := New_Array_Keyval_Type.all;
 
          to.keyname_Caseless(1..len) := New_Case_keyname.all;
          to.keyval_Caseless(1..len) := New_Case_keyval.all;

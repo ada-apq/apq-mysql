@@ -61,7 +61,7 @@ for Result_Type use (
 		ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
 		ARG_CHAR_PTR   -- Argument is char pointer
 				);
-   -- this part need be visible because the procedure add_key_nameval in apq-mysql-cliente use it.
+   -- this part need be visible because the procedure add_key_nameval, in apq-mysql-cliente, use it.
 
 
 private

@@ -304,7 +304,7 @@ c_mysql_options_char(MYSQL *conn,unsigned option,char *arg) {
 } */
 
 EXPORT int
-c_mysql_options_nonspecif(MYSQL *conn,unsigned option,char *arg) {
+c_mysql_options_nonspecif(MYSQL *conn,unsigned option,void *arg) {
   enum mysql_option opt = option;
   return mysql_options(conn,opt, &arg);
   /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
