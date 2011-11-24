@@ -1,3 +1,5 @@
+with "apq.gpr";
+
 project Buildsystem_Apq_Mysql is
 
    for Languages use ("Ada", "C", "Makefile", "Project File", "Shell");
@@ -8,13 +10,10 @@ project Buildsystem_Apq_Mysql is
       for Body_Suffix ("c") use ".c";
       for Spec_Suffix ("project file") use ".gpr.in";
       for Body_Suffix ("project file") use ".gpr";
-      for Spec_Suffix ("makefile") use "<no suffix defined>";
       for Body_Suffix ("makefile") use "Makefile";
-      for Spec_Suffix ("shell") use "<no suffix defined>";
       for Body_Suffix ("shell") use ".sh";
       for Implementation_Exceptions ("project file") use ("*.gpr.in");
-      for Implementation_Exceptions ("makefile") use ("MakeFile.include", "*.txt");
-      for Implementation_Exceptions ("makefile") use ("Makefile.include", "Makefile.include.");
+      for Implementation_Exceptions ("makefile") use ("MakeFile.include", "*.txt" , "Makefile.include." );
       for Implementation_Exceptions ("project file") use ("*.gpr.in", "*.gpr.in.*");
       for Implementation_Exceptions ("ada") use ("*.adb-in");
       for Specification_Exceptions ("ada") use ("*.ads-in");

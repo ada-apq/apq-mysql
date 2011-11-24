@@ -114,22 +114,27 @@ package APQ.MySQL.Client is
 
    procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0);
 
-   procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
+   -- procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
 
-   procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class);
+   -- procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class);
 
    function verifica_conninfo_cache( C : Connection_Type) return string;
 
 ---------
 
-        procedure Connect_old(C : in out Connection_Type; Check_Connection : Boolean := True);
+--          procedure Connect_old(C : in out Connection_Type; Check_Connection : Boolean := True);
+--
+--          procedure Connect_ssl(C : in out Connection_Type;
+--                                 key,cert,ca,capath,cipher : String := "" ;
+--                                Check_Connection : Boolean := True
+--                               );
+--
+--  	procedure Connect_old(C : in out Connection_Type;
+--  		       Same_As : Root_Connection_Type'Class);
+--     --
+    	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
 
-        procedure Connect_ssl(C : in out Connection_Type;
-                               key,cert,ca,capath,cipher : String := "" ;
-                              Check_Connection : Boolean := True
-                             );
-
-	procedure Connect_old(C : in out Connection_Type;
+       	procedure Connect(C : in out Connection_Type;
 		       Same_As : Root_Connection_Type'Class);
    ----
 	procedure Disconnect(C : in out Connection_Type);

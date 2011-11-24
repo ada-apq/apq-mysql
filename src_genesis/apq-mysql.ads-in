@@ -94,7 +94,9 @@ private
    	for  Option_Enum_Type'Size use 32;
    	type Option_Enum_Type_Array is array ( Option_Enum_Type ) of system.Address;
    	type Option_Enum_Type_Array_Ptr is access all Option_Enum_Type_Array;
-   	procedure Free is new Ada.Unchecked_Deallocation( Option_Enum_Type_Array , Option_Enum_Type_Array_Ptr );
+   procedure Free is new Ada.Unchecked_Deallocation( Option_Enum_Type_Array , Option_Enum_Type_Array_Ptr );
+   function toUnsigned is new Unchecked_Conversion(Source => Option_Enum_Type,
+						   Target => interfaces.c.unsigned);
 	----
    	type Specific_Type is (none, ssl ); -- if necessary, more types will be added. :-)
 				   -- you can suggest more, too
@@ -102,11 +104,15 @@ private
    	type Specific_Type_Array_Ptr is access all Specific_Type_Array;
    	procedure Free is new Ada.Unchecked_Deallocation(Specific_Type_Array , Specific_Type_Array_Ptr );
 	----
-   	type ssl_Specific_Type is ( key , cert , ca , capath, cipher ); -- if necessary, more types will be added. :-)
-				   -- you can suggest more, too
-   	type ssl_Specific_Type_Array is array ( ssl_Specific_Type ) of string_ptr;
+   	type ssl_Specific_Type is ( key , cert , ca , capath, cipher );
+   	-- if necessary, more types will be added. :-) You can suggest more, too.
+   	--type ssl_Specific_Type_Array is array ( ssl_Specific_Type ) of char_array;
+	type ssl_Specific_Type_Array is array ( ssl_Specific_Type ) of system.address;
    	type ssl_Specific_Type_Array_Ptr is access all ssl_Specific_Type_Array;
    	procedure Free is new Ada.Unchecked_Deallocation( ssl_Specific_Type_Array , ssl_Specific_Type_Array_Ptr );
+   	----
+   type unsigned_int_ptr is access all Interfaces.c.unsigned;
+   procedure free is new Ada.Unchecked_Deallocation( Interfaces.c.unsigned , unsigned_int_ptr );
 
 	type MYSQL       is new System.Address;   -- Connection
 	type MYSQL_RES   is new System.Address;   -- Result
