@@ -305,8 +305,10 @@ c_mysql_options_char(MYSQL *conn,unsigned option,char *arg) {
 
 EXPORT int
 c_mysql_options_nonspecif(MYSQL *conn,unsigned option,void *arg) {
+  int z;
   enum mysql_option opt = option;
-  return mysql_options(conn,opt, &arg);
+  z = mysql_options(conn,opt, &arg);
+  return  IS_OK(Z);
   /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
 }
 
@@ -378,13 +380,6 @@ c_mysql_escape_string(char *to,const char *from,unsigned long length) {
 	return mysql_escape_string(to,from,length);
 }
 /* acrescentei essa funcao :-)  */
-
-/* EXPORT void
-c_mysql_ssl_set(MYSQL *mysql, const char *key, const char *cert, const char *ca, const  char *capath, const char *cipher){
-  my_bool dani;
-  dani =  mysql_ssl_set(mysql, key, cert, ca, capath, cipher);
-
-} */
 
 EXPORT int
 c_mysql_ssl_set_v2(MYSQL *mysql, const char *key, const char *cert, const char *ca, const  char *capath, const char *cipher){

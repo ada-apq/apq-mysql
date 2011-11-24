@@ -160,25 +160,6 @@ package body APQ.MySQL.Client is
 		to, from : System.Address; length : u_long) return u_long;
 	pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
 
---          function mysql_options_notused(connection : MYSQL;
---  		opt : MySQL_Enum_Option) return Interfaces.C.int;
---  	pragma import(C,mysql_options_notused,"c_mysql_options_notused");
---
---  	function mysql_options_uint(connection : MYSQL;
---  		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
---  		return Interfaces.C.int;
---  	pragma import(C,mysql_options_uint,"c_mysql_options_uint");
---
---  	function mysql_options_puint(connection : MYSQL;
---  		opt : MySQL_Enum_Option; arg : Interfaces.C.unsigned)
---  		return Interfaces.C.int;
---  	pragma import(C,mysql_options_puint,"c_mysql_options_puint");
---
---  	function mysql_options_char(connection : MYSQL;
---  		opt : MySQL_Enum_Option; arg : System.Address)
---  		return Interfaces.C.int;
---  	pragma import(C,mysql_options_char,"c_mysql_options_char");
-
    function mysql_options_nonspecif(connection : MYSQL;
 				    opt : interfaces.c.unsigned;
 				    arg : System.Address
@@ -373,165 +354,11 @@ package body APQ.MySQL.Client is
 		"MY01: MySQL has no Instance ID (Set_Instance).");
 	end Set_Instance;
 
-
---  	procedure Parse_Option (Options :   in out Ada.Strings.Unbounded.Unbounded_String;
---  				Keyword :   in out Ada.Strings.Unbounded.Unbounded_String;
---  				Argument :  in out Ada.Strings.Unbounded.Unbounded_String ) is
---
---  		use Ada.Strings.Unbounded;
---
---  		Option :  Unbounded_String;
---  		The_End : Natural;
---  		Value_X : Natural;
---  	begin
---  		Keyword := Null_Unbounded_String;
---  		Argument := Null_Unbounded_String;
---
---  		while Length(Options) > 0 loop
---  			exit when Slice(Options,1,1) /= ",";
---  			Delete(Options,1,1);
---  		end loop;
---
---  		if Length(Options) < 1 then
---  			return;
---  		end if;
---
---  		The_End := Index(Options, ",");
---  		if The_End < 1 then
---  			The_End := Length(Options)+1;
---  		end if;
---
---  		Option := Options;
---  		if The_End <= Length(Options) then
---  			Delete(Option,The_End,Length(Options));
---  		end if;
---
---  		if The_End <= Length(Options) then
---  			Delete(Options,1,The_End);
---  		else
---  			Delete(Options,1,The_End-1);
---  		end if;
---
---  		Value_X := Index(Option,"=");
---  		if Value_X < 1 then
---  			Keyword := Option;
---  		else
---  			Keyword := To_Unbounded_String(Slice(Option,1,Value_X-1));
---  			Argument := To_Unbounded_String(Slice(Option,Value_X+1,Length(Option)));
---  		end if;
---  	end Parse_Option;
-
-
---	procedure Process_Option(C : in out Connection_Type; Keyword, Argument : String) is
-
---  		use Interfaces.C;
---
---  		L : Natural;
---  		X : Natural := 0;
---  		E : MySQL_Enum_Option;
---  		T : Option_Argument_Type;
---  		z : Interfaces.C.int;
---  	begin
---  		for Y in APQ.MySQL.Options'Range loop
---  			L := APQ.MySQL.Options(Y).Length;
---
---  			if APQ.MySQL.Options(Y).Name(1..L) = Keyword then
---  				X := Y;
---  				exit;
---  			end if;
---  		end loop;
---
---  		if X = 0 then
---  			Raise_Exception(Failed'Identity,
---  			"MY03: Unknown option '" & Keyword & "'.");
---  		end if;
---
---  		E := APQ.MySQL.Options(X).MySQL_Enum;  -- Database option value
---  		T := APQ.MySQL.Options(X).Argument;    -- Argument type
---
---  		case T is
---  			when ARG_NOT_USED =>
---  				z := mysql_options_notused(C.Connection,E);
---  				if z /= 0 then
---  					Raise_Exception(Failed'Identity,
---  					"MY04: Option " & Keyword & " has no argument.");
---  				end if;
---  			when ARG_UINT =>
---  				declare
---  					U : unsigned;
---  				begin
---  					U := unsigned'Value(Argument);
---  					z := mysql_options_uint(C.Connection,E,U);
---  				end;
---
---  				if z /= 0 then
---  					Raise_Exception(Failed'Identity,
---  					"MY05: Option error for " & Keyword & "=" & Argument & ".");
---  				end if;
---
---  			when ARG_PTR_UINT =>
---  				declare
---  					U : unsigned;
---  				begin
---  					U := unsigned'Value(Argument);
---  					z := mysql_options_puint(C.Connection,E,U);
---  				end;
---
---  				if z /= 0 then
---  					Raise_Exception(Failed'Identity,
---  					"MY06: Option error for " & Keyword & "=" & Argument & ".");
---  				end if;
---
---  			when ARG_CHAR_PTR =>
---  				declare
---  					S : char_array := To_C(Argument);
---  				begin
---  					z := mysql_options_char(C.Connection,E,S'Address);
---  				end;
---
---  				if z /= 0 then
---  					Raise_Exception(Failed'Identity,
---  					"MY07: Option error for " & Keyword & "=" & Argument & ".");
---  				end if;
---
---  			end case;
---  	end Process_Option;
---
---  	procedure Process_Connection_Options(C : in out Connection_Type) is
---  		use Ada.Strings.Unbounded, Ada.Characters.Handling;
---
---  		Opts :     Unbounded_String;
---  		Keyword :  Unbounded_String;
---  		Argument : Unbounded_String;
---  	begin
---  		Opts := To_Unbounded_String(C.Options.all);
---  		while Length(Opts) > 0 loop
---  			Parse_Option(Opts,Keyword,Argument);
---  			Process_Option(C,To_Upper(To_String(Keyword)),To_String(Argument));
---  		end loop;
---	end Process_Connection_Options;
-
-
-
    procedure Set_Options(C : in out Connection_Type; Options : String) is
-		-- use Ada.Strings.Unbounded;
    begin
    	Raise_Exception(Not_Supported'Identity,
 		    "MY01: MySQL, Set_Options() is obsolete. use add_key_nameval() (Set_Options).");
-
---  		Replace_String(C.Options,Set_Options.Options);
---
---        		c.keyname_val_cache_uptodate := false;
---
---        		if C.Options = null then
---  			return;
---  		end if;
---
---  		if Is_Connected(C) then
---  			Process_Connection_Options(C);
---  		end if;
-	end Set_Options;
-
+   end Set_Options;
 
    function Options(C : Connection_Type) return String is
    begin
@@ -887,8 +714,6 @@ package body APQ.MySQL.Client is
 
    end add_key_nameval;
 
-
-
    function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type--
    is
    begin
@@ -1105,14 +930,12 @@ package body APQ.MySQL.Client is
 
    is
    begin
-      null;  --- return To_String(c.keyname_val_cache); fixme
+      return "";
+      --- return To_String(c.keyname_val_cache); fixme
    end verifica_conninfo_cache;
 
 
    -------------------------------
-
-
-
 
 --     procedure Connect_old(C : in out Connection_Type; Check_Connection : Boolean := True) is
 --        pragma Optimize(time);
@@ -1302,7 +1125,7 @@ package body APQ.MySQL.Client is
 
       pragma Optimize(time);
 
-      use Interfaces.C.Strings;
+      use Interfaces.C, Interfaces.C.Strings;
 
    begin
 
@@ -1334,6 +1157,7 @@ package body APQ.MySQL.Client is
       end if;
 
       my_process_options( C ); -- ToDo: need a exception handler. this suffice for now :-)
+
       if c.Port_Format = IP_Port then
 	 declare
 	    host : char_array := to_c( C.Host_Address.all );
@@ -1381,14 +1205,12 @@ package body APQ.MySQL.Client is
 		  "MY10: Failed to connect to database server (Connect).");
       else
 	 declare
-	    use Interfaces.C, Interfaces.C.Strings;
 	    Host_Name : String := To_Ada(Value(mysql_get_host_name(C.Connection)));
 	 begin
 	    Replace_String(C.Host_Name,Host_Name);
 	 end;
 
 	 declare
-	    use Interfaces.C, Interfaces.C.Strings;
 	    UNIX_Socket : String := To_Ada(Value(mysql_unix_socket(C.Connection)));
 	 begin
 	    if UNIX_Socket /= "" then
@@ -1399,7 +1221,6 @@ package body APQ.MySQL.Client is
 	       C.Port_Format := IP_Port;
 	       C.Port_Number := mysql_port(C.Connection);
 	       -- Update port number used
-
 	       if C.Port_Name /= null then
 		  Free(C.Port_Name);
 	       end if;
@@ -1407,7 +1228,6 @@ package body APQ.MySQL.Client is
 	 end;
       end if;
    end Connect;
-
    ----------------------------------------
    procedure Set_ssl(C1 : in out MYSQL; key,cert,ca,capath,cipher : String := "" ) is
 
@@ -1451,165 +1271,103 @@ package body APQ.MySQL.Client is
                          key,cert,ca,capath,cipher : String := "" ;
                          Check_Connection : Boolean := True )
    is
-		use Interfaces.C.Strings;
+   begin
+      Raise_Exception(Not_Supported'Identity,
+		      "MY01: MySQL, Connect_ssl() is obsolete. use add_key_nameval() (Connect_ssl).");
+   end Connect_ssl;
 
-		C_Host :       char_array_access;
-		A_Host :       System.Address := System.Null_Address;
-		C_Dbname :     char_array_access;
-		A_Dbname :     System.Address := System.Null_Address;
-		C_Login :      char_array_access;
-		A_Login :      System.Address := System.Null_Address;
-		C_Pwd :        char_array_access;
-		A_Pwd :        System.Address := System.Null_Address;
-		C_Port :       Port_Integer := C.Port_Number;
-		C_Unix :       char_array_access;
-		A_Unix :       System.Address := System.Null_Address;
+      --------------------------
+--  	procedure Connect_old(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
+--  		type Info_Func is access function(C : Connection_Type) return String;
+--
+--  		procedure Clone(S : in out String_Ptr; Get_Info : Info_Func) is
+--  			Info : String := Get_Info(Connection_Type(Same_As));
+--  		begin
+--  			if Info'Length > 0 then
+--  				S     := new String(1..Info'Length);
+--  				S.all := Info;
+--  			else
+--  				null;
+--  				pragma assert(S = null);
+--  			end if;
+--  		end Clone;
+--
+--  	begin
+--  		Reset(C);
+--
+--  		C.SQL_Case := Same_As.SQL_Case;
+--
+--  		Clone(C.Host_Name,Host_Name'Access);
+--
+--  		C.Port_Format := Same_As.Port_Format;
+--  		if C.Port_Format = IP_Port then
+--  			C.Port_Number := Port(Same_As);     -- IP_Port
+--  		else
+--  			Clone(C.Port_Name,Port'Access);     -- UNIX_Port
+--  		end if;
+--
+--  		Clone(C.DB_Name,DB_Name'Access);
+--  		Clone(C.User_Name,User'Access);
+--  		Clone(C.User_Password,Password'Access);
+--  		Clone(C.Options,Options'Access);
+--
+--  		C.Rollback_Finalize  := Same_As.Rollback_Finalize;
+--
+--  		Connect(C);	-- Connect to database before worrying about trace facilities
+--
+--  		-- TRACE FILE & TRACE SETTINGS ARE NOT CLONED
+--
+--  	end Connect_old;
+   procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
 
-	begin
+      type Info_Func is access function(C : Connection_Type) return String;
 
-		Clear_Error(C);
+      procedure Clone(S : in out String_Ptr; Get_Info : Info_Func) is
+	 Info : String := Get_Info(Connection_Type(Same_As));
+      begin
+	 if Info'Length > 0 then
+	    S     := new String(1..Info'Length);
+	    S.all := Info;
+	 else
+	    null;
+	    pragma assert(S = null);
+	 end if;
+      end Clone;
 
-		if Check_Connection and then Is_Connected(C) then
-			Raise_Exception(Already_Connected'Identity,
-			"MY08: Object is already connected to database server (Connect).");
-		end if;
+   begin
+      Reset(C);
 
-		if C.Port_Format = IP_Port and then C.Port_Number <= 0 then
-			Raise_Exception(Not_Connected'Identity,
-			"MY09: Missing or bad port number for a connect (Connect).");
-		end if;
+      C.SQL_Case := Same_As.SQL_Case;
 
-		C_String(C.Host_Name,C_Host,A_Host);
-		C_String(C.DB_Name,C_Dbname,A_Dbname);
-		C_String(C.User_Name,C_Login,A_Login);
-		C_String(C.User_Password,C_Pwd,A_Pwd);
+      Clone(C.Host_Name,Host_Name'Access);
 
-		case C.Port_Format is
-			when IP_Port =>
-				null;
-			when UNIX_Port =>
-				C_Port := 0;
-				-- Zero indicates to mysql_connect() that we are using unix socket
-
-				C_String(C.Port_Name,C_Unix,A_Unix);
-		end case;
-
-		--
-		-- Must re-establish a C.Connection after a Disconnect/Reset (object reuse)
-		--
-		if C.Connection = Null_Connection then
-			C.Connection := mysql_init;      -- Needed after disconnects
+      C.Port_Format := Same_As.Port_Format;
+      if C.Port_Format = IP_Port then
+	 C.Port_Number := Port(Same_As);     -- IP_Port
+      else
+	 Clone(C.Port_Name,Port'Access);     -- UNIX_Port
       end if;
-      --------------------------------
-      Set_ssl(C.Connection, key,cert,ca,capath,cipher  );
 
-      -------------------------------
-			C.Connected := mysql_connect(
-			conn 	=> C.Connection,  -- Connection object
-			host	=> A_Host,        -- host or IP #
-			user	=> A_Login,       -- user name
-			passwd	=> A_Pwd,         -- password
-			db	=> A_Dbname,      -- database
-			port	=> C_Port,        -- IP Port # or zero
-			local_socket  => A_Unix   -- UNIX socket name or null
-				)   /= 0;
+      Clone(C.DB_Name,DB_Name'Access);
+      Clone(C.User_Name,User'Access);
+      Clone(C.User_Password,Password'Access);
+      --Clone(C.Options,Options'Access);
 
-		if C_Host /= null then
-			Free(C_Host);
-		end if;
-			if C_Dbname /= null then
-			Free(C_Dbname);
-		end if;
-			if C_Login /= null then
-			Free(C_Login);
-		end if;
+      C.Rollback_Finalize  := Same_As.Rollback_Finalize;
+      -- I believe if "Same_As" var is defacto a "Connection_Type" as "C" var,
+      -- there are need for copy  key's name and val from "Same_As" ,
+      -- because in this keys and vals
+      -- maybe are key's how sslmode , gsspi etc, that are defacto needs for connecting "C"
 
-		if C_Pwd /= null then
-			Free(C_Pwd);
-		end if;
-			if C_Unix /= null then
-			Free(C_Unix);
-		end if;
-			if not C.Connected then
-			Post_Error(C);
-			Raise_Exception(Not_Connected'Identity,
-				"MY10: Failed to connect to database server (Connect).");
-		else
-			declare
-				use Interfaces.C, Interfaces.C.Strings;
+      if Same_As.Engine_Of = Engine_MySQL then
+         clone_clone_my(C , Connection_Type(Same_as));
+      end if;
 
-				Host_Name : String := To_Ada(Value(mysql_get_host_name(C.Connection)));
-			begin
-				Replace_String(C.Host_Name,Host_Name);
-			end;
+     connect(C);-- Connect to database before worrying about trace facilities
 
-			declare
-				use Interfaces.C, Interfaces.C.Strings;
+      -- TRACE FILE & TRACE SETTINGS ARE NOT CLONED
 
-				UNIX_Socket : String := To_Ada(Value(mysql_unix_socket(C.Connection)));
-			begin
-				if UNIX_Socket /= "" then
-					C.Port_Format := UNIX_Port;
-					Replace_String(C.Port_Name,UNIX_Socket);
-					-- Update socket pathname
-				else
-					C.Port_Format := IP_Port;
-					C.Port_Number := mysql_port(C.Connection);
-					-- Update port number used
-
-					if C.Port_Name /= null then
-						Free(C.Port_Name);
-					end if;
-				end if;
-			end;
-
-			if C.Options /= null then
-				Process_Connection_Options(C);
-			end if;
-		end if;
-	end Connect_ssl;
---------------------------------
-	procedure Connect_old(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
-		type Info_Func is access function(C : Connection_Type) return String;
-
-		procedure Clone(S : in out String_Ptr; Get_Info : Info_Func) is
-			Info : String := Get_Info(Connection_Type(Same_As));
-		begin
-			if Info'Length > 0 then
-				S     := new String(1..Info'Length);
-				S.all := Info;
-			else
-				null;
-				pragma assert(S = null);
-			end if;
-		end Clone;
-
-	begin
-		Reset(C);
-
-		C.SQL_Case := Same_As.SQL_Case;
-
-		Clone(C.Host_Name,Host_Name'Access);
-
-		C.Port_Format := Same_As.Port_Format;
-		if C.Port_Format = IP_Port then
-			C.Port_Number := Port(Same_As);     -- IP_Port
-		else
-			Clone(C.Port_Name,Port'Access);     -- UNIX_Port
-		end if;
-
-		Clone(C.DB_Name,DB_Name'Access);
-		Clone(C.User_Name,User'Access);
-		Clone(C.User_Password,Password'Access);
-		Clone(C.Options,Options'Access);
-
-		C.Rollback_Finalize  := Same_As.Rollback_Finalize;
-
-		Connect(C);	-- Connect to database before worrying about trace facilities
-
-		-- TRACE FILE & TRACE SETTINGS ARE NOT CLONED
-
-	end Connect_old;
+   end Connect;
 
 
 	procedure Disconnect(C : in out Connection_Type) is
