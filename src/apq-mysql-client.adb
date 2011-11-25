@@ -371,27 +371,28 @@ package body APQ.MySQL.Client is
 				 argtype : Option_Argument_Type
 				) return system.Address
    is
+      my_char_array: char_array := To_C(string'(to_string(ustring)));
+
    begin
       case argtype is
       when ARG_CHAR_PTR => -- char_array ?
 	 --return ( new char_array'(To_C(string'(to_string(ustring)))))'Address; -- or
-	 return (char_array_access'( new char_array'(To_C(string'(to_string(ustring))))))'Address; -- or just
-	 -- return (char_array'(To_C(string'(to_string(ustring)))))'Address; -- ?
+	 --return (char_array_access'( new char_array'(my_char_array'range => my_char_array)))'Address; -- or just
+			   -- return (char_array'(To_C(string'(to_string(ustring)))))'Address; -- ?
+	 return my_char_array'Address;
 
       when ARG_NOT_USED =>
-	 return (unsigned_int_ptr'( new Interfaces.c.unsigned(0)))'Address;
+	 -- return (unsigned_int_ptr'( new Interfaces.c.unsigned(0)))'Address;
+	 return Interfaces.c.unsigned(0)'Address;
 
       when ARG_UINT =>
-	 return (unsigned_int_ptr'( new interfaces.c.unsigned(
-	   interfaces.c.unsigned'Value(
-	     to_string(ustring)
-	    ))))'Address;
+	 return interfaces.c.unsigned'Value(string'(to_string(ustring)))'Address;
 
       when ARG_PTR_UINT =>
-	 if interfaces.c.unsigned'Value( to_string(ustring)) != 0 then
-	    return (unsigned_int_ptr'( new Interfaces.c.unsigned(1)))'Address;
+	 if interfaces.c.unsigned'Value(string'(to_string(ustring))) /= 0 then
+	    return Interfaces.c.unsigned(1)'Address;
 	 else
-	    return (unsigned_int_ptr'( new Interfaces.c.unsigned(0)))'Address;
+	    return Interfaces.c.unsigned(0)'Address;
 	 end if;
 
       when others =>
@@ -467,7 +468,7 @@ package body APQ.MySQL.Client is
 
             Free(C.keyname);
 	    Free(C.keyval);
-	    Free(C.keyval_type)
+	    Free(C.keyval_type);
             Free(C.keyname_Caseless);
             Free(C.keyval_Caseless);
 
@@ -506,8 +507,8 @@ package body APQ.MySQL.Client is
       bool1 : bool := false;
       -- mint : integer := 0;
       mi_count : integer := 0;
-      new_option_enum : option_enum_type_array_ptr := new option_enum_type_array( others => system.Null_Address);
-      new_specific_enum : specific_type_array_ptr := new specific_type_array( others => system.Null_Address);
+      new_option_enum : option_enum_type_array_ptr := new option_enum_type_array'( others => system.Null_Address);
+      new_specific_enum : specific_type_array_ptr := new specific_type_array'( others => system.Null_Address);
       tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(160);
       tmp_ub_keyname : Unbounded_String := To_Unbounded_String(30);
       tmp_ub_keyval : Unbounded_String := To_Unbounded_String(30);
@@ -547,7 +548,7 @@ package body APQ.MySQL.Client is
 	 declare -- verify, non-specific
 	    I_am : Option_Enum_Type := Option_Enum_Type'value(to_string(tmp_ub_keyname));
 	 begin
-	    if new_option_enum(I_am).all != system.Null_Address then
+	    if new_option_enum(I_am).all /= system.Null_Address then
 	       free(new_option_enum(I_am)); --
 	    end if;
 	    new_option_enum(I_am).all := return_address_type(ustring => tmp_ub_keyval,
@@ -563,19 +564,29 @@ package body APQ.MySQL.Client is
 	    I_am : ssl_Specific_Type := ssl_Specific_Type'value(to_string(tmp_ub_keyname));
 	 begin
 	    if new_specific_enum(ssl).all = system.Null_Address then
-	       new_specific_enum(ssl).all := (
-		 ssl_Specific_Type_Array_Ptr'(
-		   new ssl_Specific_Type_Array( others => system.Null_Address))
-		)'Address;
+	       declare
+		  my_ssl_spec : ssl_Specific_Type_Array_Ptr := new ssl_Specific_Type_Array'( others => system.Null_Address);
+	       begin
+		  new_specific_enum(ssl).all := my_ssl_spec'Address;
+		--  w_specific_enum(ssl).all := ((
+--  		 ssl_Specific_Type_Array_Ptr'(
+--  		   new ssl_Specific_Type_Array'( others => system.Null_Address))
+--  		))'Address;
 --  	       ((
 --  		 ssl_Specific_Type_Array_Ptr'(
 --  		   new ssl_Specific_Type_Array( others => system.Null_Address))
 --  		).all)'Address; -- ".all" ?
+	       end;
 	    end if;
-	    if new_specific_enum(ssl).all(I_am).all != system.Null_Address then
+	    if new_specific_enum(ssl).all(I_am).all /= system.Null_Address then
 	       free(new_specific_enum(ssl).all(I_am)); -- there are a free() for char_array/char_array_access in apq.ads :-)
 	    end if;
-	    new_specific_enum(ssl).all(I_am).all := (char_array_access'(new char_array'(to_C(string'(to_string(tmp_ub_keyval))))))'Address;
+	    declare
+	       my_char_array_access: char_array_access := new char_array'(to_C(string'(to_string(tmp_ub_keyval)))); --
+	    begin
+	       new_specific_enum(ssl).all(I_am).all := my_char_array_access'Address;
+	    end;
+
 	    bool1 := true; -- ((char_array_access'(new char_array'(to_C(string'(to_string(tmp_ub_keyval)))))).all)'Address;
 	    goto continua; -- well... really judicious, this was my the better option :-)
 	    -- more specific options can be added in future. :-)
@@ -600,12 +611,12 @@ package body APQ.MySQL.Client is
       if mi_count > 0 then
 	 if mi_count < a then
 	    for I_am in Option_Enum_Type'range loop
-	       if  new_option_enum(I_am).all != system.Null_Address then
+	       if  new_option_enum(I_am).all /= system.Null_Address then
 		   free(new_option_enum(I_am).all);
 	       end if;
 	    end loop;
 	    for I_am in Specific_Type'range loop
-	       if  new_specific_enum(I_am).all != system.Null_Address then
+	       if  new_specific_enum(I_am).all /= system.Null_Address then
 		   free(new_specific_enum(I_am).all);
 	       end if;
 	    end loop;
@@ -613,7 +624,7 @@ package body APQ.MySQL.Client is
 	 free(new_option_enum);
 	 free(new_specific_enum);
 
-	 Raise_Exception(Failed'Identify ,
+	 Raise_Exception(Failed'Identity ,
 		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
 	 return; -- :o]
       end if;
@@ -1065,7 +1076,7 @@ package body APQ.MySQL.Client is
 	C.keyname_val_cache_spec1 = null
       then
 	 return;
-      end if
+      end if;
       if C.keyname_val_cache_nonspe0 /= null then
 	 for a in C.keyname_val_cache_nonspe0.all'range(1) loop
 	    if C.keyname_val_cache_nonspe0(a).all /= Null_Address then
@@ -1113,7 +1124,7 @@ package body APQ.MySQL.Client is
 	 end if;
       end if;
       if mi_count > 0 then
-	 Raise_Exception(Failed'Identify ,
+	 Raise_Exception(Failed'Identity ,
 		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
       end if;
 

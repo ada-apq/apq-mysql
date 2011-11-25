@@ -35,6 +35,8 @@
 --          to input file apq-mysql.ads-in instead!!!!!!!!!!!
 -- **********************************************************
 
+with Ada.Unchecked_Conversion;
+
 package APQ.MySQL is
 
 %mysql_linker_options%
@@ -95,7 +97,7 @@ private
    	type Option_Enum_Type_Array is array ( Option_Enum_Type ) of system.Address;
    	type Option_Enum_Type_Array_Ptr is access all Option_Enum_Type_Array;
    procedure Free is new Ada.Unchecked_Deallocation( Option_Enum_Type_Array , Option_Enum_Type_Array_Ptr );
-   function toUnsigned is new Unchecked_Conversion(Source => Option_Enum_Type,
+   function toUnsigned is new ada.Unchecked_Conversion(Source => Option_Enum_Type,
 						   Target => interfaces.c.unsigned);
 	----
    	type Specific_Type is (none, ssl ); -- if necessary, more types will be added. :-)

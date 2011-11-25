@@ -308,7 +308,7 @@ c_mysql_options_nonspecif(MYSQL *conn,unsigned option,void *arg) {
   int z;
   enum mysql_option opt = option;
   z = mysql_options(conn,opt, &arg);
-  return  IS_OK(Z);
+  return  IS_OK(z);
   /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
 }
 
