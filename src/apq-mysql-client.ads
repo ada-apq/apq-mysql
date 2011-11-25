@@ -106,32 +106,30 @@ package APQ.MySQL.Client is
    -- if in the list of keywords have keywords equals the value used is the last value in list.
    -- remember to include the libs was needed
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname,kval : string := "";
-			     kval_type : Option_Argument_Type := ARG_CHAR_PTR ;
+			     kname,kval : string := ""; -- the standard way
+			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ; -- dont ignore it ! :-)
                              knamecasele, kvalcasele : boolean := true;
 			     clear : boolean := false);
 
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.ssl_type ; -- to reduce typing errors
+			     kval : string ;
+			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ;
+			     -- kval_type is ignored here :-). it is always arg_char_ptr :-)
+                             knamecasele, kvalcasele : boolean := true;
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.Option_type ; -- to reduce typing errors
+			     kval : string ;
+			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ; -- dont ignore it ! :-)
+                             knamecasele, kvalcasele : boolean := true;
+			     clear : boolean := false);
 
    procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0);
 
-   -- procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
-
-   -- procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class);
-
    function verifica_conninfo_cache( C : Connection_Type) return string;
 
----------
-
---          procedure Connect_old(C : in out Connection_Type; Check_Connection : Boolean := True);
---
---          procedure Connect_ssl(C : in out Connection_Type;
---                                 key,cert,ca,capath,cipher : String := "" ;
---                                Check_Connection : Boolean := True
---                               );
---
---  	procedure Connect_old(C : in out Connection_Type;
---  		       Same_As : Root_Connection_Type'Class);
---     --
     	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
 
        	procedure Connect(C : in out Connection_Type;
@@ -218,7 +216,7 @@ private
 
    type Connection_Type is new APQ.Root_Connection_Type with
       record
-	 -- Options       : String_Ptr;
+	 Options       : String_Ptr;
 	 -- MySQL database engine options
 	 Connection    : MYSQL := Null_Connection;
 	 -- MySQL connection object
@@ -231,18 +229,15 @@ private
   	         ----
 	 keyname     : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
 	 keyval      : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
-	 keyval_type : Option_Argument_Ptr_Array_Access;
+	 keyval_type : Argument_Ptr_Array_Access;
 	 keycount    : natural := 0;
 	 keyalloc : natural := 0;
 
          keyval_Caseless   : Boolean_Array_Access;
 	 keyname_Caseless  : Boolean_Array_Access;
 
-	 keyname_val_cache_nonspe0 : Option_Enum_Type_Array_Ptr;
-	 keyname_val_cache_spec1 : Specific_Type_Array_Ptr;
-	 -- for bypass "the recreate it" ,
-	 -- if keyname_val_cache_uptodate = true (True)
-	 keyname_val_cache_uptodate : boolean := false;
+	 keyname_val_cache : root_base_ptr_array_access ; -- for bypass "the recreate it"
+	 keyname_val_cache_uptodate : boolean := false; -- if keyname_val_cache_uptodate = true (True)
 
          keyname_default_case : SQL_Case_Type := Lower_Case;
          keyval_default_case  : SQL_Case_Type := Preserve_Case;

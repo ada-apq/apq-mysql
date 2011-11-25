@@ -35,7 +35,7 @@ with Ada.Strings.Unbounded;
 with Ada.Characters.Handling;
 with Ada.IO_Exceptions;
 with Interfaces.C.Strings;
-
+with System;
 
 package body APQ.MySQL.Client is
 
@@ -166,13 +166,10 @@ package body APQ.MySQL.Client is
 				      )	return Interfaces.C.int;
    pragma import(C,mysql_options_nonspecif,"c_mysql_options_nonspecif");
 
-
    function my_set_ssl(conn : MYSQL;
 		       kkey,ccert,cca,ccapath,ccipher: system.Address
 		      ) return Interfaces.C.int ;
    pragma import(c,my_set_ssl ,"c_mysql_ssl_set_v2");
-
-
 
         procedure Free(Results : in out MYSQL_RES) is
 	begin
@@ -180,19 +177,16 @@ package body APQ.MySQL.Client is
 		Results := Null_Result;
 	end Free;
 
-
 	function Name_Of(Field : MYSQL_FIELD) return String is
 		use Interfaces.C.Strings, Interfaces.C;
 	begin
 		return To_Ada(Value(mysql_field_name(Field)));
 	end Name_Of;
 
-
 	function Type_Of(Field : MYSQL_FIELD) return Field_Type is
 	begin
 		return mysql_field_type(Field);
 	end Type_Of;
-
 
  	function Value_Of(Results : MYSQL_RES; Row : MYSQL_ROW;
  		Column_Index : Column_Index_Type) return Interfaces.C.Strings.chars_ptr is
@@ -201,8 +195,6 @@ package body APQ.MySQL.Client is
         begin
 		return mysql_field_value(Results,Row,Interfaces.C.Int(Column_Index)-1);
 	end Value_Of;
-
-
 
 	procedure Clear_Error(C : in out Connection_Type) is
 	begin
@@ -220,7 +212,6 @@ package body APQ.MySQL.Client is
 		Free(Q.Error_Message);
 	end Clear_Error;
 
-
 	procedure Post_Error(C : in out Connection_Type) is
 		use Interfaces.C, Interfaces.C.Strings;
 		Error_Msg : String := To_Ada(Value(mysql_error(C.Connection)));
@@ -228,8 +219,6 @@ package body APQ.MySQL.Client is
 		C.Error_Code := mysql_errno(C.Connection);
 		Replace_String(C.Error_Message,Error_Msg);
 	end Post_Error;
-
-
 
 	------------------------------
 	-- INTERNAL :
@@ -282,30 +271,23 @@ package body APQ.MySQL.Client is
 		Cols : Natural := Columns(Q);
 	begin
 		return Natural(CX) >= 1 and then Natural(CX) <= Cols;
-	end Is_Column;
-
-
-
-
+   end Is_Column;
 
 
         ---------------------------
         -- DATABASE CONNECTION : --
         ---------------------------
 
-
 	function Engine_Of(C : Connection_Type) return Database_Type is
 	begin
 		return Engine_MySQL;
 	end Engine_Of;
-
 
 	function New_Query(C : Connection_Type) return Root_Query_Type'Class is
 		Q : Query_Type;
 	begin
 		return Q;
 	end New_Query;
-
 
 	procedure Set_DB_Name(C : in out Connection_Type; DB_Name : String) is
 	begin
@@ -326,7 +308,6 @@ package body APQ.MySQL.Client is
 		end if;
 	end Set_DB_Name;
 
-
 	function Port(C : Connection_Type) return Integer is
 	begin
 		if not Is_Connected(C) then
@@ -335,7 +316,6 @@ package body APQ.MySQL.Client is
 			return mysql_port(C.Connection);
 		end if;
 	end Port;
-
 
 	function Port(C : Connection_Type) return String is
 		use Interfaces.C, Interfaces.C.Strings;
@@ -346,7 +326,6 @@ package body APQ.MySQL.Client is
 			return To_Ada(Value(mysql_unix_socket(C.Connection)));
 		end if;
 	end Port;
-
 
 	procedure Set_Instance(C : in out Connection_Type; Instance : String) is
 	begin
@@ -364,59 +343,24 @@ package body APQ.MySQL.Client is
    begin
 
       Raise_Exception(Not_Supported'Identity,
-		"MY01: MySQL, options() is obsolete. use add_key_nameval() (Options).");
+		      "MY01: MySQL, options() is obsolete. use add_key_nameval() (Options).");
+      return "";
    end Options;
    ------------
-   function return_address_type( ustring : ada.Strings.Unbounded.Unbounded_String;
-				 argtype : Option_Argument_Type
-				) return system.Address
-   is
-      my_char_array: char_array := To_C(string'(to_string(ustring)));
-
-   begin
-      case argtype is
-      when ARG_CHAR_PTR => -- char_array ?
-	 --return ( new char_array'(To_C(string'(to_string(ustring)))))'Address; -- or
-	 --return (char_array_access'( new char_array'(my_char_array'range => my_char_array)))'Address; -- or just
-			   -- return (char_array'(To_C(string'(to_string(ustring)))))'Address; -- ?
-	 return my_char_array'Address;
-
-      when ARG_NOT_USED =>
-	 -- return (unsigned_int_ptr'( new Interfaces.c.unsigned(0)))'Address;
-	 return Interfaces.c.unsigned(0)'Address;
-
-      when ARG_UINT =>
-	 return interfaces.c.unsigned'Value(string'(to_string(ustring)))'Address;
-
-      when ARG_PTR_UINT =>
-	 if interfaces.c.unsigned'Value(string'(to_string(ustring))) /= 0 then
-	    return Interfaces.c.unsigned(1)'Address;
-	 else
-	    return Interfaces.c.unsigned(0)'Address;
-	 end if;
-
-      when others =>
-	 return system.Null_Address;
-
-      end case;
-
-   --  exception  part in off, for testing purposes.
---     Exception
---  	 when Constraint_Error => return system.Null_Address;
-   end return_address_type;
 
    function quote_string( qkv : string ) return String
    is
       use ada.Strings;
       use ada.Strings.Fixed;
+      use Interfaces.C;
 
       function mysql_escape_string( to, from : System.Address; length : u_long) return u_long;
       pragma import(C,mysql_escape_string,"c_mysql_escape_string");
       src : string := trim ( qkv , both );
-      C_Length : u_long := src'Length * 2 + 1;
+      C_Length : size_t := src'Length * 2 + 1;
       C_From   : char_array := To_C(src);
       C_To     : char_array(0..C_Length-1);
-      R_Length : u_long := mysql_escape_string(C_To'Address,C_From'Address,C_Length);
+      R_Length : u_long := mysql_escape_string(C_To'Address,C_From'Address,u_long(src'Length));
       -- viva!!! :-)
    begin
       return To_Ada(C_To);
@@ -443,7 +387,7 @@ package body APQ.MySQL.Client is
 
          C.keyname := new String_Ptr_Array(1..C.keyalloc);
 	 C.keyval  := new String_Ptr_Array(1..C.keyalloc);
-	 C.keyval_type := new Option_Argument_Ptr_Array(1..C.keyalloc);
+	 C.keyval_type := new Argument_Ptr_Array(1..C.keyalloc);
 
          C.keyname_Caseless  := new Boolean_Array(1..C.keyalloc);
          C.keyval_Caseless   := new Boolean_Array(1..C.keyalloc);
@@ -453,7 +397,7 @@ package body APQ.MySQL.Client is
             New_keyAlloc : Natural := C.keyAlloc + 64;
             New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
 	    New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
-	    New_Array_Keyval_Type : Option_Argument_Ptr_Array_Access := new Option_Argument_Ptr_Array(1..New_keyAlloc);
+	    New_Array_Keyval_Type : Argument_Ptr_Array_Access := new Argument_Ptr_Array(1..New_keyAlloc);
 
             New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
             New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
@@ -502,21 +446,23 @@ package body APQ.MySQL.Client is
       use ada.strings.Fixed;
       use ada.Strings;
       use Ada.Characters.Handling;
+      use System;
+      use Interfaces.C, Interfaces.C.Strings;
 
       a : natural := c.keycount; -- number of keyname's and keyval's
-      bool1 : bool := false;
+      bool1 : boolean := false;
       -- mint : integer := 0;
       mi_count : integer := 0;
-      new_option_enum : option_enum_type_array_ptr := new option_enum_type_array'( others => system.Null_Address);
-      new_specific_enum : specific_type_array_ptr := new specific_type_array'( others => system.Null_Address);
+      tmp_hold_stuff : apq.mysql.root_base_ptr_array_access
+	:= new apq.mysql.root_base_ptr_array'( others => null );
+
       tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(160);
       tmp_ub_keyname : Unbounded_String := To_Unbounded_String(30);
       tmp_ub_keyval : Unbounded_String := To_Unbounded_String(30);
 
    begin
       if cache_key_nameval_uptodate( C ) and force = false then return; end if; -- bahiii :-)
-      Free(c.keyname_val_cache_nonspe0);
-      Free(c.keyname_val_cache_spec1);
+      Free(c.keyname_val_cache ); -- we really need free()/uncheck_deallocation ? :-) with which 'type' parameters ? :-)
 
       if not (c.Port_Format = UNIX_Port or c.Port_Format = IP_Port ) then
          raise program_error;
@@ -529,10 +475,9 @@ package body APQ.MySQL.Client is
 
       for b in 1 .. a loop
 	 tmp_ub_keyname := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyname(b))))),ada.Strings.both);
-
-	 if c.keyval_type(b) = ARG_CHAR_PTR then
+	 if c.keyval_type(b).all = ARG_CHAR_PTR then
             if c.keyval_Caseless(b) or c.keyval_default_case = Preserve_Case then
-               tmp_ub_keyval := tmp_ub_cache & trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both);
+               tmp_ub_keyval := trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both);
             else
                if c.keyname_default_case = Lower_Case then
                   tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Lower(string'(To_String(C.keyval(b)))))),ada.Strings.both);
@@ -546,13 +491,42 @@ package body APQ.MySQL.Client is
 	 bool1 := false;
 
 	 declare -- verify, non-specific
-	    I_am : Option_Enum_Type := Option_Enum_Type'value(to_string(tmp_ub_keyname));
+	    I_am : apq.mysql.Option_type := apq.mysql.Option_type'value(to_string(tmp_ub_keyname));
+	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
 	 begin
-	    if new_option_enum(I_am).all /= system.Null_Address then
-	       free(new_option_enum(I_am)); --
+	    if tmp_hold_stuff.all(Common) = null then
+	       tmp_hold_stuff.all(Common) = new common_part_record ;
 	    end if;
-	    new_option_enum(I_am).all := return_address_type(ustring => tmp_ub_keyval,
-						  argtype => c.keyval_type(b) );
+
+	    free( tmp_hold_stuff.all(Common).all.char_part(I_am) );
+	    free( tmp_hold_stuff.all(Common).all.unsigned_part(I_am) );
+	    tmp_hold_stuff.all(Common).all.valido(I_am) := false ;
+
+	    case c.keyval_type(b).all is
+	    when ARG_CHAR_PTR =>
+	       tmp_hold_stuff.all(Common).all.char_part(I_am) := new char_array'( I_be'range => I_be );
+
+	    when ARG_NOT_USED =>
+	       tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(0) ;
+
+	    when ARG_UINT =>
+	       -- note: if conversion unsigned'value(kval) is invalid,
+	       -- add_key_nameval() already  raise "Invalid_Format" exception :-)
+	       tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new interfaces.c.unsigned'Value(string'(to_Ada(I_be)));
+
+
+	    when ARG_PTR_UINT =>
+	       -- note: if conversion unsigned'value(kval) is invalid,
+	-- And kval differ from "" then kval := 1;  Otherwise kval := 0;
+	       if interfaces.c.unsigned'Value(string'(to_Ada(I_be))) /= 0 then
+		  tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(1) ;
+	       else
+		  tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(0) ;
+	       end if;
+
+	    end case;
+	    tmp_hold_stuff.all(Common).all.valido(I_am) := true ;
+
 	    bool1 := true;
 	    goto continua; -- well... really judicious, this was my the better option :-)
 	 exception
@@ -563,11 +537,12 @@ package body APQ.MySQL.Client is
 	 declare -- verify, specific , ssl
 	    I_am : ssl_Specific_Type := ssl_Specific_Type'value(to_string(tmp_ub_keyname));
 	 begin
-	    if new_specific_enum(ssl).all = system.Null_Address then
+	    -- if new_specific_enum(ssl).all = system.Null_Address then
+	    if new_specific_enum(ssl) = system.Null_Address then
 	       declare
 		  my_ssl_spec : ssl_Specific_Type_Array_Ptr := new ssl_Specific_Type_Array'( others => system.Null_Address);
 	       begin
-		  new_specific_enum(ssl).all := my_ssl_spec'Address;
+		  new_specific_enum(ssl) := my_ssl_spec'Address;
 		--  w_specific_enum(ssl).all := ((
 --  		 ssl_Specific_Type_Array_Ptr'(
 --  		   new ssl_Specific_Type_Array'( others => system.Null_Address))
@@ -578,7 +553,8 @@ package body APQ.MySQL.Client is
 --  		).all)'Address; -- ".all" ?
 	       end;
 	    end if;
-	    if new_specific_enum(ssl).all(I_am).all /= system.Null_Address then
+	   -- if new_specific_enum(ssl).all(I_am).all /= system.Null_Address then
+	    if new_specific_enum(ssl)(I_am) /= system.Null_Address then
 	       free(new_specific_enum(ssl).all(I_am)); -- there are a free() for char_array/char_array_access in apq.ads :-)
 	    end if;
 	    declare
@@ -610,7 +586,7 @@ package body APQ.MySQL.Client is
 
       if mi_count > 0 then
 	 if mi_count < a then
-	    for I_am in Option_Enum_Type'range loop
+	    for I_am in Option_type'range loop
 	       if  new_option_enum(I_am).all /= system.Null_Address then
 		   free(new_option_enum(I_am).all);
 	       end if;
@@ -659,7 +635,7 @@ package body APQ.MySQL.Client is
       declare
          New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
 	 New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
-	 New_Array_Keyval_Type : Option_Argument_Ptr_Array_Access := new Option_Argument_Ptr_Array(1..len);
+	 New_Array_Keyval_Type : Argument_Ptr_Array_Access := new Argument_Ptr_Array(1..len);
 
          New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
          New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
@@ -686,10 +662,9 @@ package body APQ.MySQL.Client is
       end ;
    end clear_all_key_nameval;
 
-
    procedure add_key_nameval( C : in out Connection_Type;
 			     kname, kval : string := "";
-			     kval_type : Option_Argument_Type := ARG_CHAR_PTR ;
+			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ;
                              knamecasele, kvalcasele : boolean := true;
                             clear : boolean := false )
    is
@@ -702,11 +677,31 @@ package body APQ.MySQL.Client is
       tkm       : natural := tmp_kname'Length;
       tkv       : natural := tmp_kval'Length;
       ckc       : natural := 0;
+      hold_tmp : interfaces.c.unsigned := 0;
    begin
       if clear then
          clear_all_key_nameval(C);
       end if;
       if tmp_kname = "" then return; end if; -- bahiii :-)
+
+      if kval_type = ARG_UINT or kval_type = ARG_PTR_UINT then
+	 begin
+	    hold_tmp := interfaces.c.unsigned'value(tmp_kval);
+	 exception
+	    when ex:Constraint_Error =>
+	       if kval_type = ARG_UINT then
+		  Raise_Exception(Invalid_Format'Identity,
+		    "MY02: Invalid  conversion of '" & tmp_kval & "' to unsigned. (add_key_nameval).");
+		  return; -- forced bahiii! :-)
+	       end if;
+	       if tmp_kval = "" then
+		  hold_tmp := 0;
+	       else
+		  hold_tmp := 1; -- remember kval :-) differ of zero. :-) a reasonable polite solution. ;-)
+	       end if;
+	 end;
+      end if;
+
       grow_key(C);
       C.keycount := C.keycount + 1;
       ckc := C.keycount;
@@ -719,10 +714,53 @@ package body APQ.MySQL.Client is
          C.keyval(ckc) := new String(1..tkv);
          C.keyval(ckc).all(1..tkv) := tmp_kval;
       end if;
-      C.keyval_type(ckc) := kval_type; --
+      C.keyval_type(ckc).all := kval_type;
       C.keyval_Caseless(ckc)       := kvalcasele;
       C.keyname_val_cache_uptodate := false;
 
+   end add_key_nameval;
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.ssl_type ; -- to reduce typing errors
+			     kval : string ;
+			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ;
+			     -- kval_type is ignored here :-). it is always char_ptr :-)
+                             knamecasele, kvalcasele : boolean := true;
+			     clear : boolean := false)
+   is
+   begin
+      add_key_nameval( C ,
+		      kname => apq.mysql.ssl_type'image(kname),
+		      kval => kval,
+		      kval_type => ARG_CHAR_PTR,
+		      knamecasele => knamecasele,
+		      kvalcasele => kvalcasele,
+		      clear => clear );
+   exception
+      when EX:Invalid_Format =>
+	 Reraise_Occurrence(EX);
+	 return;
+   end add_key_nameval;
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.Option_type ; -- to reduce typing errors
+			     kval : string ;
+			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ; -- dont ignore it ! :-)
+                             knamecasele, kvalcasele : boolean := true;
+			     clear : boolean := false)
+   is
+   begin
+      add_key_nameval( C ,
+		      kname => apq.mysql.Option_Type'image(kname),
+		      kval => kval,
+		      kval_type => ARG_CHAR_PTR,
+		      knamecasele => knamecasele,
+		      kvalcasele => kvalcasele,
+		      clear => clear );
+   exception
+      when EX:Invalid_Format =>
+	 Reraise_Occurrence(EX);
+	 return;
    end add_key_nameval;
 
    function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type--
@@ -782,7 +820,7 @@ package body APQ.MySQL.Client is
          len        : natural := keycount_from;
          New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
 	 New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
-	 New_Array_Keyval_Type : Option_Argument_Ptr_Array_Access := new Option_Argument_Ptr_Array(1..len);
+	 New_Array_Keyval_Type : Argument_Ptr_Array_Access := new Argument_Ptr_Array(1..len);
 
          New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
          New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
@@ -1068,7 +1106,7 @@ package body APQ.MySQL.Client is
    procedure my_process_options( C : Connection_Type )
    is
       use ada.strings.Unbounded;
-      tmp_ub_dont_know_options : Unbounded.Unbounded_String := To_Unbounded_String(50);
+      tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(50);
       mi_count : Integer := 0;
    begin
       if  C.Connection = Null_Connection then return; end if; -- bahiii ! :-)
@@ -1087,11 +1125,11 @@ package body APQ.MySQL.Client is
 	       then
 		  mi_count := mi_count + 1 ;
 		  if mi_count = 1 then
-		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & Option_Enum_Type'image(a) &
+		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & Option_type'image(a) &
 		       To_Unbounded_String("' => value ' ") & C.keyname_val_cache_nonspe0(a).all'img ; -- string'value( ) ?
 		  else
 		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & To_Unbounded_String(" error Key '") &
-		       Option_Enum_Type'image(a) & To_Unbounded_String("' => value ' ") & C.keyname_val_cache_nonspe0(a).all'img ;
+		       Option_type'image(a) & To_Unbounded_String("' => value ' ") & C.keyname_val_cache_nonspe0(a).all'img ;
 		  end if;
 	       end if;
 	    end if;
@@ -1100,7 +1138,7 @@ package body APQ.MySQL.Client is
       if C.keyname_val_cache_spec1 /= null then
 	 if C.keyname_val_cache_spec1(ssl).all /= system.Null_Address then
 	    declare
-	       b : renames C.keyname_val_cache_spec1(ssl).all ;
+	       b : system.Address renames C.keyname_val_cache_spec1(ssl).all ;
 	    begin -- key , cert , ca , capath, cipher
 	       if my_set_ssl(conn    => C.Connection,
 		      kkey    => b(key) ,
