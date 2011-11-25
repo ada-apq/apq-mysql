@@ -852,81 +852,7 @@ package body APQ.MySQL.Client is
 
       end ;
    end clone_clone_my;
- --
---     procedure connect(C : in out Connection_Type; Check_Connection : Boolean := True)
---     is
---        pragma optimize(time);
---
---        use Interfaces.C.Strings;
---
---     begin
---        if Check_Connection and then Is_Connected(C) then
---           Raise_Exception(Already_Connected'Identity,
---                           "PG07: Already connected (Connect).");
---        end if;
---
---        cache_key_nameval_create(C); -- don't worry :-) "re-create" accours only if not uptodate :-)
---                                     -- This procedure can be executed manually if you desire :-)
---                                     -- "for example": the "Connection_type" var was created  and configured
---                                     -- much before the  connection with the DataBase server :-) take place
---                                     -- then the "Connection_type" already uptodate
---                                     -- ( well... uptodate if really uptodate ;-)
---                                     -- this will speedy up the things a little :-)
---        declare
---           procedure Notice_Install(Conn : PG_Conn; ada_obj_ptr : System.Address);
---           pragma import(C,Notice_Install,"notice_install");
---
---           function PQconnectdb(coni : chars_ptr ) return PG_Conn;
---           pragma import(C,PQconnectdb,"PQconnectdb");
---           coni_str : string := C.keyname_val_cache.all;
---           C_conni : chars_ptr := New_String(Str => coni_str );
---        begin
---           C.Connection := PQconnectdb( C_conni); -- blocking call :-)
---           Free_Ptr(C.Error_Message);
---
---           if PQ_Status(C) /= Connection_OK then  -- if the connecting in a non-blocking fashion,
---              -- there are more option of status needing verification :-)
---              -- it Don't the case here
---              declare
---                 procedure PQfinish(C : PG_Conn);
---                 pragma Import(C,PQfinish,"PQfinish");
---                 Msg : String := Strip_NL(Error_Message(C));
---              begin
---                 PQfinish(C.Connection);
---                 C.Connection := Null_Connection;
---                 C.Error_Message := new String(1..Msg'Length);
---                 C.Error_Message.all := Msg;
---                 Raise_Exception(Not_Connected'Identity,
---                                 "PG08: Failed to connect to database server (Connect). error was: " &
---                                 msg ); -- more descriptive about 'what failed' :-)
---              end;
---           end if;
---
---           Notice_Install(C.Connection,C'Address);	-- Install Connection_Notify handler
---
---           ------------------------------
---           -- SET PGDATESTYLE TO ISO;
---           --
---           -- This is necessary for all of the
---           -- APQ date handling routines to
---           -- function correctly. This implies
---           -- that all APQ applications programs
---           -- should use the ISO date format.
---           ------------------------------
---           declare
---              SQL : Query_Type;
---           begin
---              Prepare(SQL,"SET DATESTYLE TO ISO");
---              Execute(SQL,C);
---           exception
---              when Ex : others =>
---                 Disconnect(C);
---                 Reraise_Occurrence(Ex);
---           end;
---        end;
---
---     end connect;
---
+
 --     procedure connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class)
 --     is
 --        pragma optimize(time);
@@ -1109,64 +1035,87 @@ package body APQ.MySQL.Client is
 --  		end if;
 --  	end Connect_old;
 --     ---------------------------------
-   procedure my_process_options( C : Connection_Type )
-   is
-      use ada.strings.Unbounded;
-      tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(50);
-      mi_count : Integer := 0;
-   begin
-      if  C.Connection = Null_Connection then return; end if; -- bahiii ! :-)
-      if C.keyname_val_cache_nonspe0 = null and
-	C.keyname_val_cache_spec1 = null
-      then
-	 return;
-      end if;
-      if C.keyname_val_cache_nonspe0 /= null then
-	 for a in C.keyname_val_cache_nonspe0.all'range(1) loop
-	    if C.keyname_val_cache_nonspe0(a).all /= Null_Address then
-	       if mysql_options_nonspecif(connection => C.Connection,
-				   opt        => toUnsigned(a),
-				   arg        => C.keyname_val_cache_nonspe0(a).all
-				  ) = 0
-	       then
-		  mi_count := mi_count + 1 ;
-		  if mi_count = 1 then
-		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & Option_type'image(a) &
-		       To_Unbounded_String("' => value ' ") & C.keyname_val_cache_nonspe0(a).all'img ; -- string'value( ) ?
+procedure my_process_options( C : Connection_Type )
+is
+   pragma Optimize(Time);
+
+   use ada.strings.Unbounded;
+   use interfaces.c.Strings, interfaces.c;
+
+   tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(50);
+   mi_count : Integer := 0;
+   mi_hold : interfaces.c.int := 0;
+   mi_hold_address : system.Address := system.Null_Address;
+
+begin
+   if  C.Connection = Null_Connection or C.keyname_val_cache = null then return; end if; -- bahiii ! :-)
+
+   if C.keyname_val_cache.all(Common) /= null then
+      for b in C.keyname_val_cache.all(Common).all.char_part'range loop
+	 if C.keyname_val_cache.all(Common).all.valido(b) then
+	    if C.keyname_val_cache.all(Common).all.char_part(b) = null then
+	       mi_hold_address := (C.keyname_val_cache.all(Common).all.unsigned_part(b).all)'Address;
+	    else
+	       mi_hold_address := (C.keyname_val_cache.all(Common).all.char_part(b).all)'Address;
+	    end if;
+	    mi_hold := mysql_options_nonspecif(connection => C.Connection,
+					opt        => toUnsigned(b),
+					arg        => mi_hold_address );
+	    if mi_hold = 0 then
+	       mi_count := mi_count + 1 ;
+	       if mi_count = 1 then
+		  tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & Option_type'image(b) &
+		    To_Unbounded_String("' => value ' ") ;
+
+		  if C.keyname_val_cache.all(Common).all.char_part(b) = null then
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Ada(C.keyname_val_cache.all(Common).all.unsigned_part(b).all);
 		  else
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & To_Unbounded_String(" error Key '") &
-		       Option_type'image(a) & To_Unbounded_String("' => value ' ") & C.keyname_val_cache_nonspe0(a).all'img ;
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Ada(C.keyname_val_cache.all(Common).all.char_part(b).all);
+		  end if;
+	       else
+		  tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & To_Unbounded_String(" error Key '") &
+		    Option_type'image(a) & To_Unbounded_String("' => value ' ") ;
+
+		  if C.keyname_val_cache.all(Common).all.char_part(b) = null then
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Ada(C.keyname_val_cache.all(Common).all.unsigned_part(b).all);
+		  else
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Ada(C.keyname_val_cache.all(Common).all.char_part(b).all);
 		  end if;
 	       end if;
 	    end if;
-	 end loop;
-      end if;
-      if C.keyname_val_cache_spec1 /= null then
-	 if C.keyname_val_cache_spec1(ssl).all /= system.Null_Address then
-	    declare
-	       b : system.Address renames C.keyname_val_cache_spec1(ssl).all ;
-	    begin -- key , cert , ca , capath, cipher
-	       if my_set_ssl(conn    => C.Connection,
-		      kkey    => b(key) ,
-		      ccert   => b(cert),
-		      cca     => b(ca),
-		      ccapath => b(capath),
-		      ccipher => b(cipher) ) = 0
-	       then
-		  mi_count := mi_count + 1 ;
-		  if mi_count /= 1 then
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " ;
-		  end if;
-		  tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		    To_Unbounded_String(" (SSL) ==> 'key' => '") & string'(To_Ada( b(key).all)) &
-		    To_Unbounded_String("' 'cert' => '") & string'(to_ada( b(cert).all )) &
-		    To_Unbounded_String("' 'ca' => '") & string'(to_ada( b(ca).all )) &
-		    To_Unbounded_String("' 'capath' => '") & string'(to_ada( b(capath).all )) &
-		    To_Unbounded_String("' 'cipher' => '") & string'(to_ada( b(cipher).all )) ;
-	       end if;
-	    end;
+	 end if;
+      end loop;
+   end if;
+
+   if C.keyname_val_cache.all(ssl) /= null then
+      set_ssl(C.Connection );
+      declare
+	 b : ssl_array_ptr renames C.keyname_val_cache.all(ssl).all.char_part ;
+      begin -- key , cert , ca , capath, cipher
+	 if set_ssl(conn    => C.Connection,
+	     kkey    => To_Ada(b(key).all) ,
+	     ccert   => To_Ada(b(cert).all) ,
+	     cca     => To_Ada(b(ca).all) ,
+	     ccapath => To_Ada(b(capath).all) ,
+	     ccipher => To_Ada(b(cipher).all) ) = 0
+	 then
+	    mi_count := mi_count + 1 ;
+	    if mi_count /= 1 then
+	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " ;
+	    end if;
+	    tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+	      To_Unbounded_String(" (SSL) ==> 'key' => '") & string'(To_Ada( b(key).all)) &
+	      To_Unbounded_String("' 'cert' => '") & string'(to_ada( b(cert).all )) &
+	      To_Unbounded_String("' 'ca' => '") & string'(to_ada( b(ca).all )) &
+	      To_Unbounded_String("' 'capath' => '") & string'(to_ada( b(capath).all )) &
+	      To_Unbounded_String("' 'cipher' => '") & string'(to_ada( b(cipher).all )) ;
 	 end if;
       end if;
+
       if mi_count > 0 then
 	 Raise_Exception(Failed'Identity ,
 		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
