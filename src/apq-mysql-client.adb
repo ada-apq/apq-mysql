@@ -517,7 +517,7 @@ package body APQ.MySQL.Client is
 
 	    when ARG_PTR_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
-	-- And kval differ from "" then kval := 1;  Otherwise kval := 0;
+	-- And kval differ from "" then kval := 1;  Otherwise kval := 0; end if;
 	       if interfaces.c.unsigned'Value(string'(to_Ada(I_be))) /= 0 then
 		  tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(1) ;
 	       else
@@ -535,33 +535,14 @@ package body APQ.MySQL.Client is
 	 end; -- non-specific
 
 	 declare -- verify, specific , ssl
-	    I_am : ssl_Specific_Type := ssl_Specific_Type'value(to_string(tmp_ub_keyname));
+	    I_am : ssl_type := ssl_type'value(to_string(tmp_ub_keyname));
+	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
 	 begin
-	    -- if new_specific_enum(ssl).all = system.Null_Address then
-	    if new_specific_enum(ssl) = system.Null_Address then
-	       declare
-		  my_ssl_spec : ssl_Specific_Type_Array_Ptr := new ssl_Specific_Type_Array'( others => system.Null_Address);
-	       begin
-		  new_specific_enum(ssl) := my_ssl_spec'Address;
-		--  w_specific_enum(ssl).all := ((
---  		 ssl_Specific_Type_Array_Ptr'(
---  		   new ssl_Specific_Type_Array'( others => system.Null_Address))
---  		))'Address;
---  	       ((
---  		 ssl_Specific_Type_Array_Ptr'(
---  		   new ssl_Specific_Type_Array( others => system.Null_Address))
---  		).all)'Address; -- ".all" ?
-	       end;
+	    if tmp_hold_stuff.all(ssl) = null then
+	       tmp_hold_stuff.all(ssl) = new ssl_part_record ;
 	    end if;
-	   -- if new_specific_enum(ssl).all(I_am).all /= system.Null_Address then
-	    if new_specific_enum(ssl)(I_am) /= system.Null_Address then
-	       free(new_specific_enum(ssl).all(I_am)); -- there are a free() for char_array/char_array_access in apq.ads :-)
-	    end if;
-	    declare
-	       my_char_array_access: char_array_access := new char_array'(to_C(string'(to_string(tmp_ub_keyval)))); --
-	    begin
-	       new_specific_enum(ssl).all(I_am).all := my_char_array_access'Address;
-	    end;
+	    free( tmp_hold_stuff.all(ssl).all.char_part(I_am) );
+	    tmp_hold_stuff.all(ssl).all.char_part(I_am) := new char_array'( I_be'range => I_be );
 
 	    bool1 := true; -- ((char_array_access'(new char_array'(to_C(string'(to_string(tmp_ub_keyval)))))).all)'Address;
 	    goto continua; -- well... really judicious, this was my the better option :-)
@@ -572,6 +553,8 @@ package body APQ.MySQL.Client is
 	 end; -- specific , ssl
        -- more specific options from here
 
+
+	 -- to before here :-)
 	 <<continua>>
 	 if bool1 = false then
 	    mi_count := mi_count + 1 ;
@@ -581,32 +564,29 @@ package body APQ.MySQL.Client is
 	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & tmp_ub_keyname ;
 	    end if;
 	 end if;
-
       end loop;
 
       if mi_count > 0 then
-	 if mi_count < a then
-	    for I_am in Option_type'range loop
-	       if  new_option_enum(I_am).all /= system.Null_Address then
-		   free(new_option_enum(I_am).all);
-	       end if;
-	    end loop;
-	    for I_am in Specific_Type'range loop
-	       if  new_specific_enum(I_am).all /= system.Null_Address then
-		   free(new_specific_enum(I_am).all);
-	       end if;
+	 if tmp_hold_stuff.all(Common) /= null then
+	    for b in tmp_hold_stuff.all(Common).all.char_part'range loop
+	       free( tmp_hold_stuff.all(Common).all.char_part(b) );
+	       free( tmp_hold_stuff.all(Common).all.unsigned_part(b) );
 	    end loop;
 	 end if;
-	 free(new_option_enum);
-	 free(new_specific_enum);
+	 if tmp_hold_stuff.all(ssl) /= null then
+	    for b in tmp_hold_stuff.all(ssl).all.char_part'range loop
+	       free( tmp_hold_stuff.all(ssl).all.char_part(b) );
 
-	 Raise_Exception(Failed'Identity ,
-		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
-	 return; -- :o]
+	    end loop;
+	 end if;
       end if;
+      -- free(tmp_hold_stuff);
+      Raise_Exception(Failed'Identity ,
+		      "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
+      return; -- :o]
+   end if;
 
-      C.keyname_val_cache_nonspe0 := new_option_enum;
-      C.keyname_val_cache_spec1 := new_specific_enum;
+      C.keyname_val_cache := tmp_hold_stuff ;
       C.keyname_val_cache_uptodate := true;
 
    end cache_key_nameval_create;
@@ -707,13 +687,39 @@ package body APQ.MySQL.Client is
       ckc := C.keycount;
       C.keyname(ckc) := new String(1..tkm);
       C.keyname(ckc).all(1..tkm) := tmp_kname;
-      C.keyname_Caseless(ckc) := knamecasele;
+   C.keyname_Caseless(ckc) := knamecasele;
+
+   if kval_type = ARG_UINT then
+      declare
+	 tmp_kval_2 : string := interfaces.c.unsigned'image(hold_tmp);
+	 tkv_2       : natural := tmp_kval_2'Length;
+      begin
+	 C.keyval(ckc) := new String(1..tkv_2);
+	 C.keyval(ckc).all(1..tkv_2) := tmp_kval_2;
+      end;
+   elsif kval_type = ARG_PTR_UINT then
+      if tmp_kval = "" then
+	 hold_tmp := 0;
+      else
+	 hold_tmp := 1; -- remember kval :-) differ of zero. :-) a reasonable polite solution. ;-)
+      end if;
+
+      declare
+	 tmp_kval_2 : string := interfaces.c.unsigned'image(hold_tmp);
+	 tkv_2       : natural := tmp_kval_2'Length;
+      begin
+	 C.keyval(ckc) := new String(1..tkv_2);
+	 C.keyval(ckc).all(1..tkv_2) := tmp_kval_2;
+      end;
+   else
       if tmp_kval = "" then
          C.keyval(ckc) := null;
       else
          C.keyval(ckc) := new String(1..tkv);
          C.keyval(ckc).all(1..tkv) := tmp_kval;
       end if;
+   end if;
+
       C.keyval_type(ckc).all := kval_type;
       C.keyval_Caseless(ckc)       := kvalcasele;
       C.keyname_val_cache_uptodate := false;
