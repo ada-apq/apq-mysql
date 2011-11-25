@@ -36,6 +36,7 @@
 -- **********************************************************
 
 with Ada.Unchecked_Conversion;
+with Interfaces.c.Strings;
 
 package APQ.MySQL is
 
@@ -76,6 +77,7 @@ for Result_Type use (
    type ssl_type is ( key , cert , ca , capath , cipher );
 
 private
+   use Interfaces.c.Strings ,  Interfaces.c ;
 
    	type Argument_Ptr is access all Argument_Type;
 	type Argument_Ptr_Array is array(Natural range <>) of Argument_Ptr;

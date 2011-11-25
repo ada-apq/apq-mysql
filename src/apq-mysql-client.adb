@@ -493,9 +493,10 @@ package body APQ.MySQL.Client is
 	 declare -- verify, non-specific
 	    I_am : apq.mysql.Option_type := apq.mysql.Option_type'value(to_string(tmp_ub_keyname));
 	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
+	    I_will : string := to_Ada(I_be);
 	 begin
 	    if tmp_hold_stuff.all(Common) = null then
-	       tmp_hold_stuff.all(Common) = new common_part_record ;
+	       tmp_hold_stuff.all(Common) := new common_part_record ;
 	    end if;
 
 	    free( tmp_hold_stuff.all(Common).all.char_part(I_am) );
@@ -512,8 +513,7 @@ package body APQ.MySQL.Client is
 	    when ARG_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
 	       -- add_key_nameval() already  raise "Invalid_Format" exception :-)
-	       tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new interfaces.c.unsigned'Value(string'(to_Ada(I_be)));
-
+	       tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new interfaces.c.unsigned'(interfaces.c.unsigned'Value(I_will));
 
 	    when ARG_PTR_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
@@ -539,7 +539,7 @@ package body APQ.MySQL.Client is
 	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
 	 begin
 	    if tmp_hold_stuff.all(ssl) = null then
-	       tmp_hold_stuff.all(ssl) = new ssl_part_record ;
+	       tmp_hold_stuff.all(ssl) := new ssl_part_record ;
 	    end if;
 	    free( tmp_hold_stuff.all(ssl).all.char_part(I_am) );
 	    tmp_hold_stuff.all(ssl).all.char_part(I_am) := new char_array'( I_be'range => I_be );
@@ -579,12 +579,12 @@ package body APQ.MySQL.Client is
 
 	    end loop;
 	 end if;
+
+	 -- free(tmp_hold_stuff);
+	 Raise_Exception(Failed'Identity ,
+		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
+	 return; -- :o]
       end if;
-      -- free(tmp_hold_stuff);
-      Raise_Exception(Failed'Identity ,
-		      "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
-      return; -- :o]
-   end if;
 
       C.keyname_val_cache := tmp_hold_stuff ;
       C.keyname_val_cache_uptodate := true;
@@ -1054,9 +1054,9 @@ begin
       for b in C.keyname_val_cache.all(Common).all.char_part'range loop
 	 if C.keyname_val_cache.all(Common).all.valido(b) then
 	    if C.keyname_val_cache.all(Common).all.char_part(b) = null then
-	       mi_hold_address := (C.keyname_val_cache.all(Common).all.unsigned_part(b).all)'Address;
+	       mi_hold_address := C.keyname_val_cache.all(Common).all.unsigned_part(b).all'Address;
 	    else
-	       mi_hold_address := (C.keyname_val_cache.all(Common).all.char_part(b).all)'Address;
+	       mi_hold_address := C.keyname_val_cache.all(Common).all.char_part(b).all'Address;
 	    end if;
 	    mi_hold := mysql_options_nonspecif(connection => C.Connection,
 					opt        => toUnsigned(b),
@@ -1114,7 +1114,11 @@ begin
 	      To_Unbounded_String("' 'capath' => '") & string'(to_ada( b(capath).all )) &
 	      To_Unbounded_String("' 'cipher' => '") & string'(to_ada( b(cipher).all )) ;
 	 end if;
+
+	 end;
       end if;
+
+
 
       if mi_count > 0 then
 	 Raise_Exception(Failed'Identity ,
