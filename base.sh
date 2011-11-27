@@ -658,16 +658,16 @@ _compile(){
 						madeit9=" line9_$my_count=\"$line9_ssl_include_path\" "
 						madeit10=" line10_$my_count=\"$line10_my_system_libs_paths\" "
 
-						eval "$madeit1"
-						eval "$madeit2"
-						eval "$madeit3"
-						eval "$madeit4"
-						eval "$madeit5"
-						eval "$madeit6"
-						eval "$madeit7"
-						eval "$madeit8"
-						eval "$madeit9"
-						eval "$madeit10"
+						eval " $madeit1 "
+						eval " $madeit2 "
+						eval " $madeit3 "
+						eval " $madeit4 "
+						eval " $madeit5 "
+						eval " $madeit6 "
+						eval " $madeit7 "
+						eval " $madeit8 "
+						eval " $madeit9 "
+						eval " $madeit10 "
 
 						my_count=$(( $my_count + 1 ))
 					fi
@@ -675,6 +675,8 @@ _compile(){
 			done # debuga
 		done # libbuildtype
 	done # sist_oses
+
+        IFS="$ifsbackup"
 
 	local my_count3="0"
 	local my_hold_tmp1=
@@ -707,13 +709,13 @@ _compile(){
 			my_hold_tmp1="$madeit2"
 			madeit2="yes"
 
-			if [ "$madeit2" = "normal" ];
+			if [ "$my_hold_tmp1" = "normal" ];
 			then
 				madeit2="no"
 			fi
 
-			local mysql_include_error2=$( "$madeit8"/mysql_config --include 2>&1 >/dev/null)
-			local mysql_include2=$( "$madeit8"/mysql_config --include | sed  -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
+			local mysql_include_error2=$( "$madeit8/mysql_config" --include 2>&1 >/dev/null)
+			local mysql_include2=$( "$madeit8/mysql_config" --include | sed  -e  '1 s/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
 
 			if [ -n  "$mysql_include_error2" ] || [ ! -d "$mysql_include2" ]; then
 				echo "$mysql_include_error2" > "$madeit1/logged/mysql_config_error.log"
@@ -814,16 +816,16 @@ _installe(){
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
-	local ifsbackup="$IFS"
+	local ifsbackup="$global_ifs_bk"
 	local IFS="$ifsbackup"
 
-	local my_path=$( echo $PATH )
+	local my_path="$PATH"
 	local my_oses=$(_choose_so "$1" )
 	local my_libtypes=$(_choose_libtype "all" )
 	local my_with_debug_too=$(_choose_debug "yes" )
 	local made_dirs="$my_atual_dir/build"
 
-	local my_prefix=$2
+	local my_prefix="$2"
 
 	if [ ! -d "$made_dirs" ]; then
 		{	printf "\n"
@@ -852,22 +854,23 @@ _installe(){
 	local madeit1=
 	local madeit2=
 
+
 	for sist_oses in $my_oses
 	do
-		my_tmp2="$made_dirs"/$sist_oses
+		my_tmp2="$made_dirs/$sist_oses"
 
 		[ ! -d "$my_tmp2" ] && continue
 
 		for libbuildtype in $my_libtypes
 		do
-			my_tmp3="$made_dirs"/$sist_oses/$libbuildtype
+			my_tmp3="$made_dirs/$sist_oses/$libbuildtype"
 
 			[ ! -d "$my_tmp3" ] && continue
 			[ "$libbuildtype" = "relocatable" -o "$libbuildtype" = "dynamic"  ] && my_tmp6="shared" || my_tmp6="static"
 
 			for debuga in $my_with_debug_too
 			do
-				my_tmp4="$made_dirs"/$sist_oses/$libbuildtype/$debuga
+				my_tmp4="$made_dirs/$sist_oses/$libbuildtype/$debuga"
 
 				[ ! -d "$my_tmp4" ] && continue
 				[ "$debuga" = "normal" ] && my_tmp5="" || my_tmp5="$debuga"
@@ -959,8 +962,8 @@ _installe(){
 				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$my_tmp3/src"
 				madeit2=" to_$my_count=\"$my_tmp5\" "
 
-				eval "$madeit1"
-				eval "$madeit2"
+				eval " $madeit1 "
+				eval " $madeit2 "
 
 				my_count=$(( $my_count + 1 ))
 
