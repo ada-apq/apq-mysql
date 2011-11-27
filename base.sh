@@ -801,6 +801,8 @@ _installe(){
 #: Options	:  "OSes" "prefix"
 
 	local my_atual_dir=$(pwd)
+        local made_dirs="$my_atual_dir/build"
+
 	# Silent Reporting, because apq_error.log or don't exist or don't is a regular file or is a link
 	if [ ! -f "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/ok.log" ]; then
 		exit 1
@@ -816,16 +818,6 @@ _installe(){
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
-	local ifsbackup="$global_ifs_bk"
-	local IFS="$ifsbackup"
-
-	local my_path="$PATH"
-	local my_oses=$(_choose_so "$1" )
-	local my_libtypes=$(_choose_libtype "all" )
-	local my_with_debug_too=$(_choose_debug "yes" )
-	local made_dirs="$my_atual_dir/build"
-
-	local my_prefix="$2"
 
 	if [ ! -d "$made_dirs" ]; then
 		{	printf "\n"
@@ -836,6 +828,16 @@ _installe(){
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
+
+        local ifsbackup="$global_ifs_bk"
+	local IFS="$ifsbackup"
+
+	local my_path="$PATH"
+	local my_oses=$(_choose_so "$1" )
+	local my_libtypes=$(_choose_libtype "all" )
+	local my_with_debug_too=$(_choose_debug "yes" )
+
+	local my_prefix="$2"
 
 	IFS=",$ifsbackup"
 
@@ -853,7 +855,6 @@ _installe(){
 	local my_made_install=
 	local madeit1=
 	local madeit2=
-
 
 	for sist_oses in $my_oses
 	do
@@ -883,7 +884,8 @@ _installe(){
 					printf "install:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Created directory! \n" >> "$my_atual_dir/apq_mysql_error.log"
 				fi
 
-				install -m0555 "$my_tmp4"/ali/* -t "$my_prefix/lib/apq/$sist_oses/$my_tmp6/$my_tmp5/ali"  2>"$my_tmp4/logged/install_error.log"
+				## install -m0555 "$my_tmp4/ali/*" -t "$my_prefix/lib/apq/$sist_oses/$my_tmp6/$my_tmp5/ali"  2>"$my_tmp4/logged/install_error.log"
+				install -m0555 "$my_tmp4/ali"/* "$my_prefix/lib/apq-mysql/$sist_oses/$my_tmp6/$my_tmp5/ali/"  2>"$my_tmp4/logged/install_error.log"
 				if [ -s  "$my_tmp4/logged/install_error.log" ]; then
 					my_made_install="$debuga"
 					printf "install ali:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
@@ -892,7 +894,7 @@ _installe(){
 				fi
 
 				# using "cp -a" to getrid from transforming symlinks in normal links
-				cp -a "$my_tmp4"/lib/* "$my_prefix/lib/apq-mysql/$sist_oses/$my_tmp6/$my_tmp5/"  2>"$my_tmp4/logged/install_error.log"
+				cp -a "$my_tmp4/lib"/* "$my_prefix/lib/apq-mysql/$sist_oses/$my_tmp6/$my_tmp5/"  2>"$my_tmp4/logged/install_error.log"
 				if [ -s  "$my_tmp4/logged/install_error.log" ]; then
 					my_made_install="$debuga"
 					printf "install lib:\tnot ok\t:$libbuildtype\t$sist_oses\t$my_made_install\t: ... \n" >> "$my_atual_dir/apq_mysql_error.log"
@@ -936,7 +938,7 @@ _installe(){
 	my_tmp5=
 	my_tmp6=
 	my_count="1"
-	local my_count4=1
+	local my_count4="1"
 
 	for sist_oses in $my_oses
 	do
@@ -949,17 +951,17 @@ _installe(){
 
 			for debuga in $my_with_debug_too
 			do
-				my_tmp2="$made_dirs/$sist_oses/$libbuildtype/$debuga/src"
+				my_tmp2="$made_dirs/$sist_oses/$libbuildtype/$debuga/src/"
 				[ ! -d "$my_tmp2" ] && continue
 				[ ! -f "$my_tmp2/apq-mysql.ads" ] && continue
 				[ ! -s "$my_tmp2/apq-mysql.ads" ] && continue
 
 				[ "$debuga" = "normal" ] && my_tmp3="" || my_tmp3="$debuga"
 
-				my_tmp4="$my_tmp2/apq-mysql.ads"
+				my_tmp4="$my_tmp2"/apq-mysql.ads
 				madeit1=" from_$my_count=\"$my_tmp4\"  "
 
-				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$my_tmp3/src"
+				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$my_tmp3/src/"
 				madeit2=" to_$my_count=\"$my_tmp5\" "
 
 				eval " $madeit1 "
@@ -980,7 +982,10 @@ _installe(){
 	local  from0=
 	local to0=
 
-	install "$my_atual_dir"/src/* -t "$my_prefix/include/apq-mysql"  2>"$made_dirs/install_src_error.log"
+        my_count4="1"
+
+        install -d "$my_prefix/include/apq-mysql/" 2>"$made_dirs/install_src_error.log"
+	install "$my_atual_dir/src"/* "$my_prefix/include/apq-mysql/"  2>>"$made_dirs/install_src_error.log"
 	if [ "$my_count" -ge 2 ]; then
 		while [ "$my_count4" -lt "$my_count" ];
 		do
@@ -989,7 +994,8 @@ _installe(){
 			madeit="to_$my_count4"
 			to0="${!madeit}"
 
-			install "$from0" -t "$to0"  2>>"$made_dirs/install_src_error.log"
+                        install -d "$to0" 2>>"$made_dirs/install_src_error.log"
+			install "$from0" "$to0"  2>>"$made_dirs/install_src_error.log"
 
 			my_count4=$(( $my_count4 + 1 ))
 		done
