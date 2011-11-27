@@ -171,6 +171,46 @@ package body APQ.MySQL.Client is
 		      ) return Interfaces.C.int ;
    pragma import(c,my_set_ssl ,"c_mysql_ssl_set_v2");
 
+   procedure Set_ssl(C1 : in out MYSQL; key,cert,ca,capath,cipher : String := "" ) is
+
+   use Interfaces.C;
+      c_key    : char_array  := to_c( key );
+      a_key : system.Address := system.Null_Address;
+
+      c_cert   : char_array  := to_c( cert );
+      a_cert   : system.Address := system.Null_Address;
+
+      c_ca     : char_array  := to_c( ca );
+      a_ca   : system.Address := system.Null_Address;
+
+      c_capath : char_array  := to_c( capath );
+      a_capath   : system.Address := system.Null_Address;
+
+      c_cipher : char_array  := to_c( cipher );
+      a_cipher   : system.Address := system.Null_Address;
+      hold_int : interfaces.c.int := 0;
+
+   begin
+      if key /= "" then
+         a_key := c_key'Address;
+      end if;
+      if  cert /= "" then
+         a_cert := c_cert'address;
+      end if;
+      if  ca /= "" then
+         a_ca := c_ca'address;
+      end if;
+      if  capath /= "" then
+         a_capath := c_capath'address;
+      end if;
+      if  cipher /= "" then
+         a_cipher := c_cipher'address;
+      end if;
+
+      hold_int := my_set_ssl(C1 , a_key, a_cert , a_ca , a_capath , a_cipher );
+
+   end Set_ssl;
+
         procedure Free(Results : in out MYSQL_RES) is
 	begin
 		mysql_free_result(Results);
@@ -453,8 +493,8 @@ package body APQ.MySQL.Client is
       bool1 : boolean := false;
       -- mint : integer := 0;
       mi_count : integer := 0;
-      tmp_hold_stuff : apq.mysql.root_base_ptr_array_access
-	:= new apq.mysql.root_base_ptr_array'( others => null );
+      tmp_hold_stuff_common : common_part_record_ptr_array_access := null ;
+      tmp_hold_stuff_ssl : ssl_part_record_ptr_array_access := null ;
 
       tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(160);
       tmp_ub_keyname : Unbounded_String := To_Unbounded_String(30);
@@ -495,37 +535,37 @@ package body APQ.MySQL.Client is
 	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
 	    I_will : string := to_Ada(I_be);
 	 begin
-	    if tmp_hold_stuff.all(Common) = null then
-	       tmp_hold_stuff.all(Common) := new common_part_record ;
+	    if tmp_hold_stuff_common = null then
+	       tmp_hold_stuff_common := new common_part_record_ptr_array'( others => null );
 	    end if;
 
-	    free( tmp_hold_stuff.all(Common).all.char_part(I_am) );
-	    free( tmp_hold_stuff.all(Common).all.unsigned_part(I_am) );
-	    tmp_hold_stuff.all(Common).all.valido(I_am) := false ;
+	    free( tmp_hold_stuff_common.all(I_am) );
+	    tmp_hold_stuff_common.all(I_am) := new common_part_record ;
+	    tmp_hold_stuff_common.all(I_am).all.valido := false;
 
 	    case c.keyval_type(b).all is
 	    when ARG_CHAR_PTR =>
-	       tmp_hold_stuff.all(Common).all.char_part(I_am) := new char_array'( I_be'range => I_be );
+	       tmp_hold_stuff_common.all(I_am).all.char_part := new char_array'( I_be'range => I_be );
 
 	    when ARG_NOT_USED =>
-	       tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(0) ;
+	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned(0) ;
 
 	    when ARG_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
 	       -- add_key_nameval() already  raise "Invalid_Format" exception :-)
-	       tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new interfaces.c.unsigned'(interfaces.c.unsigned'Value(I_will));
+	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := new interfaces.c.unsigned'(interfaces.c.unsigned'Value(I_will));
 
 	    when ARG_PTR_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
 	-- And kval differ from "" then kval := 1;  Otherwise kval := 0; end if;
 	       if interfaces.c.unsigned'Value(string'(to_Ada(I_be))) /= 0 then
-		  tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(1) ;
+		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned(1) ;
 	       else
-		  tmp_hold_stuff.all(Common).all.unsigned_part(I_am) := new Interfaces.c.unsigned(0) ;
+		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned(0) ;
 	       end if;
 
 	    end case;
-	    tmp_hold_stuff.all(Common).all.valido(I_am) := true ;
+	    tmp_hold_stuff_common.all(I_am).all.valido := true ;
 
 	    bool1 := true;
 	    goto continua; -- well... really judicious, this was my the better option :-)
@@ -538,13 +578,14 @@ package body APQ.MySQL.Client is
 	    I_am : ssl_type := ssl_type'value(to_string(tmp_ub_keyname));
 	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
 	 begin
-	    if tmp_hold_stuff.all(ssl) = null then
-	       tmp_hold_stuff.all(ssl) := new ssl_part_record ;
+	    if tmp_hold_stuff_ssl = null then
+	       tmp_hold_stuff_ssl := new ssl_part_record_ptr_array'( others => null );
 	    end if;
-	    free( tmp_hold_stuff.all(ssl).all.char_part(I_am) );
-	    tmp_hold_stuff.all(ssl).all.char_part(I_am) := new char_array'( I_be'range => I_be );
+	    free( tmp_hold_stuff_ssl.all(I_am) );
+	    tmp_hold_stuff_ssl.all(I_am) := new ssl_part_record ;
+	    tmp_hold_stuff_ssl.all(I_am).all.char_part := new char_array'( I_be'range => I_be );
 
-	    bool1 := true; -- ((char_array_access'(new char_array'(to_C(string'(to_string(tmp_ub_keyval)))))).all)'Address;
+	    bool1 := true;
 	    goto continua; -- well... really judicious, this was my the better option :-)
 	    -- more specific options can be added in future. :-)
 	 exception
@@ -552,7 +593,6 @@ package body APQ.MySQL.Client is
 	       bool1 := false;
 	 end; -- specific , ssl
        -- more specific options from here
-
 
 	 -- to before here :-)
 	 <<continua>>
@@ -567,26 +607,35 @@ package body APQ.MySQL.Client is
       end loop;
 
       if mi_count > 0 then
-	 if tmp_hold_stuff.all(Common) /= null then
-	    for b in tmp_hold_stuff.all(Common).all.char_part'range loop
-	       free( tmp_hold_stuff.all(Common).all.char_part(b) );
-	       free( tmp_hold_stuff.all(Common).all.unsigned_part(b) );
+	 if tmp_hold_stuff_common.all /= null then
+	    for b in tmp_hold_stuff_common.all'range loop
+	       if tmp_hold_stuff_common.all(b) /= null then
+		  free( tmp_hold_stuff_common.all(b).all.char_part );
+		  free( tmp_hold_stuff_common.all(b).all.unsigned_part );
+		  free( tmp_hold_stuff_common.all(b) );
+	       end if;
 	    end loop;
 	 end if;
-	 if tmp_hold_stuff.all(ssl) /= null then
-	    for b in tmp_hold_stuff.all(ssl).all.char_part'range loop
-	       free( tmp_hold_stuff.all(ssl).all.char_part(b) );
-
+	 if tmp_hold_stuff_ssl.all /= null then
+	    for b in tmp_hold_stuff_ssl.all'range loop
+	       if tmp_hold_stuff_ssl.all(b) /= null then
+		  free( tmp_hold_stuff_ssl.all(b).all.char_part );
+		  free( tmp_hold_stuff_ssl.all(b) );
+	       end if;
 	    end loop;
 	 end if;
 
-	 -- free(tmp_hold_stuff);
+	 free(tmp_hold_stuff_ssl);
+	 free(tmp_hold_stuff_common);
+
 	 Raise_Exception(Failed'Identity ,
 		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
 	 return; -- :o]
       end if;
 
-      C.keyname_val_cache := tmp_hold_stuff ;
+      C.keyname_val_cache_common := tmp_hold_stuff_common ;
+      C.keyname_val_cache_ssl := tmp_hold_stuff_ssl ;
+
       C.keyname_val_cache_uptodate := true;
 
    end cache_key_nameval_create;
@@ -1048,77 +1097,76 @@ is
    mi_hold_address : system.Address := system.Null_Address;
 
 begin
-   if  C.Connection = Null_Connection or C.keyname_val_cache = null then return; end if; -- bahiii ! :-)
+      if  C.Connection = Null_Connection or
+	( C.keyname_val_cache_common = null and C.keyname_val_cache_ssl = null )
+      then return; end if; -- bahiii ! :-)
 
-   if C.keyname_val_cache.all(Common) /= null then
-      for b in C.keyname_val_cache.all(Common).all.char_part'range loop
-	 if C.keyname_val_cache.all(Common).all.valido(b) then
-	    if C.keyname_val_cache.all(Common).all.char_part(b) = null then
-	       mi_hold_address := C.keyname_val_cache.all(Common).all.unsigned_part(b).all'Address;
-	    else
-	       mi_hold_address := C.keyname_val_cache.all(Common).all.char_part(b).all'Address;
-	    end if;
-	    mi_hold := mysql_options_nonspecif(connection => C.Connection,
-					opt        => toUnsigned(b),
-					arg        => mi_hold_address );
-	    if mi_hold = 0 then
-	       mi_count := mi_count + 1 ;
-	       if mi_count = 1 then
-		  tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & Option_type'image(b) &
-		    To_Unbounded_String("' => value ' ") ;
-
-		  if C.keyname_val_cache.all(Common).all.char_part(b) = null then
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		       To_Ada(C.keyname_val_cache.all(Common).all.unsigned_part(b).all);
-		  else
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		       To_Ada(C.keyname_val_cache.all(Common).all.char_part(b).all);
-		  end if;
+      if C.keyname_val_cache_Common /= null then
+	 for b in C.keyname_val_cache_common.all'range loop
+	    if C.keyname_val_cache_common.all(b).all.valido then
+	       if C.keyname_val_cache_common.all(b).all.char_part = null then
+		  mi_hold_address := C.keyname_val_cache_common.all(b).all.unsigned_part.all'Address;
 	       else
-		  tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & To_Unbounded_String(" error Key '") &
-		    Option_type'image(a) & To_Unbounded_String("' => value ' ") ;
+		  mi_hold_address := C.keyname_val_cache_common.all(b).all.char_part.all'Address;
+	       end if;
+	       mi_hold := mysql_options_nonspecif(connection => C.Connection,
+					   opt        => toUnsigned(b),
+					   arg        => mi_hold_address );
+	       if mi_hold = 0 then
+		  mi_count := mi_count + 1 ;
+		  if mi_count = 1 then
+		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & To_Unbounded_String(Option_type'image(b)) &
+		       To_Unbounded_String("' => value ' ") ;
 
-		  if C.keyname_val_cache.all(Common).all.char_part(b) = null then
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		       To_Ada(C.keyname_val_cache.all(Common).all.unsigned_part(b).all);
+		     if C.keyname_val_cache_common.all(b).all.char_part = null then
+			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+			  To_Unbounded_String(interfaces.c.unsigned'image(C.keyname_val_cache_common.all(b).all.unsigned_part.all));
+		     else
+			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+			  To_Unbounded_String(To_Ada(C.keyname_val_cache_common.all(b).all.char_part.all));
+		     end if;
 		  else
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		       To_Ada(C.keyname_val_cache.all(Common).all.char_part(b).all);
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & To_Unbounded_String(" error Key '") &
+		       To_Unbounded_String(Option_type'image(b)) & To_Unbounded_String("' => value ' ") ;
+
+		     if C.keyname_val_cache_common.all(b).all.char_part = null then
+			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+			  To_Unbounded_String(interfaces.c.unsigned'image(C.keyname_val_cache_common.all(b).all.unsigned_part.all));
+		     else
+			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+			  To_Unbounded_String(To_Ada(C.keyname_val_cache_common.all(b).all.char_part.all));
+		     end if;
 		  end if;
 	       end if;
 	    end if;
-	 end if;
-      end loop;
-   end if;
+	 end loop;
+      end if;
 
-   if C.keyname_val_cache.all(ssl) /= null then
-      set_ssl(C.Connection );
+   if C.keyname_val_cache_ssl /= null then
       declare
-	 b : ssl_array_ptr renames C.keyname_val_cache.all(ssl).all.char_part ;
+	 b : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
       begin -- key , cert , ca , capath, cipher
 	 if set_ssl(conn    => C.Connection,
-	     kkey    => To_Ada(b(key).all) ,
-	     ccert   => To_Ada(b(cert).all) ,
-	     cca     => To_Ada(b(ca).all) ,
-	     ccapath => To_Ada(b(capath).all) ,
-	     ccipher => To_Ada(b(cipher).all) ) = 0
+	     kkey    => To_Ada(b(key).all.char_part.all) ,
+	     ccert   => To_Ada(b(cert).all.char_part.all) ,
+	     cca     => To_Ada(b(ca).all.char_part.all) ,
+	     ccapath => To_Ada(b(capath).all.char_part.all) ,
+	     ccipher => To_Ada(b(cipher).all.char_part.all) ) = 0
 	 then
 	    mi_count := mi_count + 1 ;
 	    if mi_count /= 1 then
-	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " ;
+	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & To_Unbounded_String(" , ") ;
 	    end if;
 	    tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-	      To_Unbounded_String(" (SSL) ==> 'key' => '") & string'(To_Ada( b(key).all)) &
-	      To_Unbounded_String("' 'cert' => '") & string'(to_ada( b(cert).all )) &
-	      To_Unbounded_String("' 'ca' => '") & string'(to_ada( b(ca).all )) &
-	      To_Unbounded_String("' 'capath' => '") & string'(to_ada( b(capath).all )) &
-	      To_Unbounded_String("' 'cipher' => '") & string'(to_ada( b(cipher).all )) ;
+	      To_Unbounded_String(" (SSL) ==> 'key' => '") & string'(To_Ada( b(key).all.char_part.all)) &
+	      To_Unbounded_String("' 'cert' => '") & string'(to_ada( b(cert).all.char_part.all )) &
+	      To_Unbounded_String("' 'ca' => '") & string'(to_ada( b(ca).all.char_part.all )) &
+	      To_Unbounded_String("' 'capath' => '") & string'(to_ada( b(capath).all.char_part.all )) &
+	      To_Unbounded_String("' 'cipher' => '") & string'(to_ada( b(cipher).all.char_part.all )) ;
 	 end if;
 
 	 end;
       end if;
-
-
 
       if mi_count > 0 then
 	 Raise_Exception(Failed'Identity ,
@@ -1237,43 +1285,7 @@ begin
       end if;
    end Connect;
    ----------------------------------------
-   procedure Set_ssl(C1 : in out MYSQL; key,cert,ca,capath,cipher : String := "" ) is
 
-   use Interfaces.C;
-      c_key    : char_array  := to_c( key );
-      a_key : system.Address := system.Null_Address;
-
-      c_cert   : char_array  := to_c( cert );
-      a_cert   : system.Address := system.Null_Address;
-
-      c_ca     : char_array  := to_c( ca );
-      a_ca   : system.Address := system.Null_Address;
-
-      c_capath : char_array  := to_c( capath );
-      a_capath   : system.Address := system.Null_Address;
-
-      c_cipher : char_array  := to_c( cipher );
-      a_cipher   : system.Address := system.Null_Address;
-   begin
-      if key /= "" then
-         a_key := c_key'Address;
-      end if;
-      if  cert /= "" then
-         a_cert := c_cert'address;
-      end if;
-      if  ca /= "" then
-         a_ca := c_ca'address;
-      end if;
-      if  capath /= "" then
-         a_capath := c_capath'address;
-      end if;
-      if  cipher /= "" then
-         a_cipher := c_cipher'address;
-      end if;
-
-      my_set_ssl(C1 , a_key, a_cert , a_ca , a_capath , a_cipher );
-
-   end Set_ssl;
    -----------------------------------------
    procedure Connect_ssl(C : in out Connection_Type;
                          key,cert,ca,capath,cipher : String := "" ;

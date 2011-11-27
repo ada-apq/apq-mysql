@@ -236,7 +236,8 @@ private
          keyval_Caseless   : Boolean_Array_Access;
 	 keyname_Caseless  : Boolean_Array_Access;
 
-	 keyname_val_cache : root_base_ptr_array_access ; -- for bypass "the recreate it"
+	 keyname_val_cache_common : common_part_record_ptr_array_access := null ; -- for bypass "the recreate it"
+	 keyname_val_cache_ssl : ssl_part_record_ptr_array_access := null ; -- for bypass "the recreate it"
 	 keyname_val_cache_uptodate : boolean := false; -- if keyname_val_cache_uptodate = true (True)
 
          keyname_default_case : SQL_Case_Type := Lower_Case;

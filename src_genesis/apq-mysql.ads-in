@@ -87,35 +87,33 @@ private
 
    type base_type is ( none , common , ssl ); -- you can sugest more :-)
 
-   type root_base_record is tagged
-      record
-	 base : base_type := none ;
-      end record;
-   type root_base_ptr is access all root_base_record'Class;
-   type root_base_ptr_array is array ( base_type range base_type'(common) .. base_type'Last ) of root_base_ptr ;
-   type root_base_ptr_array_access is access all root_base_ptr_array ;
-
-   type ssl_array_ptr is array ( ssl_type ) of char_array_access;
-
-   type common_array_unsigned_ptr is array ( Option_type ) of apq.Unsigned_Ptr;
-   type common_array_char_ptr is array ( Option_type ) of char_array_access;
-   type common_array_bool is array ( Option_type ) of boolean;
-
+   type root_base_record is tagged null record;
    type common_part_record is new root_base_record with
       record
-	 char_part : common_array_char_ptr := common_array_char_ptr'( others => null );
-	 unsigned_part : common_array_unsigned_ptr := common_array_unsigned_ptr'( others => null );
-	 valido : common_array_bool := common_array_bool'( others => false );
-	 -- remember that: while set char_part to non-null, set unsigned_part to null, and vice-versa);
-	 -- valid is set to true when first set a value in cache_key_nameval_create()
+	 char_part : char_array_access := null;
+	 unsigned_part : apq.Unsigned_Ptr;
+	 valido : boolean := false;
       end record;
-
    type ssl_part_record is new root_base_record with
       record
-	 char_part : ssl_array_ptr := ssl_array_ptr'( others => null );
+	 char_part : char_array_access := null;
       end record;
 
+   type common_part_record_ptr is access common_part_record;
+   type ssl_part_record_ptr is access ssl_part_record;
+
+   type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
+   type common_part_record_ptr_array_access is access common_part_record_ptr_array;
+
+   type ssl_part_record_ptr_array is array ( ssl_type ) of ssl_part_record_ptr;
+   type ssl_part_record_ptr_array_access is access ssl_part_record_ptr_array;
+
    function toUnsigned is new ada.Unchecked_Conversion(Source => Option_type, Target => interfaces.c.unsigned);
+   procedure free is new ada.Unchecked_Deallocation( ssl_part_record , ssl_part_record_ptr   );
+   procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_ptr_array , ssl_part_record_ptr_array_access  );
+   procedure free is new ada.Unchecked_Deallocation( common_part_record , common_part_record_ptr   );
+   procedure free is new ada.Unchecked_Deallocation(  common_part_record_ptr_array , common_part_record_ptr_array_access  );
+
 
 	type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
 	for Return_Status'Size use 32;
