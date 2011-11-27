@@ -54,7 +54,7 @@ project Apq.mysql is
 	case Static_Or_Dynamic is
 			when "dynamic" | "relocatable" =>
 				NameDir_Static_Or_Shared:= "shared";
-			when "dynamic" | "relocatable" =>
+			when "static" =>
 				NameDir_Static_Or_Shared:= "static";
 	end case;
 
