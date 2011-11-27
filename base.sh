@@ -13,7 +13,7 @@ if [ $# -eq 0 ]; then
 	exit 1;
 fi;
 
-case ${1,,} in  
+case ${1,,} in
 	"configure" ) my_commande='configuring' ;;
 	"compile" ) my_commande='compilling' ;;
 	"install" ) my_commande='installing' ;;
@@ -45,25 +45,27 @@ _choose_so(){
 #: Description: sanitize list of Systems Operations separated by ","
 #: Options	:  "OSes"
 
-local _oses=$1
-_oses=${_oses:=linux}
-_oses=${_oses,,}
+local IFS="$global_ifs_bk"
+
+local _oses="$1"
+_oses="${_oses:=linux}"
+_oses="${_oses,,}"
 local my_oses=
 local a=
 for a in linux mswindows darwin bsd other
 do
-	case $_oses in
-		*all*) my_oses=linux,mswindows,darwin,bsd,other
+	case "$_oses" in
+		*all*) my_oses="linux,mswindows,darwin,bsd,other"
 			break
 			;;
-		*"$a"*) my_oses=${my_oses:+${my_oses},}$a
+		*"$a"*) my_oses="${my_oses:+${my_oses},}$a"
 			;;
 	esac
 done
-my_oses=${my_oses:=linux}
-printf $my_oses
+my_oses="${my_oses:=linux}"
+printf "$my_oses"
 
-} # end 
+} # end
 
 _choose_libtype(){
 #: title	: _choose_libtype
@@ -74,25 +76,27 @@ _choose_libtype(){
 #: Description: sanitize list of lib types separated by ","
 #: Options	: "libtype,libtype_n"
 
-local _libtypes=$1
-_libtypes=${_libtypes:=dynamic,static}
-_libtypes=${_libtypes,,}
+local IFS="$global_ifs_bk"
+
+local _libtypes="$1"
+_libtypes="${_libtypes:=dynamic,static}"
+_libtypes="${_libtypes,,}"
 local my_libtypes=
 local a=
 for a in static dynamic relocatable
 do
-	case $_libtypes in
-		*all*) my_libtypes=static,dynamic,relocatable
+	case "$_libtypes" in
+		*all*) my_libtypes="static,dynamic,relocatable"
 			break
 			;;
-		*"$a"*) my_libtypes=${my_libtypes:+${my_libtypes},}$a
+		*"$a"*) my_libtypes="${my_libtypes:+${my_libtypes},}$a"
 			;;
 	esac
 done
-my_libtypes=${my_libtypes:=dynamic,static}
-printf $my_libtypes
+my_libtypes="${my_libtypes:=dynamic,static}"
+printf "$my_libtypes"
 
-} # end 
+} # end
 
 _choose_debug(){
 #: title	: _choose_debug
@@ -103,21 +107,23 @@ _choose_debug(){
 #: Description: choose the type of lib, related about debug information.
 #: Options	:  "with_debug_too"
 
-local _with_debug_too=$1
-_with_debug_too=${_with_debug_too:=no}
-_with_debug_too=${_with_debug_too,,}
+local IFS="$global_ifs_bk"
+
+local _with_debug_too="$1"
+_with_debug_too="${_with_debug_too:=no}"
+_with_debug_too="${_with_debug_too,,}"
 local my_with_debug_too=
 
-case $_with_debug_too in
-	*onlydebug* )	my_with_debug_too=debug
+case "$_with_debug_too" in
+	*onlydebug* )	my_with_debug_too="debug"
 		;;
-	*yes* )	  my_with_debug_too=normal,debug
+	*yes* )	  my_with_debug_too="normal,debug"
 		;;
-	*no* )	  my_with_debug_too=normal
+	*no* )	  my_with_debug_too="normal"
 		;;
 esac
-my_with_debug_too=${my_with_debug_too:=normal}
-printf $my_with_debug_too
+my_with_debug_too="${my_with_debug_too:=normal}"
+printf "$my_with_debug_too"
 
 } # end
 
@@ -131,15 +137,18 @@ _discover_acmd_path(){
 #: Options	: "cmd" "add_these_path(s)" "or_default_path"
 # need more sanitization
 #
+
+local IFS="$global_ifs_bk"
+
 local cmdo="$1"
 local these_paths="$2"
 local default_path="$3"
 local path_backup="$PATH"
-case $cmdo in
-	*[\)\({}$]* )  printf '/usr/bin/boo' ; exit 1
+case "$cmdo" in
+	( *[\)\(\{\}\$]* )  printf '/usr/bin/boo' ; exit 1
 		;;
 esac
-local my_path="$(PATH="$these_paths:$path_backup"; which "$cmdo" || printf "$default_path/stub" )"
+local my_path=$(PATH="$these_paths:$path_backup"; which "$cmdo" || printf "$default_path/stub" )
 printf "$(dirname $my_path )"
 
 } #end
@@ -161,25 +170,25 @@ _sanatize_enum(){
 	local my_enum_list="$1"
 	local my_enum_list_nol=$( printf "$my_enum_list" | sed -n -e '$=' )
 	# because "enum c" rules don't oblige all labels have a '=' ;
-	# the rule states that after a '=' (before follow lines with '=' ) the 
-	# next labels will getting '+1' in sequence 
+	# the rule states that after a '=' (before follow lines with '=' ) the
+	# next labels will getting '+1' in sequence
 	# until before newer '=' and so on :-)
 	count0=1
 	a=$(printf "$my_enum_list" |  sed -n -e "$count0"' p' | grep -o '=[ ]*[0-9]*' | grep -o '[0-9]*' )
 	b="-1"
 	if [ -n "$a" ]; then
 		b="$a"
-	fi	
+	fi
 	while [ ${count0:=1} -le ${my_enum_list_nol} ];
 	do
 		a=$(printf "$my_enum_list" |  sed -n -e "$count0"' p' | grep -o '=[ ]*[0-9]*' | grep -o '[0-9]*' )
 		if [ -n "$a" ]; then
-			b=$a			
+			b=$a
 		else
-			b=$(( $b + 1 ))				
-			my_enum_list=$( printf "$my_enum_list" | sed -e "$count0"' s/[ ,]*$/='"$b"',/ ' ) 
+			b=$(( $b + 1 ))
+			my_enum_list=$( printf "$my_enum_list" | sed -e "$count0"' s/[ ,]*$/='"$b"',/ ' )
 		fi
-		count0=$(( $count0 + 1 ))	
+		count0=$(( $count0 + 1 ))
 	done
 	my_enum_list=$( printf "$my_enum_list" | sed -e 's/[=]/ => / ' | sed -e '$ s/[ ,]*$//' )
 	printf "$my_enum_list"
@@ -244,10 +253,10 @@ fi
 # remove old content from apq_mysql_error.log
 printf "" > "$my_atual_dir/apq_mysql_error.log"
 
-local ifsbackup="$IFS"
+local ifsbackup="$global_ifs_bk"
 local IFS="$ifsbackup"
 
-local my_version=$(cat version)
+local my_version="$(cat version)"
 local my_oses=$(_choose_so "$1" )
 local my_libtypes=$(_choose_libtype "$2" )
 
@@ -278,13 +287,13 @@ my_gprconfig_path="$_gprconfig_path"
 _gprbuild_path=${_gprbuild_path:=$(_discover_acmd_path "gprbuild" "$my_compiler_paths" "/usr/bin" )}
 my_gprbuild_path="$_gprbuild_path"
 
-_ssl_include_path=${_ssl_include_path:=/usr/lib/openssl}
-my_ssl_include_path=${_ssl_include_path}
+_ssl_include_path=${_ssl_include_path:="/usr/lib/openssl"}
+my_ssl_include_path="$_ssl_include_path"
 
-_system_libs_paths=${_system_libs_paths:=/usr/lib}
+_system_libs_paths=${_system_libs_paths:="/usr/lib"}
 
-local at_count=
-local max_count=11
+local at_count="1"
+local max_count="11"
 # 10(ten) libs is a reasonable value for now.
 # if you need more , feel free to contact us and suggest changes. :-)
 IFS=";:$ifsbackup"
@@ -314,15 +323,15 @@ local mysql_include_error=$( "$my_my_config"/mysql_config --include 2>&1 >/dev/n
 local mysql_include=$( "$my_my_config"/mysql_config --include | sed  -e  's/^[^/:\]*\(.[:].*\|[/\].*\)/\1/')
 
 if [ -n  "$mysql_include_error" ] || [ ! -d "$mysql_include" ]; then
-	{ printf "\n\nmysql_config\t:\t setup:\tnot ok\n Or $my_my_config/mysql_config  don't exist\n or mysql include dir '$mysql_include' don't is a directory.\n This can being caused by a invalid my_config_path,too.\n" 
-	printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" 
+	{ printf "\n\nmysql_config\t:\t setup:\tnot ok\n Or $my_my_config/mysql_config  don't exist\n or mysql include dir '$mysql_include' don't is a directory.\n This can being caused by a invalid my_config_path,too.\n"
+	printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n"
 	}>>"$my_atual_dir/apq_mysql_error.log"
 
 	printf 'false' > "$my_atual_dir/ok.log" ;
 	exit 1
 fi
 	local my_enum_option_tmp=$( sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[mM][yY][sS][qQ][lL]_[oO][pP][tT][iI][oO][nN]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
-	
+
 	local my_field_types_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysql_com.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  sed -n   '/^[[:blank:]]*enum[[:blank:]]*[eE][nN][uU][mM]_[fF][iI][eE][lL][dD]_[tT][yY][pP][eE][sS]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/[[:blank:][:space:]]*[}][[:blank:][:space:]]*[;]/ p'  | sed  -e 's/[;].*$/\;/g'   -e '/^$/d' -e 's/[[:blank:][:space:]]*//g'  -e 's/[{]\(..*$\)/\{\n\1/g' -e 's/\(^..*\)[}][;]/\1\n\}\;/g' -e 's/\,/\,\n/g'  |  sed -n -e '1,/[}][;]/ p' | sed -e '/^$/d' | sed  -e '/[{]/,/[}][;]/!d' | sed -e '/^.*[{}].*$/d' 2>>"$my_atual_dir/apq_mysql_error.log" )
 
 	local enum_option_value=$(_sanatize_enum "$my_enum_option_tmp" )
@@ -332,7 +341,7 @@ fi
 	local my_field_types_label_only=$(_sanatize_enum_remove_values "$my_field_types_value" )
 
 	local my_result_type_er_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/mysqld_error.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep '^#define[ ]*ER_.*' | grep -o 'ER_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[[:blank:][:space:]]*\([0-9]*\)[[:blank:][:space:]]*$/ => \1,/' )
-	
+
 	local my_result_type_cr_tmp=$(sed  -e 's:\(^.*\)/[*].*[*]/\(.*$\):\1\2:g' -e  's/\(^.*\)\/\*\(.*$\)/\1 \n\/\*\n \2/g' -e  's/\(^.*\)\*\/\(.*$\)/\1 \n\*\/\n \2/g' "$mysql_include"/errmsg.h | sed -e '/\/\*.*$/,/\*\/.*$/d' |  grep -v ERROR_LAST | grep -v ERROR_FIRST | grep -v MIN_ERROR | grep -v MAX_ERROR | grep '^#define[ ]*CR_.*' | grep -o 'CR_.*[0-9]*[[:blank:][:space:]]*$' | sed 's/[[:blank:][:space:]]*\([0-9]*\)[[:blank:][:space:]]*$/ => \1,/' | sed -e '$ s/,//' )
 
 	local my_result_type_value="$my_result_type_er_tmp\n$my_result_type_cr_tmp"
@@ -361,7 +370,7 @@ fi
 	### if necessary, fix me ; in a cross-compiling environment, using "uname" is the correct thing to do ?
 	local pragma_linker_options=
 
-	local pragma_linker_oopt=$(	
+	local pragma_linker_oopt=$(
 		case "$miname" in
 			( *CYGWIN* ) pragma_linker_options='   --! pragma Linker_Options("");'
 					;;
@@ -378,12 +387,12 @@ fi
 	fi
 ## because quotes , _IS Mandatory_  a one or more(1+) espaces characters before the closing "/" or  "\n/" in each sed script :-)
 ## THANKS Jesus! et al ;-) Enjoy!
-	local my_apq_mysql_ads_0=$(cat "$src_genesis/apq-mysql.ads-in" | 
+	local my_apq_mysql_ads_0=$(cat "$src_genesis/apq-mysql.ads-in" |
 sed -e "s/%ENUM_FIELD_TYPE%/$my_field_types_label_only_esc  \n/" |
-sed -e "s/%USE_FIELD_TYPE%/$my_field_types_value_esc  \n/" | 
-sed -e "s/%ENUM_RESULT_TYPE%/$my_result_type_label_only_esc  \n/" | 
-sed -e "s/%USE_RESULT_TYPE%/$my_result_type_value_esc  \n/" | 
-sed -e "s/%OPTION_ENUM_MY%/$enum_option_label_only_esc  \n/" | 
+sed -e "s/%USE_FIELD_TYPE%/$my_field_types_value_esc  \n/" |
+sed -e "s/%ENUM_RESULT_TYPE%/$my_result_type_label_only_esc  \n/" |
+sed -e "s/%USE_RESULT_TYPE%/$my_result_type_value_esc  \n/" |
+sed -e "s/%OPTION_ENUM_MY%/$enum_option_label_only_esc  \n/" |
 sed -e "s/%USE_OPTION_ENUM_MY%/$enum_option_value_esc  \n/"  |
 sed -e 's/%MYSQL_ROW_NO%/64 /')
 
@@ -416,7 +425,7 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	)
 
 	local madeit3=
-	local at_count_tmp=
+	local at_count_tmp="1"
 	local madeit2=
 	local at_count_tmp="1"
 
@@ -441,16 +450,20 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	)
 	kov_def1=
 	kov_def2=
-	
+
 	local apq_mysql_gpr_in=$(
 		cat "$my_atual_dir/apq_mysql_part1.gpr.in.in"  2>>"$my_atual_dir/apq_mysql_error.log"
-		printf  '   system_libs  := ( ) & (' 
-		printf  "$madeit3 " 
-		printf  '); ' 
+		printf  '   system_libs  := ( ) & ('
+		printf  "$madeit3 "
+		printf  '); '
 		cat "$my_atual_dir/apq_mysql_part3.gpr.in.in"   2>>"$my_atual_dir/apq_mysql_error.log"
 	)
 
 IFS=",$ifsbackup"
+
+local sist_oses=
+local libbuildtype=
+local debuga=
 
 for sist_oses in $my_oses
 do
@@ -458,12 +471,12 @@ do
 	do
 		for debuga in $my_with_debug_too
 		do
-			my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
+			my_tmp="$made_dirs/$sist_oses/$libbuildtype/$debuga"
 			mkdir -p "$my_tmp/logged"
-			
+
 			IFS="$ifsbackup"  # the min one blank line below here _is necessary_ , otherwise IFS will affect _only_ next command_ ;-)
 
-			# because use of vars, I added a "\n" :-) in 
+			# because use of vars, I added a "\n" :-) in
 			printf "$kov_log\n" > "$my_tmp/logged/kov.log"  2>>"$my_atual_dir/apq_mysql_error.log"
 
 			printf "$kov_def\n" > "$my_tmp/logged/kov.def" 2>>"$my_atual_dir/apq_mysql_error.log"
@@ -471,14 +484,14 @@ do
 			echo "$apq_mysql_gpr_in" > "$my_tmp/apq_mysql.gpr.in"  2>>"$my_atual_dir/apq_mysql_error.log"
 
 			gnatprep "$my_tmp/apq_mysql.gpr.in"  "$my_tmp/apq_mysql.gpr"  "$my_tmp/logged/kov.def"  2>>"$my_atual_dir/apq_mysql_error.log"
-			
+
 			IFS=",$ifsbackup"
 
 			for support_dirs in obj lib ali obj_c lib_c ali_c src
 			do
 				mkdir -p "$my_tmp/$support_dirs"  2>>"$my_atual_dir/apq_mysql_error.log"
 			done # support_dirs
-			
+
 			echo "$my_apq_mysql_ads" > "$my_tmp/src/apq-mysql.ads"  2>>"$my_atual_dir/apq_mysql_error.log"
 
 		done # debuga
@@ -492,7 +505,7 @@ IFS="$ifsbackup"
 		printf "\nthere is a chance an error occurred.\nsee the above messages and correct if necessary.\n\n not ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log"
 		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
-	fi 
+	fi
 	#ok
 	printf "\n ok. \n\n" >> "$my_atual_dir/apq_mysql_error.log" ;
 	printf 'true' > "$my_atual_dir/ok.log" ;
@@ -511,7 +524,10 @@ _compile(){
 #: Description: You don't need run this script manually.
 #: Options	:  "OSes"
 
+
+
 	local my_atual_dir=$(pwd)
+
 	# Silent Reporting, because apq_error.log or don't exist or don't is a regular file or is a link
 	if [ ! -f "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/ok.log" ]; then
 		exit 1
@@ -527,11 +543,11 @@ _compile(){
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
-	local ifsbackup="$IFS"
+	local ifsbackup="$global_ifs_bk"
 	local IFS="$ifsbackup"
-	
 
-	local my_path=$( echo $PATH )
+
+	local my_path="$PATH"
 	local my_oses=$(_choose_so "$1" )
 	local my_libtypes=$(_choose_libtype "all" )
 	local my_with_debug_too=$(_choose_debug "yes" )
@@ -547,7 +563,7 @@ _compile(){
 		printf 'false' > "$my_atual_dir/ok.log" ;
 		exit 1
 	fi
-	
+
 	local line1_my_tmp=
 	local line2_debuga=
 	local line3_libtype=
@@ -555,7 +571,7 @@ _compile(){
 	local line5_compile_paths=
 	local line6_gprconfig_path=
 	local line7_gprbuild_path=
-	local line8_my_config_path=	
+	local line8_my_config_path=
 	local my_tmp=
 	local erro_msg_gprconfig_part=
 	local erro_msg_gprbuild_part=
@@ -571,7 +587,7 @@ _compile(){
 	local madeit9=
 	local madeit10=
 	local aab=
-	
+
 	IFS=",$ifsbackup"
 
 	local sist_oses=
@@ -584,8 +600,8 @@ _compile(){
 		do
 			for debuga in $my_with_debug_too
 			do
-				my_tmp="$made_dirs"/$sist_oses/$libbuildtype/$debuga
-				
+				my_tmp="$made_dirs/$sist_oses/$libbuildtype/$debuga"
+
 				if [ -f "$my_tmp/logged/kov.log" ] && \
 					[ $(sed -n -e '$=' "$my_tmp/logged/kov.log" ) -ge 6 ] && \
 					[ -f "$my_tmp/apq_mysql.gpr" ];
@@ -594,7 +610,7 @@ _compile(){
 					line2_debuga="$debuga"
 					line3_libtype="$libbuildtype"
 					line4_os="$sist_oses"
-				
+
 					{	read line9_ssl_include_path
 						read line5_compile_paths
 						read line6_gprconfig_path
@@ -624,13 +640,13 @@ _compile(){
 							[ -d "$line8_my_config_path" ] && break
 							line8_my_config_path=$(dirname "$line8_my_config_path" )
 						done
-						
+
 						while true;
 						do
 							[ -d "$line9_ssl_include_path" ] && break
 							line9_ssl_include_path=$(dirname "$line9_ssl_include_path" )
 						done
-	
+
 						madeit1=" line1_$my_count=\"$my_tmp\" "
 						madeit2=" line2_$my_count=\"$debuga\" "
 						madeit3=" line3_$my_count=\"$libbuildtype\" "
@@ -659,7 +675,7 @@ _compile(){
 			done # debuga
 		done # libbuildtype
 	done # sist_oses
-	
+
 	local my_count3="0"
 	local my_hold_tmp1=
 	local my_count2="1"
@@ -713,7 +729,7 @@ _compile(){
 			# a explanation: with PATH="$my_path:$madeit5" I made preference for gcc and g++ for native compilers in system. this solve problems with multi-arch in Debian sid
 			# using gnat and gprbuild from toolchain Act-San :-)
 			# and with PATH="$madeit5:$my_path" ( now the default behavior) I made preference for your compiler, in your specified add_compiler_paths
-			# 
+			#
 			$( PATH="$madeit5:$my_path" && cd "$madeit1" && "$madeit6"/gprconfig --batch --config=ada --config=c --config=c++ -o ./kov.cgpr > ./logged/gprconfig.log 2> ./logged/gprconfig_error.log )
 			if [ -s  "$madeit1/logged/gprconfig_error.log" ]; then
 				erro_msg_gprconfig_part="$my_hold_tmp1"
@@ -732,7 +748,7 @@ _compile(){
 				continue
 			fi
 			printf " gprbuild:\tOk\t:lib\t$madeit3\t$madeit4\t$my_hold_tmp1\t:Ok\n" >> "$my_atual_dir/apq_mysql_error.log"
-			
+
 			my_count2=$(( $my_count2 + 1 ))
 			my_count3=$(( $my_count3 + 1 ))
 
@@ -755,12 +771,12 @@ _compile(){
 		fi
 		if [ "$my_count3" -ge 1 ]; then
 			printf "\n not ok. but one or more things worked\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
-		else 
+		else
 			printf "\n not ok.\n\n"  >> "$my_atual_dir/apq_mysql_error.log"
 		fi
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
-		
+
 	fi
 		{	printf " Nothing to compile. \n"
 			printf " Maybe 'oses' not yet (or erroneously) configured ? "
@@ -818,7 +834,7 @@ _installe(){
 		printf 'false' > "$my_atual_dir/ok.log"
 		exit 1
 	fi
-	
+
 	IFS=",$ifsbackup"
 
 	local sist_oses=
@@ -841,18 +857,18 @@ _installe(){
 		my_tmp2="$made_dirs"/$sist_oses
 
 		[ ! -d "$my_tmp2" ] && continue
-		
+
 		for libbuildtype in $my_libtypes
 		do
 			my_tmp3="$made_dirs"/$sist_oses/$libbuildtype
-			
+
 			[ ! -d "$my_tmp3" ] && continue
 			[ "$libbuildtype" = "relocatable" -o "$libbuildtype" = "dynamic"  ] && my_tmp6="shared" || my_tmp6="static"
 
 			for debuga in $my_with_debug_too
 			do
 				my_tmp4="$made_dirs"/$sist_oses/$libbuildtype/$debuga
-				
+
 				[ ! -d "$my_tmp4" ] && continue
 				[ "$debuga" = "normal" ] && my_tmp5="" || my_tmp5="$debuga"
 
@@ -880,7 +896,7 @@ _installe(){
 				else
 					printf "install lib:\tOk\t:$libbuildtype\t$sist_oses\t$debuga\t:Installed lib files! \n" >> "$my_atual_dir/apq_mysql_error.log"
 				fi
-				
+
 				my_count=$(( $my_count + 1 ))
 
 			done # debuga
@@ -918,7 +934,7 @@ _installe(){
 	my_tmp6=
 	my_count="1"
 	local my_count4=1
-	
+
 	for sist_oses in $my_oses
 	do
 		[ ! -d "$made_dirs/$sist_oses" ] && continue
@@ -942,7 +958,7 @@ _installe(){
 
 				my_tmp5="$my_prefix/include/apq-mysql/generated_source/$sist_oses/$my_tmp/$my_tmp3/src"
 				madeit2=" to_$my_count=\"$my_tmp5\" "
-				
+
 				eval "$madeit1"
 				eval "$madeit2"
 
@@ -981,7 +997,7 @@ _installe(){
 	else
 		printf "install includes :\tOk\t:Installed includes! \n" >> "$my_atual_dir/apq_mysql_error.log"
 	fi
-	
+
 
 	install -d "$my_prefix/lib/gnat"  2>"$made_dirs/install_gpr_error.log"
 	if [ -s  "$made_dirs/install_gpr_error.log" ]; then
@@ -1015,7 +1031,7 @@ _installe(){
 	}>>"$my_atual_dir/apq_mysql_error.log"
 	printf 'false' > "$my_atual_dir/ok.log"
 	exit 1
-	
+
 } #end _installe
 
 _clean(){
@@ -1063,7 +1079,7 @@ _clean(){
 	local my_tmp4=
 	local my_tmp5=
 	local my_tmp6=
-	
+
 	IFS=",$ifsbackup"
 
 
@@ -1072,19 +1088,19 @@ _clean(){
 		my_tmp2="$made_dirs"/$sist_oses
 
 		[ ! -d "$my_tmp2" ] && continue
-		
+
 		for libbuildtype in $my_libtypes
 		do
 			my_tmp3="$made_dirs"/$sist_oses/$libbuildtype
-			
+
 			[ ! -d "$my_tmp3" ] && continue
-		
+
 			for debuga in $my_with_debug_too
 			do
 				my_tmp4="$made_dirs"/$sist_oses/$libbuildtype/$debuga
-				
+
 				[ ! -d "$my_tmp4" ] && continue
-			
+
 				rm	$my_tmp4/ali/*	2>/dev/null
 				rm $my_tmp4/lib/*	2>/dev/null
 				rm $my_tmp4/lib_c/*	2>/dev/null
@@ -1092,7 +1108,7 @@ _clean(){
 				rm $my_tmp4/obj/*	2>/dev/null
 				# dont clean $my_tmp4/src/* because it need rerun configure target :-)
 				# rm $my_tmp4/src/*	2>/dev/null
-				
+
 			done # debuga
 		done # libbuildtype
 	done # sist_oses
@@ -1121,7 +1137,7 @@ _distclean(){
 	fi
 	# remove old content from apq_error.log
 	printf "" > "$my_atual_dir/apq_mysql_error.log"
-	
+
 	local made_dirs="$my_atual_dir/build"
 	if [ ! -d "$made_dirs" ]; then
 		{	printf "\n"
@@ -1147,7 +1163,7 @@ case $my_commande in
 	'compilling' )  [ $# -eq 1 ] && _compile "$1" || printf "compile need one\(1\) option\n" ; exit 1
 		;;
 	'installing' )  [ $# -eq 2 ] && _installe "$1" "$2" || printf "install need two\(2\) options\n" ; exit 1
-		;; 
+		;;
 	'cleaning' )   [ true ] && _clean
 		;;
 	'dist_cleaning' ) [ true ] && _distclean
