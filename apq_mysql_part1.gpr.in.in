@@ -21,7 +21,7 @@
 ----
 ----
 
- 
+
 with "apq.gpr"; -- You can need set ADA_PROJECT_PATH :-)
 
 project Apq_mysql is
@@ -29,7 +29,7 @@ project Apq_mysql is
 
    version   := $version ;    --  eg.: "3.0.1"
 
-   mysource	:= ( ) & $mysource & ( "./src/" ) ;
+   mysource	:= "" &  $mysource   ;
    basedir	:= "" & $basedir ;
 
 

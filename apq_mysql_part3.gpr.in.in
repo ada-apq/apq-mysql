@@ -165,11 +165,10 @@
       when others =>
 		  null;
    end case;
-
-	--  e.g: mysource:= mysource & ( "" &  basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/src/" ) ;
+   mysource2 := ( mysource , "" &  basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/src/" ) ;
    --
    for Languages use ("Ada" , "C" );
-   for Source_Dirs use mysource ;
+   for Source_Dirs use mysource2 ;
    for Object_Dir use "" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/obj/";
    for Library_Name use "apq-mysql" ;
    for Library_Dir use "" & basedir & "/" & Os & "/" & Static_Or_Dynamic & "/" & debug & "/lib/" ;
