@@ -171,7 +171,9 @@ package body APQ.MySQL.Client is
 		      ) return Interfaces.C.int ;
    pragma import(c,my_set_ssl ,"c_mysql_ssl_set_v2");
 
-   procedure Set_ssl(C1 : in out MYSQL; key,cert,ca,capath,cipher : String := "" ) is
+   function Set_ssl(C1 : MYSQL; key,cert,ca,capath,cipher : String := "" )
+		    return interfaces.c.int
+   is
 
    use Interfaces.C;
       c_key    : char_array  := to_c( key );
@@ -188,7 +190,6 @@ package body APQ.MySQL.Client is
 
       c_cipher : char_array  := to_c( cipher );
       a_cipher   : system.Address := system.Null_Address;
-      hold_int : interfaces.c.int := 0;
 
    begin
       if key /= "" then
@@ -207,7 +208,7 @@ package body APQ.MySQL.Client is
          a_cipher := c_cipher'address;
       end if;
 
-      hold_int := my_set_ssl(C1 , a_key, a_cert , a_ca , a_capath , a_cipher );
+      return my_set_ssl(C1 , a_key, a_cert , a_ca , a_capath , a_cipher );
 
    end Set_ssl;
 
@@ -502,7 +503,9 @@ package body APQ.MySQL.Client is
 
    begin
       if cache_key_nameval_uptodate( C ) and force = false then return; end if; -- bahiii :-)
-      Free(c.keyname_val_cache ); -- we really need free()/uncheck_deallocation ? :-) with which 'type' parameters ? :-)
+      Free(c.keyname_val_cache_common );
+      Free(c.keyname_val_cache_ssl );
+
 
       if not (c.Port_Format = UNIX_Port or c.Port_Format = IP_Port ) then
          raise program_error;
@@ -545,10 +548,10 @@ package body APQ.MySQL.Client is
 
 	    case c.keyval_type(b).all is
 	    when ARG_CHAR_PTR =>
-	       tmp_hold_stuff_common.all(I_am).all.char_part := new char_array'( I_be'range => I_be );
+	       tmp_hold_stuff_common.all(I_am).all.char_part := new char_array'( I_be );
 
 	    when ARG_NOT_USED =>
-	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned(0) ;
+	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned'(0) ;
 
 	    when ARG_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
@@ -559,9 +562,9 @@ package body APQ.MySQL.Client is
 	       -- note: if conversion unsigned'value(kval) is invalid,
 	-- And kval differ from "" then kval := 1;  Otherwise kval := 0; end if;
 	       if interfaces.c.unsigned'Value(string'(to_Ada(I_be))) /= 0 then
-		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned(1) ;
+		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned'(1) ;
 	       else
-		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned(0) ;
+		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned'(0) ;
 	       end if;
 
 	    end case;
@@ -583,7 +586,7 @@ package body APQ.MySQL.Client is
 	    end if;
 	    free( tmp_hold_stuff_ssl.all(I_am) );
 	    tmp_hold_stuff_ssl.all(I_am) := new ssl_part_record ;
-	    tmp_hold_stuff_ssl.all(I_am).all.char_part := new char_array'( I_be'range => I_be );
+	    tmp_hold_stuff_ssl.all(I_am).all.char_part := new char_array'( I_be );
 
 	    bool1 := true;
 	    goto continua; -- well... really judicious, this was my the better option :-)
@@ -607,7 +610,7 @@ package body APQ.MySQL.Client is
       end loop;
 
       if mi_count > 0 then
-	 if tmp_hold_stuff_common.all /= null then
+	 if tmp_hold_stuff_common /= null then
 	    for b in tmp_hold_stuff_common.all'range loop
 	       if tmp_hold_stuff_common.all(b) /= null then
 		  free( tmp_hold_stuff_common.all(b).all.char_part );
@@ -616,7 +619,7 @@ package body APQ.MySQL.Client is
 	       end if;
 	    end loop;
 	 end if;
-	 if tmp_hold_stuff_ssl.all /= null then
+	 if tmp_hold_stuff_ssl /= null then
 	    for b in tmp_hold_stuff_ssl.all'range loop
 	       if tmp_hold_stuff_ssl.all(b) /= null then
 		  free( tmp_hold_stuff_ssl.all(b).all.char_part );
@@ -1146,12 +1149,12 @@ begin
       declare
 	 b : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
       begin -- key , cert , ca , capath, cipher
-	 if set_ssl(conn    => C.Connection,
-	     kkey    => To_Ada(b(key).all.char_part.all) ,
-	     ccert   => To_Ada(b(cert).all.char_part.all) ,
-	     cca     => To_Ada(b(ca).all.char_part.all) ,
-	     ccapath => To_Ada(b(capath).all.char_part.all) ,
-	     ccipher => To_Ada(b(cipher).all.char_part.all) ) = 0
+	 if set_ssl(C1    => C.Connection,
+	     key    => To_Ada(b(key).all.char_part.all) ,
+	     cert   => To_Ada(b(cert).all.char_part.all) ,
+	     ca     => To_Ada(b(ca).all.char_part.all) ,
+	     capath => To_Ada(b(capath).all.char_part.all) ,
+	     cipher => To_Ada(b(cipher).all.char_part.all) ) = 0
 	 then
 	    mi_count := mi_count + 1 ;
 	    if mi_count /= 1 then
@@ -1217,7 +1220,7 @@ begin
       if c.Port_Format = IP_Port then
 	 declare
 	    host : char_array := to_c( C.Host_Address.all );
-	    port : unsigned := unsigned( C.Port_Number );
+	    port : port_integer := C.Port_Number ;
 	    user : char_array := to_c( C.User_Name.all );
 	    pass : char_array := to_c( C.User_Password.all );
 	    dbname : char_array := to_c( C.DB_Name.all );
