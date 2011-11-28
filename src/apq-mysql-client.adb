@@ -1075,6 +1075,18 @@ package body APQ.MySQL.Client is
 
       use Interfaces.C, Interfaces.C.Strings;
 
+      C_Host :       char_array_access;
+      A_Host :       System.Address := System.Null_Address;
+      C_Dbname :     char_array_access;
+      A_Dbname :     System.Address := System.Null_Address;
+      C_Login :      char_array_access;
+      A_Login :      System.Address := System.Null_Address;
+      C_Pwd :        char_array_access;
+      A_Pwd :        System.Address := System.Null_Address;
+      C_Port :       Port_Integer := C.Port_Number;
+      C_Unix :       char_array_access;
+      A_Unix :       System.Address := System.Null_Address;
+
    begin
 
       Clear_Error(C);
@@ -1106,45 +1118,43 @@ package body APQ.MySQL.Client is
 
       my_process_options( C ); -- ToDo: need a exception handler. this suffice for now :-)
 
-      if c.Port_Format = IP_Port then
-	 declare
-	    host : char_array := to_c( C.Host_Address.all );
-	    port : port_integer := C.Port_Number ;
-	    user : char_array := to_c( C.User_Name.all );
-	    pass : char_array := to_c( C.User_Password.all );
-	    dbname : char_array := to_c( C.DB_Name.all );
-	 begin
-	    C.Connected := mysql_connect(
-				  conn 	=> C.Connection,  -- Connection object
-				  host	=> host'Address ,        -- host or IP #
-				  user	=> user'Address ,       -- user name
-				  passwd => pass'Address ,         -- password
-				  db	=> dbname'Address ,      -- database
-				  port	=> port ,        -- IP Port # or zero
-				  local_socket  => system.Null_Address    -- UNIX socket name or null
-				 )   /= 0;
-	 end;
-      elsif c.Port_Format = UNIX_port then
-	 declare
-	    host : char_array := to_c( C.Host_Name.all );
-	    port : char_array := to_c( C.Port_Name.all );
-	    user : char_array := to_c( C.User_Name.all );
-	    pass : char_array := to_c( C.User_Password.all );
-	    dbname : char_array := to_c( C.DB_Name.all );
-	 begin
-	    C.Connected := mysql_connect(
-				  conn 	=> C.Connection,  -- Connection object
-				  host	=> host'Address ,        -- host or IP #
-				  user	=> user'Address ,       -- user name
-				  passwd => pass'Address ,         -- password
-				  db	=> dbname'Address ,      -- database
-				  port	=> 0 ,        -- IP Port # or zero
-				  local_socket  => port'Address    -- UNIX socket name or null
-				 )   /= 0;
-	 end;
-      else
-	 raise Program_Error;
-	 return;
+      C_String(C.Host_Name,C_Host,A_Host);
+      C_String(C.DB_Name,C_Dbname,A_Dbname);
+      C_String(C.User_Name,C_Login,A_Login);
+      C_String(C.User_Password,C_Pwd,A_Pwd);
+
+      case C.Port_Format is
+      when IP_Port =>
+	 null;
+      when UNIX_Port =>
+	 C_Port := 0; -- Zero indicates to mysql_connect() that we are using unix socket
+	 C_String(C.Port_Name,C_Unix,A_Unix);
+      end case;
+
+      C.Connected := mysql_connect(
+			conn 	=> C.Connection,  -- Connection object
+			host	=> A_Host,        -- host or IP #
+			user	=> A_Login,       -- user name
+			passwd	=> A_Pwd,         -- password
+			db	=> A_Dbname,      -- database
+			port	=> C_Port,        -- IP Port # or zero
+			local_socket  => A_Unix   -- UNIX socket name or null
+				  )   /= 0 ;
+      if C_Host /= null then
+	 Free(C_Host);
+      end if;
+      if C_Dbname /= null then
+	 Free(C_Dbname);
+      end if;
+      if C_Login /= null then
+	 Free(C_Login);
+      end if;
+
+      if C_Pwd /= null then
+	 Free(C_Pwd);
+      end if;
+      if C_Unix /= null then
+	 Free(C_Unix);
       end if;
 
       if not C.Connected then
