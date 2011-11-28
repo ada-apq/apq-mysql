@@ -264,7 +264,8 @@ private
 
 	procedure Initialize(Q : in out Query_Type);
 	procedure Adjust(Q : in out Query_Type);
-	procedure Finalize(Q : in out Query_Type);
+   procedure Finalize(Q : in out Query_Type);
+
 
 end APQ.MySQL.Client;
 
