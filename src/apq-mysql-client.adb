@@ -1125,7 +1125,11 @@ package body APQ.MySQL.Client is
 
       case C.Port_Format is
       when IP_Port =>
-	 null;
+	 if c_port = 0 then
+	    c_port = 3306;
+	 end if;
+	 C_String(C.Host_Address,C_Host,A_Host);
+
       when UNIX_Port =>
 	 C_Port := 0; -- Zero indicates to mysql_connect() that we are using unix socket
 	 C_String(C.Port_Name,C_Unix,A_Unix);
@@ -2005,12 +2009,14 @@ package body APQ.MySQL.Client is
 
 
 
-	procedure Initialize(C : in out Connection_Type) is
-	begin
-		C.Connection := mysql_init;
-		C.Connected  := False;
-		C.SQL_Case   := Lower_Case;
-	end Initialize;
+   procedure Initialize(C : in out Connection_Type) is
+   begin
+      C.Connection := mysql_init;
+      C.Connected  := False;
+      C.SQL_Case   := Lower_Case;
+      C.Port_Number := 3306 ;
+
+   end Initialize;
 
 
 	procedure Initialize(Q : in out Query_Type) is
