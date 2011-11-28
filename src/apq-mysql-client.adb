@@ -1126,7 +1126,7 @@ package body APQ.MySQL.Client is
       case C.Port_Format is
       when IP_Port =>
 	 if c_port = 0 then
-	    c_port = 3306;
+	    c_port := 3306;
 	 end if;
 	 C_String(C.Host_Address,C_Host,A_Host);
 
