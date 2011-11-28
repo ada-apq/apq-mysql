@@ -1007,32 +1007,50 @@ package body APQ.MySQL.Client is
       pragma Optimize(Time);
 
       use ada.strings.Unbounded;
+      use ada.Strings.Fixed;
       use interfaces.c.Strings, interfaces.c;
 
       tmp_ub_know_options : Unbounded_String := To_Unbounded_String(160);
-      user : unbounded_string := To_Unbounded_String("'" & C.User_Name.all & "'" );
-      pass : unbounded_string := To_Unbounded_String("'" & C.User_Password.all & "'" );
-      dbname : unbounded_string := To_Unbounded_String( "'" & C.DB_Name.all & "'" );
+      -- user : unbounded_string := To_Unbounded_String("'" & C.User_Name.all & "'" );
+      -- pass : unbounded_string := To_Unbounded_String("'" & C.User_Password.all & "'" );
+      -- dbname : unbounded_string := To_Unbounded_String( "'" & C.DB_Name.all & "'" );
+      --
+      user : unbounded_string := To_Unbounded_String("''" );
+      pass : unbounded_string := To_Unbounded_String("''" );
+      dbname : unbounded_string := To_Unbounded_String( "''" );
+      host_name : unbounded_string := To_Unbounded_String("''" );
+      host_address : unbounded_string := To_Unbounded_String("''" );
+      port_name : unbounded_string := To_Unbounded_String("''" );
+      port_number : unbounded_string := To_Unbounded_String("'" & string'(trim(string'(port_integer'image(C.Port_Number)),ada.Strings.Both)) & "'" );
+
    begin
+      if c.User_Name /= null then
+	 user := To_Unbounded_String("'" & C.User_Name.all & "'" );
+      end if;
+      if c.User_Password /= null then
+	 pass := To_Unbounded_String("'" & C.User_Password.all & "'" );
+      end if;
+      if c.DB_Name /= null then
+	 dbname := To_Unbounded_String("'" & C.DB_Name.all & "'" );
+      end if;
+      if c.Host_Name /= null then
+	 host_name := To_Unbounded_String("'" & C.Host_Name.all & "'" );
+      end if;
+      if c.Host_Address /= null then
+	 host_address := To_Unbounded_String("'" & C.Host_Address.all & "'" );
+      end if;
+      if c.Port_Name /= null then
+	 port_name := To_Unbounded_String("'" & C.Port_Name.all & "'" );
+      end if;
 
       if c.Port_Format = IP_Port then
-	 declare
-	    host : unbounded_string := To_Unbounded_String("'" & C.Host_Address.all & "'" );
-	    port : unbounded_string := To_Unbounded_String("'" & string'(port_integer'image(C.Port_Number)) & "'" );
-	 begin
-	    tmp_ub_know_options := To_Unbounded_String(" host_address =") & host &
-	      to_unbounded_string("  port_number=" ) & port & To_Unbounded_String("  user=") & user &
-	      To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
-	 end;
+	 tmp_ub_know_options := To_Unbounded_String(" host_address =") & host_address &
+	   to_unbounded_string("  port_number=" ) & port_number & To_Unbounded_String("  user=") & user &
+	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
       elsif c.Port_Format = UNIX_port then
-	 declare
-	    host : unbounded_string := To_Unbounded_String("'" & C.Host_Name.all & "'" );
-	    port : unbounded_string := To_Unbounded_String("'" & C.Port_Name.all & "'" );
-	 begin
-	    tmp_ub_know_options := To_Unbounded_String(" host_name =") & host &
-	      to_unbounded_string("  port_name=" ) & port & To_Unbounded_String("  user=") & user &
-	      To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
-	 end;
+	 tmp_ub_know_options := To_Unbounded_String(" host_name =") & host_name &
+	   to_unbounded_string("  port_name=" ) & port_name & To_Unbounded_String("  user=") & user &
+	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
       else
 	 raise Program_Error;
       end if;
@@ -1042,8 +1060,13 @@ package body APQ.MySQL.Client is
 	    if C.keyname_val_cache_common.all(b).all.valido then
 	       tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String(string'(Option_type'image(b)));
 	       if C.keyname_val_cache_common.all(b).all.char_part = null then
-		  tmp_ub_know_options := tmp_ub_know_options &
-		    To_Unbounded_String(" ='" & string'(interfaces.c.unsigned'Image(C.keyname_val_cache_common.all(b).all.unsigned_part.all)) & "'  " );
+		  if  C.keyname_val_cache_common.all(b).all.unsigned_part = null then -- weird ;-) well... in a normal way this never occur. just prudent :-)
+		     tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String(" =''  ");
+		  else
+		     tmp_ub_know_options := tmp_ub_know_options &
+		       To_Unbounded_String(" ='" & trim(string'(interfaces.c.unsigned'Image(C.keyname_val_cache_common.all(b).all.unsigned_part.all)),ada.Strings.Both) &
+			       "'  " );
+		  end if;
 	       else
 		  tmp_ub_know_options := tmp_ub_know_options &
 		    To_Unbounded_String(" ='" & string'(to_ada(C.keyname_val_cache_common.all(b).all.char_part.all)) & "'  " );
@@ -1054,14 +1077,35 @@ package body APQ.MySQL.Client is
 
       if C.keyname_val_cache_ssl /= null then
 	 declare
-	    b : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
+	    b      : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
+	    ukey    : unbounded_string := To_Unbounded_String("''" );
+	    ucert   : unbounded_string := To_Unbounded_String("''" );
+	    uca     : unbounded_string := To_Unbounded_String("''" );
+	    ucapath : unbounded_string := To_Unbounded_String("''" );
+	    ucipher : unbounded_string := To_Unbounded_String("''" );
 	 begin -- key , cert , ca , capath, cipher
+	    if b(key).all.char_part /= null then
+	       ukey := To_Unbounded_String("'" & string'(To_Ada( b(key).all.char_part.all)) & "'" );
+	    end if;
+	    if b(cert).all.char_part /= null then
+	       ucert := To_Unbounded_String("'" & string'(To_Ada( b(cert).all.char_part.all)) & "'" );
+	    end if;
+	    if b(ca).all.char_part /= null then
+	       uca := To_Unbounded_String("'" & string'(To_Ada( b(ca).all.char_part.all)) & "'" );
+	    end if;
+	    if b(capath).all.char_part /= null then
+	       ucapath := To_Unbounded_String("'" & string'(To_Ada( b(capath).all.char_part.all)) & "'" );
+	    end if;
+	    if b(cipher).all.char_part /= null then
+	       ucipher:= To_Unbounded_String("'" & string'(To_Ada( b(cipher).all.char_part.all)) & "'" );
+	    end if;
+
 	    tmp_ub_know_options := tmp_ub_know_options &
-	      To_Unbounded_String(" (SSL) ==> key ='") & string'(To_Ada( b(key).all.char_part.all)) &
-	      To_Unbounded_String("' cert ='") & string'(to_ada( b(cert).all.char_part.all )) &
-	      To_Unbounded_String("' ca ='") & string'(to_ada( b(ca).all.char_part.all )) &
-	      To_Unbounded_String("' capath ='") & string'(to_ada( b(capath).all.char_part.all )) &
-	      To_Unbounded_String("' cipher ='") & string'(to_ada( b(cipher).all.char_part.all )) & To_Unbounded_String("' ") ;
+	      To_Unbounded_String(" (SSL) ==> key =") & ukey &
+	      To_Unbounded_String("' cert =") & ucert &
+	      To_Unbounded_String("' ca =") & uca &
+	      To_Unbounded_String("' capath =") & ucapath &
+	      To_Unbounded_String("' cipher =") & ucipher ;
 	 end;
       end if;
 
@@ -1165,30 +1209,34 @@ package body APQ.MySQL.Client is
 	 Post_Error(C);
 	 Raise_Exception(Not_Connected'Identity,
 		  "MY10: Failed to connect to database server (Connect).");
-      else
-	 declare
-	    Host_Name : String := To_Ada(Value(mysql_get_host_name(C.Connection)));
-	 begin
-	    Replace_String(C.Host_Name,Host_Name);
-	 end;
-
-	 declare
-	    UNIX_Socket : String := To_Ada(Value(mysql_unix_socket(C.Connection)));
-	 begin
-	    if UNIX_Socket /= "" then
-	       C.Port_Format := UNIX_Port;
-	       Replace_String(C.Port_Name,UNIX_Socket);
-	       -- Update socket pathname
-	    else
-	       C.Port_Format := IP_Port;
-	       C.Port_Number := mysql_port(C.Connection);
-	       -- Update port number used
-	       if C.Port_Name /= null then
-		  Free(C.Port_Name);
-	       end if;
-	    end if;
-	 end;
       end if;
+      --this parte was removed because after a disconnect(c1) and a posterior new connect(c1)
+      -- the "c1" possesses wrong values and dont connect ( eg. if using set_host_name() it dont work :-)
+      --
+
+--  	 declare
+--  	    Host_Name : String := To_Ada(Value(mysql_get_host_name(C.Connection)));
+--  	 begin
+--  	    Replace_String(C.Host_Name,Host_Name);
+--  	 end;
+--
+--  	 declare
+--  	    UNIX_Socket : String := To_Ada(Value(mysql_unix_socket(C.Connection)));
+--  	 begin
+--  	    if UNIX_Socket /= "" then
+--  	       C.Port_Format := UNIX_Port;
+--  	       Replace_String(C.Port_Name,UNIX_Socket);
+--  	       -- Update socket pathname
+--  	    else
+--  	       C.Port_Format := IP_Port;
+--  	       C.Port_Number := mysql_port(C.Connection);
+--  	       -- Update port number used
+--  	       if C.Port_Name /= null then
+--  		  Free(C.Port_Name);
+--  	       end if;
+--  	    end if;
+--  	 end;
+
    end Connect;
    ----------------------------------------
 
