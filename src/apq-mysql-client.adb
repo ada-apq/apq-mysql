@@ -156,16 +156,19 @@ package body APQ.MySQL.Client is
 		to, from : System.Address; length : u_long) return u_long;
    pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
 
-   ------------- test only -----------
-   function option_compress( Con: MYSQL ) return interfaces.c.unsigned_long ; -- only for test
-   pragma Import( C, option_compress, "c_mysql_options_compress" );
-   ----------------------------------------------------------------
 
    function mysql_options_nonspecif(connection : MYSQL;
 				    opt : u_long ;
 				    arg : System.Address
 				      )	return Interfaces.C.int;
    pragma import(C,mysql_options_nonspecif,"c_mysql_options_nonspecif");
+
+   function mysql_options_char_array(connection : MYSQL;
+				    opt : u_long ;
+				    arg : System.Address
+				      )	return Interfaces.C.int;
+   pragma import(C,mysql_options_char_array,"c_mysql_options_char_array");
+
 
    function my_set_ssl(conn : MYSQL;
 		       kkey,ccert,cca,ccapath,ccipher: system.Address
@@ -940,6 +943,7 @@ package body APQ.MySQL.Client is
 		  if mi_hold_unsigned /= null then
 		     free(mi_hold_unsigned);
 		  end if;
+		  mi_hold_address  := system.Null_Address;
 		  mi_hold_unsigned := new interfaces.c.unsigned;
 		  if  C.keyname_val_cache_common.all(b).all.unsigned_part = null then -- weird ;-) well... in a normal way this never occur. just prudent :-)
 		     mi_hold_unsigned.all := Interfaces.c.unsigned'(0);
@@ -947,17 +951,36 @@ package body APQ.MySQL.Client is
 		     mi_hold_unsigned.all := C.keyname_val_cache_common.all(b).all.unsigned_part.all;
 		  end if;
 		  mi_hold_address := mi_hold_unsigned'Address;
+
+		  ----------------------------------- test only ------------
+		  mi_hold := mysql_options_nonspecif(connection => C.Connection,
+					   opt        => mi_b ,
+				       arg        => mi_hold_address );
+		  -----------------------------------------------------------
 	       else
 		  if mi_hold_char_array /= null then
 		     free(mi_hold_char_array);
 		  end if;
-		  mi_hold_char_array := new char_array( 1 .. size_t(C.keyname_val_cache_common.all(b).all.char_part.all'Length));
-		  mi_hold_char_array.all := C.keyname_val_cache_common.all(b).all.char_part.all;
-		  mi_hold_address := mi_hold_char_array'Address;
-	       end if;
-	       mi_hold := mysql_options_nonspecif(connection => C.Connection,
+		  mi_hold_address  := system.Null_Address;
+--  		  mi_hold_char_array := new char_array( 1 .. size_t(C.keyname_val_cache_common.all(b).all.char_part.all'Length));
+--  		  mi_hold_char_array.all := C.keyname_val_cache_common.all(b).all.char_part.all;
+		  --mi_hold_char_array := new char_array( 1 .. size_t(C.keyname_val_cache_common.all(b).all.char_part.all'Length));
+---mi_hold_char_array.all := C.keyname_val_cache_common.all(b).all.char_part.all;
+		  if string'(to_ada(C.keyname_val_cache_common.all(b).all.char_part.all)) /= "" then
+		     mi_hold_char_array := new char_array'( to_c(string'(to_ada(C.keyname_val_cache_common.all(b).all.char_part.all))));
+		     mi_hold_address := mi_hold_char_array.all'Address; -- add .all
+		  end if;
+
+
+
+		  mi_hold := mysql_options_char_array(connection => C.Connection,
 					   opt        => mi_b ,
 					   arg        => mi_hold_address );
+	       end if;
+--  	       mi_hold := mysql_options_nonspecif(connection => C.Connection,
+--  					   opt        => mi_b ,
+--  					   arg        => mi_hold_address );
+
 	       if mi_hold = 0 then
 		  mi_count := mi_count + 1 ;
 		  if mi_count = 1 then
