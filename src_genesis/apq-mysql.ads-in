@@ -74,7 +74,7 @@ for Result_Type use (
 		ARG_UINT,      -- Argument is unsigned int
 		ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
 		ARG_CHAR_PTR   -- Argument is char pointer
-			 );
+			 );  -- ToDo: if necessary, add a my_bool
    type ssl_type is ( key , cert , ca , capath , cipher );
 
 private
@@ -87,26 +87,29 @@ private
    procedure Free is new Ada.Unchecked_Deallocation(Argument_Ptr_Array, Argument_Ptr_Array_Access);
 
    type base_type is ( none , common , ssl ); -- you can sugest more :-)
+   type unsigned_integer is new Interfaces.c.unsigned;
 
    type root_base_record is tagged null record;
    type common_part_record is new root_base_record with
       record
-	 char_part : char_array_access := null;
-	 unsigned_part : apq.Unsigned_Ptr;
+	 string_ptr_part : String_Ptr ;
+	 -- unsigned_part : Unsigned_Ptr; --- DNM! :-) consider using just a non-access :-)
+	 unsigned_part : unsigned_integer := 0; --- "here" using just a non-access :-)
+	 type_val : Argument_Type := ARG_CHAR_PTR ;
 	 valido : boolean := false;
       end record;
    type ssl_part_record is new root_base_record with
       record
-	 char_part : char_array_access := null;
+	 string_ptr_part : String_Ptr ;
       end record;
 
-   type common_part_record_ptr is access common_part_record;
+   type common_part_record_ptr is access all common_part_record;
    type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
-   type common_part_record_ptr_array_access is access common_part_record_ptr_array;
+   type common_part_record_ptr_array_access is access all common_part_record_ptr_array;
 
-   type ssl_part_record_ptr is access ssl_part_record;
+   type ssl_part_record_ptr is access all ssl_part_record;
    type ssl_part_record_ptr_array is array ( ssl_type ) of ssl_part_record_ptr;
-   type ssl_part_record_ptr_array_access is access ssl_part_record_ptr_array;
+   type ssl_part_record_ptr_array_access is access all ssl_part_record_ptr_array;
 
 
    procedure free is new ada.Unchecked_Deallocation( ssl_part_record , ssl_part_record_ptr   );
