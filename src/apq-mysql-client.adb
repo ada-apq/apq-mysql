@@ -154,10 +154,15 @@ package body APQ.MySQL.Client is
 
         function mysql_real_escape_string(connection : MYSQL;
 		to, from : System.Address; length : u_long) return u_long;
-	pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
+   pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
+
+   ------------- test only -----------
+   function option_compress( Con: MYSQL ) return interfaces.c.unsigned_long ; -- only for test
+   pragma Import( C, option_compress, "c_mysql_options_compress" );
+   ----------------------------------------------------------------
 
    function mysql_options_nonspecif(connection : MYSQL;
-				    opt : interfaces.c.unsigned;
+				    opt : u_long ;
 				    arg : System.Address
 				      )	return Interfaces.C.int;
    pragma import(C,mysql_options_nonspecif,"c_mysql_options_nonspecif");
@@ -768,8 +773,6 @@ package body APQ.MySQL.Client is
       end if;
    end if;
 
-      --C.keyval_type(ckc).all := new  kval_type;
-     -- C.keyval_type(ckc) := new  Argument_Type'(kval_type);
       C.keyval_type(ckc) := new  Argument_Type;
       C.keyval_type(ckc).all := kval_type;
       C.keyval_Caseless(ckc)       := kvalcasele;
@@ -909,12 +912,17 @@ package body APQ.MySQL.Client is
       pragma Optimize(Time);
 
       use ada.strings.Unbounded;
+      use ada.strings.Fixed;
       use interfaces.c.Strings, interfaces.c;
 
       tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(50);
       mi_count : Integer := 0;
       mi_hold : interfaces.c.int := 0;
+
       mi_hold_address : system.Address := system.Null_Address;
+      mi_hold_char_array : char_array_access ;
+      mi_hold_unsigned : Unsigned_Ptr ;
+      mi_b : u_long := 0;
    begin
       if  C.Connection = Null_Connection or
        ( C.keyname_val_cache_common = null and C.keyname_val_cache_ssl = null )
@@ -922,39 +930,49 @@ package body APQ.MySQL.Client is
 
       if C.keyname_val_cache_Common /= null then
 	 for b in C.keyname_val_cache_common.all'range loop
-	    if C.keyname_val_cache_common.all(b).all.valido then
+	    mi_b := toUnsigned(b);
+
+	    if C.keyname_val_cache_common.all(b) /= null
+	      and then C.keyname_val_cache_common.all(b).all.valido
+	    then
 	       if C.keyname_val_cache_common.all(b).all.char_part = null then
-		  mi_hold_address := C.keyname_val_cache_common.all(b).all.unsigned_part.all'Address;
+		  ---------------------------------
+		  if mi_hold_unsigned /= null then
+		     free(mi_hold_unsigned);
+		  end if;
+		  mi_hold_unsigned := new interfaces.c.unsigned;
+		  if  C.keyname_val_cache_common.all(b).all.unsigned_part = null then -- weird ;-) well... in a normal way this never occur. just prudent :-)
+		     mi_hold_unsigned.all := Interfaces.c.unsigned'(0);
+		  else
+		     mi_hold_unsigned.all := C.keyname_val_cache_common.all(b).all.unsigned_part.all;
+		  end if;
+		  mi_hold_address := mi_hold_unsigned'Address;
 	       else
-		  mi_hold_address := C.keyname_val_cache_common.all(b).all.char_part.all'Address;
+		  if mi_hold_char_array /= null then
+		     free(mi_hold_char_array);
+		  end if;
+		  mi_hold_char_array := new char_array( 1 .. size_t(C.keyname_val_cache_common.all(b).all.char_part.all'Length));
+		  mi_hold_char_array.all := C.keyname_val_cache_common.all(b).all.char_part.all;
+		  mi_hold_address := mi_hold_char_array'Address;
 	       end if;
 	       mi_hold := mysql_options_nonspecif(connection => C.Connection,
-					   opt        => toUnsigned(b),
+					   opt        => mi_b ,
 					   arg        => mi_hold_address );
 	       if mi_hold = 0 then
 		  mi_count := mi_count + 1 ;
 		  if mi_count = 1 then
 		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & To_Unbounded_String(Option_type'image(b)) &
-		       To_Unbounded_String("' => value ' ") ;
-
-		     if C.keyname_val_cache_common.all(b).all.char_part = null then
-			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-			  To_Unbounded_String(interfaces.c.unsigned'image(C.keyname_val_cache_common.all(b).all.unsigned_part.all));
-		     else
-			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-			  To_Unbounded_String(To_Ada(C.keyname_val_cache_common.all(b).all.char_part.all));
-		     end if;
+		       To_Unbounded_String("' => value '") ;
 		  else
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & To_Unbounded_String(" error Key '") &
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & "' , " & To_Unbounded_String(" error Key '") &
 		       To_Unbounded_String(Option_type'image(b)) & To_Unbounded_String("' => value ' ") ;
-
-		     if C.keyname_val_cache_common.all(b).all.char_part = null then
-			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-			  To_Unbounded_String(interfaces.c.unsigned'image(C.keyname_val_cache_common.all(b).all.unsigned_part.all));
-		     else
-			tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-			  To_Unbounded_String(To_Ada(C.keyname_val_cache_common.all(b).all.char_part.all));
-		     end if;
+		  end if;
+		  if C.keyname_val_cache_common.all(b).all.char_part = null then
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Unbounded_String(string'(trim(string'(interfaces.c.unsigned'image(mi_hold_unsigned.all)),ada.Strings.Both))) ;
+		  else
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Unbounded_String(string'(To_Ada(mi_hold_char_array.all)));
 		  end if;
 	       end if;
 	    end if;
@@ -962,28 +980,48 @@ package body APQ.MySQL.Client is
       end if;
 
    if C.keyname_val_cache_ssl /= null then
-      declare
-	 b : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
-      begin -- key , cert , ca , capath, cipher
-	 if set_ssl(C1    => C.Connection,
-	     key    => To_Ada(b(key).all.char_part.all) ,
-	     cert   => To_Ada(b(cert).all.char_part.all) ,
-	     ca     => To_Ada(b(ca).all.char_part.all) ,
-	     capath => To_Ada(b(capath).all.char_part.all) ,
-	     cipher => To_Ada(b(cipher).all.char_part.all) ) = 0
-	 then
-	    mi_count := mi_count + 1 ;
-	    if mi_count /= 1 then
-	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & To_Unbounded_String(" , ") ;
+	 declare
+	    b      : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
+	    ukey    : unbounded_string := To_Unbounded_String("");
+	    ucert   : unbounded_string := To_Unbounded_String("");
+	    uca     : unbounded_string := To_Unbounded_String("");
+	    ucapath : unbounded_string := To_Unbounded_String("");
+	    ucipher : unbounded_string := To_Unbounded_String("");
+	 begin -- key , cert , ca , capath, cipher
+	    if b(key).all.char_part /= null then
+	       ukey := To_Unbounded_String(string'(To_Ada( b(key).all.char_part.all)) );
 	    end if;
-	    tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-	      To_Unbounded_String(" (SSL) ==> 'key' => '") & string'(To_Ada( b(key).all.char_part.all)) &
-	      To_Unbounded_String("' 'cert' => '") & string'(to_ada( b(cert).all.char_part.all )) &
-	      To_Unbounded_String("' 'ca' => '") & string'(to_ada( b(ca).all.char_part.all )) &
-	      To_Unbounded_String("' 'capath' => '") & string'(to_ada( b(capath).all.char_part.all )) &
-	      To_Unbounded_String("' 'cipher' => '") & string'(to_ada( b(cipher).all.char_part.all )) ;
-	 end if;
+	    if b(cert).all.char_part /= null then
+	       ucert := To_Unbounded_String( string'(To_Ada( b(cert).all.char_part.all)) );
+	    end if;
+	    if b(ca).all.char_part /= null then
+	       uca := To_Unbounded_String( string'(To_Ada( b(ca).all.char_part.all)) );
+	    end if;
+	    if b(capath).all.char_part /= null then
+	       ucapath := To_Unbounded_String( string'(To_Ada( b(capath).all.char_part.all)) );
+	    end if;
+	    if b(cipher).all.char_part /= null then
+	       ucipher:= To_Unbounded_String( string'(To_Ada( b(cipher).all.char_part.all)) );
+	    end if;
 
+	    if set_ssl(C1    => C.Connection,
+		key    => to_string(ukey),
+		cert   => to_string(ucert),
+		ca     => to_string(uca),
+		capath => to_string(ucapath),
+		cipher => to_string(ucipher) ) = 0
+	    then
+	       mi_count := mi_count + 1 ;
+	       if mi_count /= 1 then
+		  tmp_ub_dont_know_options := tmp_ub_dont_know_options & To_Unbounded_String(" , ") ;
+	       end if;
+	       tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		 To_Unbounded_String(" (SSL) ==> key =") & ukey &
+		 To_Unbounded_String("' cert =") & ucert &
+		 To_Unbounded_String("' ca =") & uca &
+		 To_Unbounded_String("' capath =") & ucapath &
+		 To_Unbounded_String("' cipher =") & ucipher ;
+	    end if;
 	 end;
       end if;
 
@@ -993,8 +1031,6 @@ package body APQ.MySQL.Client is
       end if;
 
       return; -- :o]
-
-
 
    end my_process_options;
 
@@ -1130,6 +1166,8 @@ package body APQ.MySQL.Client is
       C_Port :       Port_Integer := C.Port_Number;
       C_Unix :       char_array_access;
       A_Unix :       System.Address := System.Null_Address;
+
+      mi_int : interfaces.c.int := 0 ; --- only for test
 
    begin
 

@@ -133,13 +133,13 @@ package APQ.MySQL.Client is
     	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
 
        	procedure Connect(C : in out Connection_Type;
-		       Same_As : Root_Connection_Type'Class);
-   ----
-	procedure Disconnect(C : in out Connection_Type);
+			  Same_As : Root_Connection_Type'Class);
+
+   	procedure Disconnect(C : in out Connection_Type);
 
 	function Is_Connected(C : Connection_Type) return Boolean;
 	procedure Reset(C : in out Connection_Type);
-	function Error_Message(C : Connection_Type) return String;
+   function Error_Message(C : Connection_Type) return String;
 
 	-- Open trace output file
 	procedure Open_DB_Trace(C : in out Connection_Type;

@@ -299,11 +299,22 @@ c_mysql_options_char(MYSQL *conn,unsigned option,char *arg) {
 } */
 
 EXPORT int
-c_mysql_options_nonspecif(MYSQL *conn,unsigned option,void *arg) {
+c_mysql_options_nonspecif(MYSQL *conn,unsigned long option,void *arg) {
   int z;
-  enum mysql_option opt = option;
-  z = mysql_options(conn,opt, &arg);
+  unsigned long opt = option;
+  z = mysql_options(conn,opt, arg);
   return  IS_OK(z);
+  /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
+}
+
+EXPORT unsigned long
+c_mysql_options_compress(MYSQL *conn ) {
+  int z;
+  /* enum mysql_option opt = MYSQL_OPT_COMPRESS ; */
+  unsigned long opt = MYSQL_OPT_COMPRESS ;
+  /*z = mysql_options( conn, opt , 0 ); */
+  /*return  IS_OK(z); */
+  return opt;
   /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
 }
 
