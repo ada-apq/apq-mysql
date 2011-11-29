@@ -66,24 +66,25 @@ for Result_Type use (
 %USE_OPTION_ENUM_MY%
 	);
    	for  Option_type'Size use 32;
-   --pragma Convention( C , Option_type );
 
-   -- type Option_Argument_Type is (
    type Argument_Type is (
-		ARG_NOT_USED,  -- No argument
-		ARG_UINT,      -- Argument is unsigned int
-		ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
-		ARG_CHAR_PTR   -- Argument is char pointer
-			 );  -- ToDo: if necessary, add a my_bool
+			  ARG_NOT_USED,  -- No argument
+			  ARG_UINT,      -- Argument is unsigned int
+			  ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
+			  ARG_CHAR_PTR   -- Argument is char pointer
+			  -- , ARG_PTR_MY_BOOL  -- for future use. :-)
+			 );
    type ssl_type is ( key , cert , ca , capath , cipher );
 
 private
    use Interfaces.c.Strings ,  Interfaces.c ;
 
-   	type Argument_Ptr is access all Argument_Type;
-	type Argument_Ptr_Array is array(Natural range <>) of Argument_Ptr;
-	type Argument_Ptr_Array_Access is access all Argument_Ptr_Array;
-	procedure Free is new Ada.Unchecked_Deallocation(Argument_Type, Argument_Ptr);
+   type MySQL_Enum_Option is mod 2**32;
+
+   type Argument_Ptr is access all Argument_Type;
+   type Argument_Ptr_Array is array(Natural range <>) of Argument_Ptr;
+   type Argument_Ptr_Array_Access is access all Argument_Ptr_Array;
+   procedure Free is new Ada.Unchecked_Deallocation(Argument_Type, Argument_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation(Argument_Ptr_Array, Argument_Ptr_Array_Access);
 
    type base_type is ( none , common , ssl ); -- you can sugest more :-)
@@ -118,16 +119,17 @@ private
    procedure free is new ada.Unchecked_Deallocation(  common_part_record_ptr_array , common_part_record_ptr_array_access  );
 
 
-	type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
-	for Return_Status'Size use 32;
+   type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
+   for Return_Status'Size use 32;
 
-	type MySQL_Oid_Type is mod 2 ** 64;
-	for MySQL_Oid_Type'Size use 64;
+   type MySQL_Oid_Type is mod 2 ** 64;
+   for MySQL_Oid_Type'Size use 64;
 
-	type u_long is mod 2 ** 32;
+   type u_long is mod 2 ** 32;
    for u_long'size use 32;
 
    function toUnsigned is new ada.Unchecked_Conversion(Source => Option_type, Target => u_long  );
+   function toUnsigned is new ada.Unchecked_Conversion(Source => Option_type, Target => MySQL_Enum_Option  );
 
 	Null_Row_ID : constant Row_ID_Type := 0;
 

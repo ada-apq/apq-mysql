@@ -299,12 +299,45 @@ c_mysql_options_char(MYSQL *conn,unsigned option,char *arg) {
 } */
 
 EXPORT int
+c_mysql_options_notused_v2(MYSQL *conn,unsigned option) {
+	enum mysql_option opt = option;
+
+	return mysql_options(conn,opt,0);
+}
+
+EXPORT int
+c_mysql_options_uint_v2(MYSQL *conn,unsigned option,unsigned arg) {
+	enum mysql_option opt = option;
+
+	return mysql_options(conn,opt,(char *)&arg);
+}
+
+EXPORT int
+c_mysql_options_puint_v2(MYSQL *conn,unsigned option,unsigned arg) {
+	enum mysql_option opt = option;
+	static const unsigned my_true = 1;
+	static const unsigned my_false = 0;
+
+	return mysql_options(conn,opt,(char *)(arg ? &my_true : &my_false));
+}
+
+/* retirar o qualificador (char *) das funcoes c_mysl_options_*() ? ja que o tipo é (void *) ? */
+
+EXPORT int
+c_mysql_options_char_v2(MYSQL *conn,unsigned option,char *arg) {
+	enum mysql_option opt = option;
+
+	return mysql_options(conn,opt,arg);
+}
+
+/*
+EXPORT int
 c_mysql_options_nonspecif(MYSQL *conn,unsigned long option,void *arg) {
   int z;
   unsigned long opt = option;
   z = mysql_options(conn,opt, &arg);
   return  IS_OK(z);
-  /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
+  // because argument is now "void*" , is correct use of "&" ? need casting ? or not?
 }
 
 EXPORT int
@@ -313,8 +346,10 @@ c_mysql_options_char_array(MYSQL *conn, const unsigned long option,const char *a
   unsigned long opt = option;
   z = mysql_options(conn,opt, (char *)&arg);
   return  IS_OK(z);
-  /* because argument is now "void*" , is correct use of "&" ? need casting ? or not? */
+  // because argument is now "void*" , is correct use of "&" ? need casting ? or not?
 }
+*/
+
 
 
 /************************************************/
@@ -386,11 +421,11 @@ c_mysql_escape_string(char *to,const char *from,unsigned long length) {
 }
 /* acrescentei essa funcao :-)  */
 
-EXPORT int
+EXPORT void
 c_mysql_ssl_set_v2(MYSQL *mysql, const char *key, const char *cert, const char *ca, const  char *capath, const char *cipher){
   int z;
-  z =  mysql_ssl_set(mysql, key, cert, ca, capath, cipher);
-  return IS_OK(z);
+  z = mysql_ssl_set(mysql, key, cert, ca, capath, cipher);
+  /* allways return 0 :-). this will issue a error when hit mysql_real_connect and ssl option was wrong */
 }
 
 /* End $Source: /cvsroot/apq/apq/c_mysql.c,v $ */
