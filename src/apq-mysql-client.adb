@@ -83,10 +83,6 @@ package body APQ.MySQL.Client is
 		return Return_Status;
 	pragma import(C,mysql_select_db,"c_mysql_select_db");
 
-        function mysql_get_host_name(C : MYSQL)
-		return Interfaces.C.Strings.chars_ptr;
-	pragma import(C,mysql_get_host_name,"c_mysql_get_host_name");
-
         function mysql_query(conn : MYSQL; query : System.Address)
 		return Return_Status;
 	pragma import(C,mysql_query,"c_mysql_query");
@@ -364,7 +360,7 @@ package body APQ.MySQL.Client is
 		if not Is_Connected(C) then
 			return Port(Root_Connection_Type(C));
 		else
-			return To_Ada(Value(mysql_unix_socket(C.Connection)));
+			return Value_of(mysql_unix_socket(C.Connection));
 		end if;
 	end Port;
 
@@ -772,6 +768,9 @@ package body APQ.MySQL.Client is
       end if;
    end if;
 
+      --C.keyval_type(ckc).all := new  kval_type;
+     -- C.keyval_type(ckc) := new  Argument_Type'(kval_type);
+      C.keyval_type(ckc) := new  Argument_Type;
       C.keyval_type(ckc).all := kval_type;
       C.keyval_Caseless(ckc)       := kvalcasele;
       C.keyname_val_cache_uptodate := false;
@@ -1050,14 +1049,15 @@ package body APQ.MySQL.Client is
       elsif c.Port_Format = UNIX_port then
 	 tmp_ub_know_options := To_Unbounded_String(" host_name =") & host_name &
 	   to_unbounded_string("  port_name=" ) & port_name & To_Unbounded_String("  user=") & user &
-	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
+	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname & to_unbounded_string("  ");
       else
 	 raise Program_Error;
       end if;
 
-      if C.keyname_val_cache_Common /= null then
+      if C.keyname_val_cache_common /= null then
 	 for b in C.keyname_val_cache_common.all'range loop
-	    if C.keyname_val_cache_common.all(b).all.valido then
+	    if C.keyname_val_cache_common.all(b) /= null
+	      and then C.keyname_val_cache_common.all(b).all.valido then
 	       tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String(string'(Option_type'image(b)));
 	       if C.keyname_val_cache_common.all(b).all.char_part = null then
 		  if  C.keyname_val_cache_common.all(b).all.unsigned_part = null then -- weird ;-) well... in a normal way this never occur. just prudent :-)
@@ -1210,32 +1210,6 @@ package body APQ.MySQL.Client is
 	 Raise_Exception(Not_Connected'Identity,
 		  "MY10: Failed to connect to database server (Connect).");
       end if;
-      --this parte was removed because after a disconnect(c1) and a posterior new connect(c1)
-      -- the "c1" possesses wrong values and dont connect ( eg. if using set_host_name() it dont work :-)
-      --
-
---  	 declare
---  	    Host_Name : String := To_Ada(Value(mysql_get_host_name(C.Connection)));
---  	 begin
---  	    Replace_String(C.Host_Name,Host_Name);
---  	 end;
---
---  	 declare
---  	    UNIX_Socket : String := To_Ada(Value(mysql_unix_socket(C.Connection)));
---  	 begin
---  	    if UNIX_Socket /= "" then
---  	       C.Port_Format := UNIX_Port;
---  	       Replace_String(C.Port_Name,UNIX_Socket);
---  	       -- Update socket pathname
---  	    else
---  	       C.Port_Format := IP_Port;
---  	       C.Port_Number := mysql_port(C.Connection);
---  	       -- Update port number used
---  	       if C.Port_Name /= null then
---  		  Free(C.Port_Name);
---  	       end if;
---  	    end if;
---  	 end;
 
    end Connect;
    ----------------------------------------
@@ -1250,48 +1224,6 @@ package body APQ.MySQL.Client is
 		      "MY01: MySQL, Connect_ssl() is obsolete. use add_key_nameval() (Connect_ssl).");
    end Connect_ssl;
 
-      --------------------------
---  	procedure Connect_old(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
---  		type Info_Func is access function(C : Connection_Type) return String;
---
---  		procedure Clone(S : in out String_Ptr; Get_Info : Info_Func) is
---  			Info : String := Get_Info(Connection_Type(Same_As));
---  		begin
---  			if Info'Length > 0 then
---  				S     := new String(1..Info'Length);
---  				S.all := Info;
---  			else
---  				null;
---  				pragma assert(S = null);
---  			end if;
---  		end Clone;
---
---  	begin
---  		Reset(C);
---
---  		C.SQL_Case := Same_As.SQL_Case;
---
---  		Clone(C.Host_Name,Host_Name'Access);
---
---  		C.Port_Format := Same_As.Port_Format;
---  		if C.Port_Format = IP_Port then
---  			C.Port_Number := Port(Same_As);     -- IP_Port
---  		else
---  			Clone(C.Port_Name,Port'Access);     -- UNIX_Port
---  		end if;
---
---  		Clone(C.DB_Name,DB_Name'Access);
---  		Clone(C.User_Name,User'Access);
---  		Clone(C.User_Password,Password'Access);
---  		Clone(C.Options,Options'Access);
---
---  		C.Rollback_Finalize  := Same_As.Rollback_Finalize;
---
---  		Connect(C);	-- Connect to database before worrying about trace facilities
---
---  		-- TRACE FILE & TRACE SETTINGS ARE NOT CLONED
---
---  	end Connect_old;
    procedure Connect(C : in out Connection_Type; Same_As : Root_Connection_Type'Class) is
 
       type Info_Func is access function(C : Connection_Type) return String;

@@ -162,11 +162,6 @@ c_mysql_select_db(MYSQL *conn,const char *database) {
 	return IS_OK(z);
 }
 
-EXPORT char *
-c_mysql_get_host_name(MYSQL *conn) {
-	return conn->host;
-}
-
 EXPORT int
 c_mysql_query(MYSQL *conn,char *query) {
 	int z;

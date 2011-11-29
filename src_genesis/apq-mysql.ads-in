@@ -99,12 +99,14 @@ private
 	 char_part : char_array_access := null;
       end record;
 
-   type common_part_record_ptr is access common_part_record;
-   type ssl_part_record_ptr is access ssl_part_record;
 
+
+
+   type common_part_record_ptr is access common_part_record;
    type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
    type common_part_record_ptr_array_access is access common_part_record_ptr_array;
 
+   type ssl_part_record_ptr is access ssl_part_record;
    type ssl_part_record_ptr_array is array ( ssl_type ) of ssl_part_record_ptr;
    type ssl_part_record_ptr_array_access is access ssl_part_record_ptr_array;
 
