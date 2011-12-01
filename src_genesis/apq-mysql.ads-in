@@ -75,7 +75,21 @@ for Result_Type use (
 			  ARG_CHAR_PTR,   -- Argument is char pointer
 			  ARG_PTR_MY_BOOL  -- for future use. :-) ? can we use same options that arg_ptr_uint ? :-) just a Idea :-)
 			 );
-   type ssl_type is ( key , cert , ca , capath , cipher );
+   type ssl_type is ( no_ssl,
+		     key ,
+		     cert ,
+		     ca ,
+		     capath ,
+		     cipher
+		    );
+   for ssl_type use ( no_ssl => 0,
+		     key => 1 ,
+		     cert => 2 ,
+		     ca => 3,
+		     capath => 4,
+		     cipher => 5
+		       );
+   for ssl_type'Size use 32;
 
 private
    use Interfaces.c.Strings ,  Interfaces.c ;
@@ -84,7 +98,7 @@ private
 
    -- type Argument_Ptr is access all Argument_Type;
    type Argument_Array is array(Natural range <>) of Argument_Type;
-   type Argument_Array_Access is access all Argument_Ptr_Array;
+   type Argument_Array_Access is access all Argument_Array;
    --procedure Free is new Ada.Unchecked_Deallocation(Argument_Type, Argument_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation(Argument_Array, Argument_Array_Access);
 
@@ -99,29 +113,23 @@ private
 	 type_val : Argument_Type := ARG_CHAR_PTR ;
 	 valido : boolean := false;
       end record;
+   type common_part_record_ptr is access all common_part_record;
+   type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
+   type common_part_record_ptr_array_access is access all common_part_record_ptr_array;
+
    type ssl_part_record is new root_base_record with
       record
 	 string_ptr_part : String_Ptr ;
 	 valido : boolean := false;
       end record;
 
-   type common_part_record_ptr is access all common_part_record;
-   type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
-   type common_part_record_ptr_array_access is access all common_part_record_ptr_array;
-
---     type ssl_part_record_ptr is access all ssl_part_record;
---     type ssl_part_record_ptr_array is array ( ssl_type ) of ssl_part_record_ptr;
---     type ssl_part_record_ptr_array_access is access all ssl_part_record_ptr_array;
    type ssl_part_record_array is array ( ssl_type ) of ssl_part_record;
    type ssl_part_record_array_access is access all ssl_part_record_array;
 
-   -- procedure free is new ada.Unchecked_Deallocation( ssl_part_record , ssl_part_record_ptr   );
-   -- procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_ptr_array , ssl_part_record_ptr_array_access  );
    procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_array , ssl_part_record_array_access  );
 
    procedure free is new ada.Unchecked_Deallocation( common_part_record , common_part_record_ptr   );
    procedure free is new ada.Unchecked_Deallocation(  common_part_record_ptr_array , common_part_record_ptr_array_access  );
-
 
    type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
    for Return_Status'Size use 32;
@@ -132,7 +140,6 @@ private
    type u_long is mod 2 ** 32;
    for u_long'size use 32;
 
-   function toUnsigned is new ada.Unchecked_Conversion(Source => Option_type, Target => u_long  );
    function toUnsigned is new ada.Unchecked_Conversion(Source => Option_type, Target => MySQL_Enum_Option  );
 
 	Null_Row_ID : constant Row_ID_Type := 0;
