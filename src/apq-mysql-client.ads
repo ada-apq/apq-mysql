@@ -129,6 +129,8 @@ package APQ.MySQL.Client is
    procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0);
 
    function verifica_conninfo_cache( C : Connection_Type) return string;
+   -- only already cached value(s) even if not update. if you want show all values
+   -- even if not uptodate before a connect(), you can use cache_key_nameval_create() :-)
 
     	procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True);
 
@@ -229,15 +231,15 @@ private
   	         ----
 	 keyname     : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
 	 keyval      : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
-	 keyval_type : Argument_Ptr_Array_Access;
+	 keyval_type : Argument_Array_Access; -- no need to be a 'Ptr' ! :-)
 	 keycount    : natural := 0;
 	 keyalloc : natural := 0;
 
          keyval_Caseless   : Boolean_Array_Access;
 	 keyname_Caseless  : Boolean_Array_Access;
 
-	 keyname_val_cache_common : common_part_record_ptr_array_access  ; -- for bypass "the recreate it"
-	 keyname_val_cache_ssl : ssl_part_record_ptr_array_access  ; -- for bypass "the recreate it"
+	 keyname_val_cache_common   : common_part_record_ptr_array_access  ; -- for bypass "the recreate it"
+	 keyname_val_cache_ssl      : ssl_part_record_array_access  ; -- for bypass "the recreate it"
 	 keyname_val_cache_uptodate : boolean := false; -- if keyname_val_cache_uptodate = true (True)
 
          keyname_default_case : SQL_Case_Type := Lower_Case;

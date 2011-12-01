@@ -68,11 +68,12 @@ for Result_Type use (
    	for  Option_type'Size use 32;
 
    type Argument_Type is (
+			  none,
 			  ARG_NOT_USED,  -- No argument
 			  ARG_UINT,      -- Argument is unsigned int
 			  ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
-			  ARG_CHAR_PTR   -- Argument is char pointer
-			  -- , ARG_PTR_MY_BOOL  -- for future use. :-)
+			  ARG_CHAR_PTR,   -- Argument is char pointer
+			  ARG_PTR_MY_BOOL  -- for future use. :-) ? can we use same options that arg_ptr_uint ? :-) just a Idea :-)
 			 );
    type ssl_type is ( key , cert , ca , capath , cipher );
 
@@ -81,11 +82,11 @@ private
 
    type MySQL_Enum_Option is mod 2**32;
 
-   type Argument_Ptr is access all Argument_Type;
-   type Argument_Ptr_Array is array(Natural range <>) of Argument_Ptr;
-   type Argument_Ptr_Array_Access is access all Argument_Ptr_Array;
-   procedure Free is new Ada.Unchecked_Deallocation(Argument_Type, Argument_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation(Argument_Ptr_Array, Argument_Ptr_Array_Access);
+   -- type Argument_Ptr is access all Argument_Type;
+   type Argument_Array is array(Natural range <>) of Argument_Type;
+   type Argument_Array_Access is access all Argument_Ptr_Array;
+   --procedure Free is new Ada.Unchecked_Deallocation(Argument_Type, Argument_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation(Argument_Array, Argument_Array_Access);
 
    type base_type is ( none , common , ssl ); -- you can sugest more :-)
    type unsigned_integer is new Interfaces.c.unsigned;
@@ -94,27 +95,30 @@ private
    type common_part_record is new root_base_record with
       record
 	 string_ptr_part : String_Ptr ;
-	 -- unsigned_part : Unsigned_Ptr; --- DNM! :-) consider using just a non-access :-)
-	 unsigned_part : unsigned_integer := 0; --- "here" using just a non-access :-)
+	 unsigned_part : unsigned_integer := 0;
 	 type_val : Argument_Type := ARG_CHAR_PTR ;
 	 valido : boolean := false;
       end record;
    type ssl_part_record is new root_base_record with
       record
 	 string_ptr_part : String_Ptr ;
+	 valido : boolean := false;
       end record;
 
    type common_part_record_ptr is access all common_part_record;
    type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
    type common_part_record_ptr_array_access is access all common_part_record_ptr_array;
 
-   type ssl_part_record_ptr is access all ssl_part_record;
-   type ssl_part_record_ptr_array is array ( ssl_type ) of ssl_part_record_ptr;
-   type ssl_part_record_ptr_array_access is access all ssl_part_record_ptr_array;
+--     type ssl_part_record_ptr is access all ssl_part_record;
+--     type ssl_part_record_ptr_array is array ( ssl_type ) of ssl_part_record_ptr;
+--     type ssl_part_record_ptr_array_access is access all ssl_part_record_ptr_array;
+   type ssl_part_record_array is array ( ssl_type ) of ssl_part_record;
+   type ssl_part_record_array_access is access all ssl_part_record_array;
 
+   -- procedure free is new ada.Unchecked_Deallocation( ssl_part_record , ssl_part_record_ptr   );
+   -- procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_ptr_array , ssl_part_record_ptr_array_access  );
+   procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_array , ssl_part_record_array_access  );
 
-   procedure free is new ada.Unchecked_Deallocation( ssl_part_record , ssl_part_record_ptr   );
-   procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_ptr_array , ssl_part_record_ptr_array_access  );
    procedure free is new ada.Unchecked_Deallocation( common_part_record , common_part_record_ptr   );
    procedure free is new ada.Unchecked_Deallocation(  common_part_record_ptr_array , common_part_record_ptr_array_access  );
 

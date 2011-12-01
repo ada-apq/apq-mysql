@@ -267,37 +267,6 @@ c_cheat_mysql_error(MYSQL_RES *results) {
 	else	return mysql_error(conn);
 }
 
-/*
-EXPORT int
-c_mysql_options_notused(MYSQL *conn,unsigned option) {
-	enum mysql_option opt = option;
-
-	return mysql_options(conn,opt,0);
-}
-
-EXPORT int
-c_mysql_options_uint(MYSQL *conn,unsigned option,unsigned arg) {
-	enum mysql_option opt = option;
-
-	return mysql_options(conn,opt,(char *)&arg);
-}
-
-EXPORT int
-c_mysql_options_puint(MYSQL *conn,unsigned option,unsigned arg) {
-	enum mysql_option opt = option;
-	static const unsigned my_true = 1;
-	static const unsigned my_false = 0;
-
-	return mysql_options(conn,opt,(char *)(arg ? &my_true : &my_false));
-}
-
-EXPORT int
-c_mysql_options_char(MYSQL *conn,unsigned option,char *arg) {
-	enum mysql_option opt = option;
-
-	return mysql_options(conn,opt,arg);
-} */
-
 EXPORT int
 c_mysql_options_notused_v2(MYSQL *conn,unsigned option) {
 	enum mysql_option opt = option;
@@ -321,7 +290,6 @@ c_mysql_options_puint_v2(MYSQL *conn,unsigned option,unsigned arg) {
 	return mysql_options(conn,opt,(char *)(arg ? &my_true : &my_false));
 }
 
-/* retirar o qualificador (char *) das funcoes c_mysl_options_*() ? ja que o tipo é (void *) ? */
 
 EXPORT int
 c_mysql_options_char_v2(MYSQL *conn,unsigned option,char *arg) {
@@ -329,28 +297,6 @@ c_mysql_options_char_v2(MYSQL *conn,unsigned option,char *arg) {
 
 	return mysql_options(conn,opt,arg);
 }
-
-/*
-EXPORT int
-c_mysql_options_nonspecif(MYSQL *conn,unsigned long option,void *arg) {
-  int z;
-  unsigned long opt = option;
-  z = mysql_options(conn,opt, &arg);
-  return  IS_OK(z);
-  // because argument is now "void*" , is correct use of "&" ? need casting ? or not?
-}
-
-EXPORT int
-c_mysql_options_char_array(MYSQL *conn, const unsigned long option,const char *arg) {
-  int z;
-  unsigned long opt = option;
-  z = mysql_options(conn,opt, (char *)&arg);
-  return  IS_OK(z);
-  // because argument is now "void*" , is correct use of "&" ? need casting ? or not?
-}
-*/
-
-
 
 /************************************************/
 /* These are only wrappers, to allow for the    */

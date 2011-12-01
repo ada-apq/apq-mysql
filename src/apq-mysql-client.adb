@@ -32,6 +32,7 @@
 with Ada.Text_IO; 		use Ada.Text_IO;
 with Ada.Exceptions;		use Ada.Exceptions;
 with Ada.Strings.Unbounded;
+with ada.strings.Unbounded.Text_IO; -- only for test
 with Ada.Characters.Handling;
 with Ada.IO_Exceptions;
 with Interfaces.C.Strings;
@@ -156,8 +157,6 @@ package body APQ.MySQL.Client is
 		to, from : System.Address; length : u_long) return u_long;
    pragma import(C,mysql_real_escape_string,"c_mysql_real_escape_string");
 
-
-   --- DNM!!
    	function mysql_options_notused(connection : MYSQL;
 		opt : MySQL_Enum_Option) return Interfaces.C.int;
 	pragma import(C,mysql_options_notused,"c_mysql_options_notused_v2");
@@ -176,20 +175,6 @@ package body APQ.MySQL.Client is
 		opt : MySQL_Enum_Option; arg : System.Address)
 		return Interfaces.C.int;
    pragma import(C,mysql_options_char,"c_mysql_options_char_v2" );
-
---     function mysql_options_nonspecif(connection : MYSQL;
---  				    opt : u_long ;
---  				    arg : System.Address
---  				      )	return Interfaces.C.int;
---     pragma import(C,mysql_options_nonspecif,"c_mysql_options_nonspecif");
---
---     function mysql_options_char_array(connection : MYSQL;
---  				    opt : u_long ;
---  				    arg : System.Address
---  				      )	return Interfaces.C.int;
---     pragma import(C,mysql_options_char_array,"c_mysql_options_char_array");
-   ----DNM!!
-
 
    procedure my_set_ssl(conn : MYSQL; kkey,ccert,cca,ccapath,ccipher: system.Address );
    pragma import(c,my_set_ssl ,"c_mysql_ssl_set_v2");
@@ -385,7 +370,7 @@ package body APQ.MySQL.Client is
 		if not Is_Connected(C) then
 			return Port(Root_Connection_Type(C));
 		else
-			return Value_of(mysql_unix_socket(C.Connection));
+			return To_ada(value(mysql_unix_socket(C.Connection)));
 		end if;
 	end Port;
 
@@ -449,7 +434,7 @@ package body APQ.MySQL.Client is
 
          C.keyname := new String_Ptr_Array(1..C.keyalloc);
 	 C.keyval  := new String_Ptr_Array(1..C.keyalloc);
-	 C.keyval_type := new Argument_Ptr_Array(1..C.keyalloc);
+	 C.keyval_type := new Argument_Array(1..C.keyalloc => none );
 
          C.keyname_Caseless  := new Boolean_Array(1..C.keyalloc);
          C.keyval_Caseless   := new Boolean_Array(1..C.keyalloc);
@@ -459,7 +444,7 @@ package body APQ.MySQL.Client is
             New_keyAlloc : Natural := C.keyAlloc + 64;
             New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
 	    New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..New_keyAlloc);
-	    New_Array_Keyval_Type : Argument_Ptr_Array_Access := new Argument_Ptr_Array(1..New_keyAlloc);
+	    New_Array_Keyval_Type : Argument_Array_Access := new Argument_Array(1..New_keyAlloc => none );
 
             New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
             New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..New_keyAlloc);
@@ -499,171 +484,6 @@ package body APQ.MySQL.Client is
       -- fixme: proper exception/error handler  :-)
    end cache_key_nameval_uptodate;
 
-   --
---     procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false)
---     is
---        pragma optimize(time);
---
---        use ada.strings.Unbounded;
---        use ada.strings.Fixed;
---        use ada.Strings;
---        use Ada.Characters.Handling;
---        use System;
---        use Interfaces.C, Interfaces.C.Strings;
---
---        a : natural := c.keycount; -- number of keyname's and keyval's
---        bool1 : boolean := false;
---        -- mint : integer := 0;
---        mi_count : integer := 0;
---        tmp_hold_stuff_common : common_part_record_ptr_array_access := null ;
---        tmp_hold_stuff_ssl : ssl_part_record_ptr_array_access := null ;
---
---        tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(160);
---        tmp_ub_keyname : Unbounded_String := To_Unbounded_String(30);
---        tmp_ub_keyval : Unbounded_String := To_Unbounded_String(30);
---
---     begin
---        if cache_key_nameval_uptodate( C ) and force = false then return; end if; -- bahiii :-)
---        Free(c.keyname_val_cache_common );
---        Free(c.keyname_val_cache_ssl );
---
---
---        if not (c.Port_Format = UNIX_Port or c.Port_Format = IP_Port ) then
---           raise program_error;
---        end if;
---
---        if not( a > 0 ) then
---  	 c.keyname_val_cache_uptodate := true;
---  	 return; -- bahiii :-)
---        end if;
---
---        for b in 1 .. a loop
---  	 tmp_ub_keyname := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyname(b))))),ada.Strings.both);
---  	 if c.keyval_type(b).all = ARG_CHAR_PTR then
---              if c.keyval_Caseless(b) or c.keyval_default_case = Preserve_Case then
---                 tmp_ub_keyval := trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both);
---              else
---                 if c.keyname_default_case = Lower_Case then
---                    tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Lower(string'(To_String(C.keyval(b)))))),ada.Strings.both);
---                 else
---                    tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Upper(string'(To_String(C.keyval(b)))))),ada.Strings.both);
---                 end if;
---  	    end if;
---  	 else
---  	    tmp_ub_keyval := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyval(b))))),ada.Strings.both);
---  	 end if;
---  	 bool1 := false;
---
---  	 declare -- verify, non-specific
---  	    I_am : apq.mysql.Option_type := apq.mysql.Option_type'value(to_string(tmp_ub_keyname));
---  	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
---  	    I_will : string := to_Ada(I_be);
---  	 begin
---  	    if tmp_hold_stuff_common = null then
---  	       tmp_hold_stuff_common := new common_part_record_ptr_array'( others => null );
---  	    end if;
---
---  	    free( tmp_hold_stuff_common.all(I_am) );
---  	    tmp_hold_stuff_common.all(I_am) := new common_part_record ;
---  	    tmp_hold_stuff_common.all(I_am).all.valido := false;
---
---  	    case c.keyval_type(b).all is
---  	    when ARG_CHAR_PTR =>
---  	       tmp_hold_stuff_common.all(I_am).all.char_part := new char_array'( I_be );
---
---  	    when ARG_NOT_USED =>
---  	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned'(0) ;
---
---  	    when ARG_UINT =>
---  	       -- note: if conversion unsigned'value(kval) is invalid,
---  	       -- add_key_nameval() already  raise "Invalid_Format" exception :-)
---  	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := new interfaces.c.unsigned'(interfaces.c.unsigned'Value(I_will));
---
---  	    when ARG_PTR_UINT =>
---  	       -- note: if conversion unsigned'value(kval) is invalid,
---  	-- And kval differ from "" then kval := 1;  Otherwise kval := 0; end if;
---  	       if interfaces.c.unsigned'Value(string'(to_Ada(I_be))) /= 0 then
---  		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned'(1) ;
---  	       else
---  		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := new Interfaces.c.unsigned'(0) ;
---  	       end if;
---
---  	    end case;
---  	    tmp_hold_stuff_common.all(I_am).all.valido := true ;
---
---  	    bool1 := true;
---  	    goto continua; -- well... really judicious, this was my the better option :-)
---  	 exception
---  	    when constraint_error =>
---  	       bool1 := false;
---  	 end; -- non-specific
---
---  	 declare -- verify, specific , ssl
---  	    I_am : ssl_type := ssl_type'value(to_string(tmp_ub_keyname));
---  	    I_be : char_array := To_C(string'(to_string(tmp_ub_keyval)));
---  	 begin
---  	    if tmp_hold_stuff_ssl = null then
---  	       tmp_hold_stuff_ssl := new ssl_part_record_ptr_array'( others => null );
---  	    end if;
---  	    free( tmp_hold_stuff_ssl.all(I_am) );
---  	    tmp_hold_stuff_ssl.all(I_am) := new ssl_part_record ;
---  	    tmp_hold_stuff_ssl.all(I_am).all.char_part := new char_array'( I_be );
---
---  	    bool1 := true;
---  	    goto continua; -- well... really judicious, this was my the better option :-)
---  	    -- more specific options can be added in future. :-)
---  	 exception
---  	    when constraint_error =>
---  	       bool1 := false;
---  	 end; -- specific , ssl
---         -- more specific options from here
---
---  	 -- to before here :-)
---  	 <<continua>>
---  	 if bool1 = false then
---  	    mi_count := mi_count + 1 ;
---  	    if mi_count = 1 then
---  	       tmp_ub_dont_know_options := tmp_ub_keyname ;
---  	    else
---  	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & tmp_ub_keyname ;
---  	    end if;
---  	 end if;
---        end loop;
---
---        if mi_count > 0 then
---  	 if tmp_hold_stuff_common /= null then
---  	    for b in tmp_hold_stuff_common.all'range loop
---  	       if tmp_hold_stuff_common.all(b) /= null then
---  		  free( tmp_hold_stuff_common.all(b).all.char_part );
---  		  free( tmp_hold_stuff_common.all(b).all.unsigned_part );
---  		  free( tmp_hold_stuff_common.all(b) );
---  	       end if;
---  	    end loop;
---  	 end if;
---  	 if tmp_hold_stuff_ssl /= null then
---  	    for b in tmp_hold_stuff_ssl.all'range loop
---  	       if tmp_hold_stuff_ssl.all(b) /= null then
---  		  free( tmp_hold_stuff_ssl.all(b).all.char_part );
---  		  free( tmp_hold_stuff_ssl.all(b) );
---  	       end if;
---  	    end loop;
---  	 end if;
---
---  	 free(tmp_hold_stuff_ssl);
---  	 free(tmp_hold_stuff_common);
---
---  	 Raise_Exception(Failed'Identity ,
---  		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
---  	 return; -- :o]
---        end if;
---
---        C.keyname_val_cache_common := tmp_hold_stuff_common ;
---        C.keyname_val_cache_ssl := tmp_hold_stuff_ssl ;
---
---        C.keyname_val_cache_uptodate := true;
---
---     end cache_key_nameval_create;
---     --
 procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false)
    is
       pragma optimize(time);
@@ -680,17 +500,16 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
       -- mint : integer := 0;
       mi_count : integer := 0;
       tmp_hold_stuff_common : common_part_record_ptr_array_access;
-      tmp_hold_stuff_ssl : ssl_part_record_ptr_array_access;
+      tmp_hold_stuff_ssl : ssl_part_record_array_access;
 
       tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(160);
-      tmp_ub_keyname : Unbounded_String := To_Unbounded_String(30);
-      tmp_ub_keyval : Unbounded_String := To_Unbounded_String(30);
+      tmp_ub_keyname : Unbounded_String := To_Unbounded_String(60);
+      tmp_ub_keyval : Unbounded_String := To_Unbounded_String(160);
 
    begin
       if cache_key_nameval_uptodate( C ) and force = false then return; end if; -- bahiii :-)
       Free(c.keyname_val_cache_common );
       Free(c.keyname_val_cache_ssl );
-
 
       if not (c.Port_Format = UNIX_Port or c.Port_Format = IP_Port ) then
          raise program_error;
@@ -702,24 +521,37 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
       end if;
 
       for b in 1 .. a loop
-	 tmp_ub_keyname := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyname(b))))),ada.Strings.both);
-	 if c.keyval_type(b).all = ARG_CHAR_PTR then
-            if c.keyval_Caseless(b) or c.keyval_default_case = Preserve_Case then
-               tmp_ub_keyval := trim(Unbounded_String'(quote_string(string'(To_String(C.keyval(b))))),ada.Strings.both);
-            else
-               if c.keyname_default_case = Lower_Case then
-                  tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Lower(string'(To_String(C.keyval(b)))))),ada.Strings.both);
-               else
-                  tmp_ub_keyval := trim(Unbounded_String'(quote_string(To_Upper(string'(To_String(C.keyval(b)))))),ada.Strings.both);
-               end if;
-	    end if;
-	 else
-	    tmp_ub_keyval := trim(Unbounded_String'(To_Unbounded_String(string'(To_String(C.keyval(b))))),ada.Strings.both);
+	 if C.keyname(b) = null
+	   or else string'(trim(C.keyname(b).all ,ada.Strings.Both)) = ""
+	   or else c.keyval_type(b) = none
+	 then
+	    goto continua2; -- really judicious.
 	 end if;
+
+	 tmp_ub_keyname := To_Unbounded_String(string'(trim(C.keyname(b).all ,ada.Strings.both))); -- DNM!! Keyname null?
+
+	 if C.keyval(b) /= null
+	   and then C.keyval(b).all'Length >= 1
+	   and then string'(trim(C.keyval(b).all, ada.Strings.Both )) /= ""
+	 then
+	    tmp_ub_keyval := To_Unbounded_String(string'(trim(C.keyval(b).all, ada.Strings.Both )));
+	 else
+	    tmp_ub_keyval := To_Unbounded_String("");
+	 end if;
+	 if c.keyval_type(b) = ARG_CHAR_PTR then
+	    if not(c.keyval_Caseless(b) or c.keyval_default_case = Preserve_Case) then
+	       if c.keyname_default_case = Lower_Case then
+		  tmp_ub_keyval := To_Unbounded_String(string'(To_Lower(string'(to_string(tmp_ub_keyval)))));
+	       else
+		  tmp_ub_keyval := To_Unbounded_String(string'(To_upper(string'(to_string(tmp_ub_keyval)))));
+	       end if;
+	    end if;
+	 end if;
+
 	 bool1 := false;
 
 	 declare -- verify, non-specific
-	    I_am : apq.mysql.Option_type := apq.mysql.Option_type'value(to_string(tmp_ub_keyname));
+	    I_am : apq.mysql.Option_type := apq.mysql.Option_type'(apq.mysql.Option_type'value(to_string(tmp_ub_keyname)));
 	    I_be : string := to_string(tmp_ub_keyval);
 	 begin
 	    if tmp_hold_stuff_common = null then
@@ -729,22 +561,31 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
 	    free( tmp_hold_stuff_common.all(I_am) );
 	    tmp_hold_stuff_common.all(I_am) := new common_part_record ;
 	    tmp_hold_stuff_common.all(I_am).all.valido := false;
-	    tmp_hold_stuff_common.all(I_am).all.type_val := c.keyval_type(b).all ;
+	    tmp_hold_stuff_common.all(I_am).all.type_val := c.keyval_type(b) ;
 
-	    case c.keyval_type(b).all is
+	    case c.keyval_type(b) is
 	    when ARG_CHAR_PTR =>
-	       tmp_hold_stuff_common.all(I_am).all.string_ptr_part := new string( 1 .. I_be'Length );
+	       tmp_hold_stuff_common.all(I_am).all.string_ptr_part := new string( 1 .. (I_be'Length));
 	       tmp_hold_stuff_common.all(I_am).all.string_ptr_part.all := I_be ;
 
 	    when ARG_NOT_USED =>
 	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := 0 ;
+	       -- DNM!!  ? null(ish) string_ptr_part (?) when not used ?
 
 	    when ARG_UINT =>
 	       -- note: if conversion unsigned'value(kval) is invalid,
-	       -- add_key_nameval() already  raise "Invalid_Format" exception :-)
-	       tmp_hold_stuff_common.all(I_am).all.unsigned_part := unsigned_integer'Value(I_be);
+	-- add_key_nameval() already  raise "Invalid_Format" exception :-)
+	       declare
+		  mi_uiv : unsigned_integer := unsigned_integer'Value(I_be);
+	       begin
+		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := mi_uiv;
+	       exception -- eita!!
+		  when Constraint_Error =>
+		     tmp_hold_stuff_common.all(I_am).all.unsigned_part  := 0;
+	       end;
+	       -- DNM!!  ? need null(ish) string_ptr_part (?) when not used ?
 
-	    when ARG_PTR_UINT =>
+	    when ARG_PTR_UINT | ARG_PTR_MY_BOOL =>
 	       -- note: if conversion apq.mysql.unsigned_integer'value(kval) is invalid And
 	       -- kval differs from "" Then kval := 1;  Otherwise kval := 0; end if;
 	       if unsigned_integer'Value(I_be) /= 0 then
@@ -752,29 +593,42 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
 	       else
 		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := 0 ;
 	       end if;
+	       -- DNM!!  ? need null(ish) string_ptr_part (?) when not used ?
+	    when others =>  -- arg_char_ptr or arg_uint ? this can't occur... But
+	       declare
+		  mi_uiv : unsigned_integer := unsigned_integer'Value(I_be);
+	       begin
+		  tmp_hold_stuff_common.all(I_am).all.unsigned_part := mi_uiv;
+	       exception -- eita2!!
+		  when Constraint_Error =>
+		     tmp_hold_stuff_common.all(I_am).all.string_ptr_part := new string( 1 .. I_be'Length );
+		     tmp_hold_stuff_common.all(I_am).all.string_ptr_part.all := I_be ;
+	       end;
 	    end case;
 	    tmp_hold_stuff_common.all(I_am).all.valido := true ;
-
 	    bool1 := true;
-	    goto continua; -- well... really judicious, this was my the better option :-)
 	 exception
 	    when constraint_error =>
 	       bool1 := false;
 	 end; -- non-specific
+	 if bool1 then
+	    goto continua; -- well... really judicious, this was my the better option :-)
+	 end if;
 
 	 declare -- verify, specific , ssl
-	    I_am : ssl_type := ssl_type'value(to_string(tmp_ub_keyname));
+	    I_am : ssl_type := apq.mysql.ssl_type'(apq.mysql.ssl_type'value(string'(to_string(tmp_ub_keyname))));
 	    I_be : string := To_String(tmp_ub_keyval);
 	 begin
 	    if tmp_hold_stuff_ssl = null then
-	       tmp_hold_stuff_ssl := new ssl_part_record_ptr_array ;
+	       tmp_hold_stuff_ssl := new ssl_part_record_array ;
 	    end if;
-	    free( tmp_hold_stuff_ssl.all(I_am) );
-	    tmp_hold_stuff_ssl.all(I_am) := new ssl_part_record ;
-	    tmp_hold_stuff_ssl.all(I_am).all.string_ptr_part := new string( 1 .. I_be'Length );
-	    tmp_hold_stuff_ssl.all(I_am).all.string_ptr_part.all := I_be;
+	    -- free( tmp_hold_stuff_ssl.all(I_am) );
+     -- tmp_hold_stuff_ssl.all(I_am) := new ssl_part_record ;
+	    free(tmp_hold_stuff_ssl.all(I_am).string_ptr_part);
+	    tmp_hold_stuff_ssl.all(I_am).string_ptr_part := new string( 1 .. I_be'Length );
+	    tmp_hold_stuff_ssl.all(I_am).string_ptr_part.all := I_be;
+	    tmp_hold_stuff_ssl.all(I_am).valido := true;
 	    bool1 := true;
-	    goto continua; -- well... really judicious, this was my the better option :-)
 	    -- more specific options can be added in future. :-)
 	 exception
 	    when constraint_error =>
@@ -783,15 +637,18 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
        -- more specific options from here
 
 	 -- to before here :-)
+	 null;
 	 <<continua>>
 	 if bool1 = false then
 	    mi_count := mi_count + 1 ;
 	    if mi_count = 1 then
 	       tmp_ub_dont_know_options := tmp_ub_keyname ;
 	    else
-	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & " , " & tmp_ub_keyname ;
+	       tmp_ub_dont_know_options := tmp_ub_dont_know_options & To_Unbounded_String(" , ") & tmp_ub_keyname ;
 	    end if;
 	 end if;
+	 <<continua2>>
+	 null;
       end loop;
 
       if mi_count > 0 then
@@ -899,6 +756,11 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
          clear_all_key_nameval(C);
       end if;
       if tmp_kname = "" then return; end if; -- bahiii :-)
+      if kval_type = none then
+	Raise_Exception(Invalid_Format'Identity,
+		    "MY02: the value 'none' for kval_type is just a stub. :-) don't use it. (add_key_nameval).");
+		  return; -- forced bahiii! :-)
+      end if;
 
       if kval_type = ARG_UINT or kval_type = ARG_PTR_UINT then
 	 begin
@@ -925,7 +787,7 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
       ckc := C.keycount;
       C.keyname(ckc) := new String(1..tkm);
       C.keyname(ckc).all(1..tkm) := tmp_kname;
-   C.keyname_Caseless(ckc) := knamecasele;
+      C.keyname_Caseless(ckc) := knamecasele;
 
    if kval_type = ARG_UINT then
       declare
@@ -951,15 +813,16 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
       end;
    else	-- ToDo: if necessary, in future time, add my_bool type
       if tmp_kval = "" then
-         C.keyval(ckc) := new string'("") ;  -- DNM!!
+	    C.keyval(ckc) := new string(1..1) ;  -- DNM!!
+	    C.keyval(ckc).all(1..1) := " "; -- one(1) space :-)
       else
          C.keyval(ckc) := new String(1..tkv);
          C.keyval(ckc).all(1..tkv) := tmp_kval;
       end if;
    end if;
 
-      C.keyval_type(ckc) := new  Argument_Type;
-      C.keyval_type(ckc).all := kval_type;
+      -- C.keyval_type(ckc) := new  Argument_Type;
+      C.keyval_type(ckc) := kval_type;
       C.keyval_Caseless(ckc)       := kvalcasele;
       C.keyname_val_cache_uptodate := false;
 
@@ -1071,7 +934,7 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
          len        : natural := keycount_from;
          New_Array_keyname : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
 	 New_Array_keyval  : String_Ptr_Array_Access := new String_Ptr_Array(1..len);
-	 New_Array_Keyval_Type : Argument_Ptr_Array_Access := new Argument_Ptr_Array(1..len);
+	 New_Array_Keyval_Type : Argument_Array_Access := new Argument_Array(1..len => none );
 
          New_Case_keyname  : Boolean_Array_Access    := new Boolean_Array(1..len);
          New_Case_keyval   : Boolean_Array_Access    := new Boolean_Array(1..len);
@@ -1098,156 +961,7 @@ procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean 
       end ;
    end clone_clone_my;
 
-
---     procedure my_process_options( C : Connection_Type) is
---        pragma Optimize(Time);
---
---        use ada.strings.Unbounded;
---        use ada.strings.Fixed;
---        use interfaces.c.Strings, interfaces.c;
---        use system;
---
---        tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(50);
---        mi_count : Integer := 0;
---        mi_hold : unsigned_integer := 0;
---
---        mi_h_address : system.Address := system.Null_Address;
---        mi_h_char_array : char_array_access ;
---
---        mi_hold_unsigned : Unsigned_Ptr ;
---
---        mi_b : u_long := 0;
---     begin
---        if  C.Connection = Null_Connection or
---         ( C.keyname_val_cache_common = null and C.keyname_val_cache_ssl = null )
---        then return; end if; -- bahiii ! :-)
---
---        if C.keyname_val_cache_Common /= null then
---  	 for b in C.keyname_val_cache_common.all'range loop
---  	    mi_b := toUnsigned(b);
---
---  	    if C.keyname_val_cache_common.all(b) /= null
---  	      and then C.keyname_val_cache_common.all(b).all.valido
---  	    then
---  	       if C.keyname_val_cache_common.all(b).all.char_part = null then
---  		  ---------------------------------
---  		  if mi_hold_unsigned /= null then
---  		     free(mi_hold_unsigned);
---  		  end if;
---  		  mi_hold_address  := system.Null_Address;
---  		  mi_hold_unsigned := new interfaces.c.unsigned;
---  		  if  C.keyname_val_cache_common.all(b).all.unsigned_part = null then -- weird ;-) well... in a normal way this never occur. just prudent :-)
---  		     mi_hold_unsigned.all := Interfaces.c.unsigned'(0);
---  		  else
---  		     mi_hold_unsigned.all := C.keyname_val_cache_common.all(b).all.unsigned_part.all;
---  		  end if;
---  		  mi_hold_address := mi_hold_unsigned'Address;
---
---  		  ----------------------------------- test only ------------
---  		  mi_hold := mysql_options_nonspecif(connection => C.Connection,
---  					   opt        => mi_b ,
---  				       arg        => mi_hold_address );
---  		  -----------------------------------------------------------
---  	       else
---  		  if mi_hold_char_array /= null then
---  		     free(mi_hold_char_array);
---  		  end if;
---  		  mi_hold_address  := system.Null_Address;
---  --  		  mi_hold_char_array := new char_array( 1 .. size_t(C.keyname_val_cache_common.all(b).all.char_part.all'Length));
---  --  		  mi_hold_char_array.all := C.keyname_val_cache_common.all(b).all.char_part.all;
---  		  --mi_hold_char_array := new char_array( 1 .. size_t(C.keyname_val_cache_common.all(b).all.char_part.all'Length));
---  ---mi_hold_char_array.all := C.keyname_val_cache_common.all(b).all.char_part.all;
---  		  if string'(to_ada(C.keyname_val_cache_common.all(b).all.char_part.all)) /= "" then
---  		     mi_hold_char_array := new char_array'( to_c(string'(to_ada(C.keyname_val_cache_common.all(b).all.char_part.all))));
---  		     mi_hold_address := mi_hold_char_array.all'Address; -- add .all
---  		  end if;
---
---
---
---  		  mi_hold := mysql_options_char_array(connection => C.Connection,
---  					   opt        => mi_b ,
---  					   arg        => mi_hold_address );
---  	       end if;
---  --  	       mi_hold := mysql_options_nonspecif(connection => C.Connection,
---  --  					   opt        => mi_b ,
---  --  					   arg        => mi_hold_address );
---
---  	       if mi_hold = 0 then
---  		  mi_count := mi_count + 1 ;
---  		  if mi_count = 1 then
---  		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & To_Unbounded_String(Option_type'image(b)) &
---  		       To_Unbounded_String("' => value '") ;
---  		  else
---  		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & "' , " & To_Unbounded_String(" error Key '") &
---  		       To_Unbounded_String(Option_type'image(b)) & To_Unbounded_String("' => value ' ") ;
---  		  end if;
---  		  if C.keyname_val_cache_common.all(b).all.char_part = null then
---  		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
---  		       To_Unbounded_String(string'(trim(string'(interfaces.c.unsigned'image(mi_hold_unsigned.all)),ada.Strings.Both))) ;
---  		  else
---  		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
---  		       To_Unbounded_String(string'(To_Ada(mi_hold_char_array.all)));
---  		  end if;
---  	       end if;
---  	    end if;
---  	 end loop;
---        end if;
---
---     if C.keyname_val_cache_ssl /= null then
---  	 declare
---  	    b      : ssl_part_record_ptr_array renames C.keyname_val_cache_ssl.all ;
---  	    ukey    : unbounded_string := To_Unbounded_String("");
---  	    ucert   : unbounded_string := To_Unbounded_String("");
---  	    uca     : unbounded_string := To_Unbounded_String("");
---  	    ucapath : unbounded_string := To_Unbounded_String("");
---  	    ucipher : unbounded_string := To_Unbounded_String("");
---  	 begin -- key , cert , ca , capath, cipher
---  	    if b(key).all.char_part /= null then
---  	       ukey := To_Unbounded_String(string'(To_Ada( b(key).all.char_part.all)) );
---  	    end if;
---  	    if b(cert).all.char_part /= null then
---  	       ucert := To_Unbounded_String( string'(To_Ada( b(cert).all.char_part.all)) );
---  	    end if;
---  	    if b(ca).all.char_part /= null then
---  	       uca := To_Unbounded_String( string'(To_Ada( b(ca).all.char_part.all)) );
---  	    end if;
---  	    if b(capath).all.char_part /= null then
---  	       ucapath := To_Unbounded_String( string'(To_Ada( b(capath).all.char_part.all)) );
---  	    end if;
---  	    if b(cipher).all.char_part /= null then
---  	       ucipher:= To_Unbounded_String( string'(To_Ada( b(cipher).all.char_part.all)) );
---  	    end if;
---
---  	    if set_ssl(C1    => C.Connection,
---  		key    => to_string(ukey),
---  		cert   => to_string(ucert),
---  		ca     => to_string(uca),
---  		capath => to_string(ucapath),
---  		cipher => to_string(ucipher) ) = 0
---  	    then
---  	       mi_count := mi_count + 1 ;
---  	       if mi_count /= 1 then
---  		  tmp_ub_dont_know_options := tmp_ub_dont_know_options & To_Unbounded_String(" , ") ;
---  	       end if;
---  	       tmp_ub_dont_know_options := tmp_ub_dont_know_options &
---  		 To_Unbounded_String(" (SSL) ==> key =") & ukey &
---  		 To_Unbounded_String("' cert =") & ucert &
---  		 To_Unbounded_String("' ca =") & uca &
---  		 To_Unbounded_String("' capath =") & ucapath &
---  		 To_Unbounded_String("' cipher =") & ucipher ;
---  	    end if;
---  	 end;
---        end if;
---
---        if mi_count > 0 then
---  	 Raise_Exception(Failed'Identity ,
---  		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
---        end if;
---
---        return; -- :o]
---
---     end my_process_options;
-procedure my_process_options( C : Connection_Type) is
+   procedure my_process_options( C : Connection_Type) is
       pragma Optimize(Time);
 
       use ada.strings.Unbounded; use ada.strings.Fixed;
@@ -1264,9 +978,6 @@ procedure my_process_options( C : Connection_Type) is
 
       mi_h_char_array_access : interfaces.c.Strings.char_array_access;
       pragma Volatile(mi_h_char_array_access);
-
-      mi_h_string_ptr : String_Ptr ;
-      pragma Volatile(mi_h_string_ptr);
 
       mi_h_unsigned : Unsigned_integer ;
 
@@ -1294,8 +1005,7 @@ procedure my_process_options( C : Connection_Type) is
 	       when ARG_CHAR_PTR =>
 		  C_String( C.keyname_val_cache_common.all(b).all.string_ptr_part ,
 	     mi_h_char_array_access ,
-	     mi_h_address
-	    );
+	     mi_h_address );
 		  mi_hold := mysql_options_char( mi_connect, mi_b, mi_h_address );
 
 	       when  ARG_NOT_USED =>
@@ -1315,18 +1025,18 @@ procedure my_process_options( C : Connection_Type) is
 	       if mi_hold /= 0 then
 		  mi_count := mi_count + 1 ;
 		  if mi_count /= 1 then
-		     tmp_ub_dont_know_options := tmp_ub_dont_know_options & "' , " & To_Unbounded_String(" error Key '") &
-		       To_Unbounded_String(Option_type'image(b)) & To_Unbounded_String("' => value ' ") ;
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &  To_Unbounded_String(", Key ") &
+		       To_Unbounded_String( "'" & string'(trim(string'(Option_type'image(b)), ada.Strings.Both)) & "' value=>" );
 		  else
-		     tmp_ub_dont_know_options := To_Unbounded_String(" error Key '") & To_Unbounded_String(Option_type'image(b)) &
-		       To_Unbounded_String("' => value '") ;
+		     tmp_ub_dont_know_options := To_Unbounded_String(" Key ") &
+		       To_Unbounded_String( "'" & string'(trim(string'(Option_type'image(b)), ada.Strings.Both)) & "' value=>" );
 		  end if;
 		  if mi_t /= ARG_CHAR_PTR then
 		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		       To_Unbounded_String(string'(trim(string'(unsigned_integer'image(mi_h_unsigned)),ada.Strings.Both))) ;
+		       To_Unbounded_String( "'" & string'(trim(string'(unsigned_integer'image(mi_h_unsigned)),ada.Strings.Both)) & "'" );
 		  else
 		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
-		       To_Unbounded_String(string'(To_Ada(mi_h_char_array_access.all)));
+		       To_Unbounded_String( "'" & string'(To_Ada(mi_h_char_array_access.all)) & "'" );
 		  end if;
 	       end if;
 	    end if;
@@ -1420,38 +1130,38 @@ procedure my_process_options( C : Connection_Type) is
 
       if c.Port_Format = IP_Port then
 	 tmp_ub_know_options := To_Unbounded_String(" host_address =") & host_address &
-	   to_unbounded_string("  port_number=" ) & port_number & To_Unbounded_String("  user=") & user &
-	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
+	   to_unbounded_string("  port_number=" ) & port_number ;
       elsif c.Port_Format = UNIX_port then
 	 tmp_ub_know_options := To_Unbounded_String(" host_name =") & host_name &
-	   to_unbounded_string("  port_name=" ) & port_name & To_Unbounded_String("  user=") & user &
-	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname & to_unbounded_string("  ");
+	   to_unbounded_string("  port_name=" ) & port_name ;
       else
 	 raise Program_Error;
       end if;
+      tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String("  user=") & user &
+	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
 
       if C.keyname_val_cache_common /= null then
 	 for b in C.keyname_val_cache_common.all'range loop
 	    if C.keyname_val_cache_common.all(b) /= null
 	      and then C.keyname_val_cache_common.all(b).all.valido
 	    then
-	       tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String(string'(Option_type'image(b)));
+	       tmp_ub_know_options := tmp_ub_know_options &
+		 To_Unbounded_String(" " & trim(string'(Option_type'image(b)),ada.strings.Both) & "='" );
 	       mi_t := C.keyname_val_cache_common.all(b).all.type_val;
 	       mi_h_unsigned := C.keyname_val_cache_common.all(b).all.unsigned_part ;
 
 	       case  mi_t  is
 	       when ARG_CHAR_PTR =>
 		  tmp_ub_know_options := tmp_ub_know_options &
-		    To_Unbounded_String(" ='" & C.keyname_val_cache_common.all(b).all.string_ptr_part.all & "'  " );
+		    To_Unbounded_String( C.keyname_val_cache_common.all(b).all.string_ptr_part.all & "'" );
 
 	       when  ARG_NOT_USED =>
 		  tmp_ub_know_options := tmp_ub_know_options &
-		    To_Unbounded_String(" ='' " );
+		    To_Unbounded_String("'" );
 
 	       when ARG_UINT | ARG_PTR_UINT =>
 		  tmp_ub_know_options := tmp_ub_know_options &
-		       To_Unbounded_String(" ='" & trim(string'(unsigned_integer'Image(mi_h_unsigned)),ada.Strings.Both) &
-			       "'  " );
+		       To_Unbounded_String(trim(string'(unsigned_integer'Image(mi_h_unsigned)),ada.Strings.Both) & "'" );
 	       when others =>
 		  null;
 	       end case;
@@ -1486,10 +1196,10 @@ procedure my_process_options( C : Connection_Type) is
 
 	    tmp_ub_know_options := tmp_ub_know_options &
 	      To_Unbounded_String(" (SSL) ==> key =") & ukey &
-	      To_Unbounded_String("' cert =") & ucert &
-	      To_Unbounded_String("' ca =") & uca &
-	      To_Unbounded_String("' capath =") & ucapath &
-	      To_Unbounded_String("' cipher =") & ucipher ;
+	      To_Unbounded_String(" cert =") & ucert &
+	      To_Unbounded_String(" ca =") & uca &
+	      To_Unbounded_String(" capath =") & ucapath &
+	      To_Unbounded_String(" cipher =") & ucipher ;
 	 end;
       end if;
 
@@ -1515,10 +1225,7 @@ procedure my_process_options( C : Connection_Type) is
       C_Unix :       char_array_access;
       A_Unix :       System.Address := System.Null_Address;
 
-      mi_int : interfaces.c.int := 0 ; --- only for test
-
    begin
-
       Clear_Error(C);
 
       if Check_Connection and then Is_Connected(C) then
