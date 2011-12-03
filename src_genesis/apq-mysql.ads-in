@@ -59,77 +59,20 @@ for Result_Type use (
    for Result_Type'Size use 32;
 
    -- MySQL Connection Option Argument Types
-   type Option_type is (
+   type common_enum is (
 %OPTION_ENUM_MY%
 	);
-	for Option_type use (
+	for common_enum use (
 %USE_OPTION_ENUM_MY%
 	);
-   	for  Option_type'Size use 32;
-
-   type Argument_Type is (
-			  none,
-			  ARG_NOT_USED,  -- No argument
-			  ARG_UINT,      -- Argument is unsigned int
-			  ARG_PTR_UINT,  -- Argument is pointer to unsigned int (weird), which is 0 or 1
-			  ARG_CHAR_PTR,   -- Argument is char pointer
-			  ARG_PTR_MY_BOOL  -- for future use. :-) ? can we use same options that arg_ptr_uint ? :-) just a Idea :-)
-			 );
-   type ssl_type is ( no_ssl,
-		     key ,
-		     cert ,
-		     ca ,
-		     capath ,
-		     cipher
-		    );
-   for ssl_type use ( no_ssl => 0,
-		     key => 1 ,
-		     cert => 2 ,
-		     ca => 3,
-		     capath => 4,
-		     cipher => 5
-		       );
-   for ssl_type'Size use 32;
-
-private
-   use Interfaces.c.Strings ,  Interfaces.c ;
+   for  common_enum'Size use 32;
 
    type MySQL_Enum_Option is mod 2**32;
 
-   -- type Argument_Ptr is access all Argument_Type;
-   type Argument_Array is array(Natural range <>) of Argument_Type;
-   type Argument_Array_Access is access all Argument_Array;
-   --procedure Free is new Ada.Unchecked_Deallocation(Argument_Type, Argument_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation(Argument_Array, Argument_Array_Access);
+   function toUnsigned is new ada.Unchecked_Conversion(Source => common_enum , Target => MySQL_Enum_Option  );
+   function To_Mysql_Enum_option return MySQL_Enum_Option renames toUnsigned;
 
-   type base_type is ( none , common , ssl ); -- you can sugest more :-)
-   type unsigned_integer is new Interfaces.c.unsigned;
-
-   type root_base_record is tagged null record;
-   type common_part_record is new root_base_record with
-      record
-	 string_ptr_part : String_Ptr ;
-	 unsigned_part : unsigned_integer := 0;
-	 type_val : Argument_Type := ARG_CHAR_PTR ;
-	 valido : boolean := false;
-      end record;
-   type common_part_record_ptr is access all common_part_record;
-   type common_part_record_ptr_array is array ( Option_type ) of common_part_record_ptr;
-   type common_part_record_ptr_array_access is access all common_part_record_ptr_array;
-
-   type ssl_part_record is new root_base_record with
-      record
-	 string_ptr_part : String_Ptr ;
-	 valido : boolean := false;
-      end record;
-
-   type ssl_part_record_array is array ( ssl_type ) of ssl_part_record;
-   type ssl_part_record_array_access is access all ssl_part_record_array;
-
-   procedure free is new ada.Unchecked_Deallocation(  ssl_part_record_array , ssl_part_record_array_access  );
-
-   procedure free is new ada.Unchecked_Deallocation( common_part_record , common_part_record_ptr   );
-   procedure free is new ada.Unchecked_Deallocation(  common_part_record_ptr_array , common_part_record_ptr_array_access  );
+private
 
    type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
    for Return_Status'Size use 32;
@@ -139,8 +82,6 @@ private
 
    type u_long is mod 2 ** 32;
    for u_long'size use 32;
-
-   function toUnsigned is new ada.Unchecked_Conversion(Source => Option_type, Target => MySQL_Enum_Option  );
 
 	Null_Row_ID : constant Row_ID_Type := 0;
 
