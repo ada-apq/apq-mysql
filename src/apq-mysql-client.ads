@@ -44,6 +44,8 @@ with Ada.Strings.Unbounded;
 with Interfaces.C_Streams;
 with ada.Strings.Fixed;
 with Interfaces.C;
+with apq.MySQL.Client.option_system;
+use apq.MySQL.Client, apq.MySQL.Client.option_system;
 
 package APQ.MySQL.Client is
 
@@ -80,22 +82,22 @@ package APQ.MySQL.Client is
    -----
    function quote_string( qkv : string ) return ada.Strings.Unbounded.Unbounded_String;
    function quote_string( qkv : string ) return String;
-   procedure grow_key( C : in out Connection_Type); --
+   -- procedure grow_key( C : in out Connection_Type); --
 
-   function  cache_key_nameval_uptodate( C : Connection_Type) return boolean;--
-   pragma inline(cache_key_nameval_uptodate);
+   --function  cache_key_nameval_uptodate( C : Connection_Type) return boolean;--
+   --pragma inline(cache_key_nameval_uptodate);
    -- if force = true, re-create it even if already uptodate;
    -- if force = false,(automatic,normal daily use) re-create only if necessary/not-uptodate
-   procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false);
+   --procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false);
 
-   function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type;--
-   function get_keyval_default_case( C : Connection_Type) return SQL_Case_Type;--
-   procedure set_keyname_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
-   procedure set_keyval_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
-   pragma inline(get_keyname_default_case);
-   pragma inline(get_keyval_default_case);
-   pragma inline(set_keyname_default_case);
-   pragma inline(set_keyval_default_case);
+   --function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type;--
+   --function get_keyval_default_case( C : Connection_Type) return SQL_Case_Type;--
+   --procedure set_keyname_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
+   --procedure set_keyval_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
+   ---pragma inline(get_keyname_default_case);
+   ---pragma inline(get_keyval_default_case);
+   ---pragma inline(set_keyname_default_case);
+   --pragma inline(set_keyval_default_case);
 
    -- add keyword and his respective value for the connection string.
    -- if clear = false, just append keyword and value to list of keywords and values
@@ -105,28 +107,23 @@ package APQ.MySQL.Client is
    --
    -- if in the list of keywords have keywords equals the value used is the last value in list.
    -- remember to include the libs was needed
-   procedure add_key_nameval( C : in out Connection_Type;
-			     kname,kval : string := ""; -- the standard way
-			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ; -- dont ignore it ! :-)
-                             knamecasele, kvalcasele : boolean := true;
-			     clear : boolean := false);
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.ssl_type ; -- to reduce typing errors
+			     kname : option_system.ssl_enum ; -- to reduce typing errors
 			     kval : string ;
-			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ;
-			     -- kval_type is ignored here :-). it is always arg_char_ptr :-)
-                             knamecasele, kvalcasele : boolean := true;
-			     clear : boolean := false);
+			     kval_nature : option_system.nature_enum_type :=
+			       nature_enum_type'(nat_ptr_char);
+			     -- kval_nature  is ignored here :-). it is always nat_ptr_char :-)
+                             clear : boolean := false);
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.Option_type ; -- to reduce typing errors
+			     kname : apq.mysql.common_enum ; -- to reduce typing errors
 			     kval : string ;
-			     kval_type : apq.mysql.Argument_Type := ARG_CHAR_PTR ; -- dont ignore it ! :-)
-                             knamecasele, kvalcasele : boolean := true;
-			     clear : boolean := false);
+			     kval_nature : option_system.nature_enum_type :=
+			       nature_enum_type'(nat_ptr_char);-- dont ignore it ! :-)
+                             clear : boolean := false);
 
-   procedure clear_all_key_nameval(C : in out Connection_Type; add_more_this_alloc : natural := 0);
+   procedure clear_all_key_nameval(C : in out Connection_Type );
 
    function verifica_conninfo_cache( C : Connection_Type) return string;
    -- only already cached value(s) even if not update. if you want show all values
@@ -228,23 +225,11 @@ private
 	 -- Error code (should agree with message)
 	 Error_Message : String_Ptr;
 	 -- Error message after failed to connect (only)
-  	         ----
-	 keyname     : String_Ptr_Array_Access; -- see (e.g.)http://dev.mysql.com/doc/refman/5.1/en/mysql-options.html
-	 keyval      : String_Ptr_Array_Access; -- or yet more uptodate url,for example of keyname(s) e theirs possible keyvals :-)
-	 keyval_type : Argument_Array_Access; -- no need to be a 'Ptr' ! :-)
-	 keycount    : natural := 0;
-	 keyalloc : natural := 0;
 
---       keyval_Caseless   : Boolean_Array_Access;
---  	 keyname_Caseless  : Boolean_Array_Access;
+	 keyname_val_cache_common   : option_system.options_list.list ;
+	 keyname_val_cache_ssl      : option_system.options_list.list ;
+	-- keyname_val_cache_uptodate : boolean := true; --  now allways uptodate :-)
 
-	 keyname_val_cache_common   : common_part_record_ptr_array_access  ; -- for bypass "the recreate it"
-	 keyname_val_cache_ssl      : ssl_part_record_array_access  ; -- for bypass "the recreate it"
-	 keyname_val_cache_uptodate : boolean := false; -- if keyname_val_cache_uptodate = true (True)
-
---           keyname_default_case : SQL_Case_Type := Lower_Case;
---           keyval_default_case  : SQL_Case_Type := Preserve_Case;
---           ----
       end record;
 
 	procedure Finalize(C : in out Connection_Type);
