@@ -71,42 +71,41 @@ package apq.mysql.client.option_system is
    type root_option_record is private;
    function "="(Left  => root_option_record ,
 		Right => root_option_record) return boolean;
-   procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname, kval : in string := "";
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			    );
-   procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname  : in string := "";
-			     kval : in string_ptr := null;
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			    );
-    procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname  : in string_ptr := null;
-			     kval : in string_ptr := null;
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			     );
-    procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname  : in string_ptr := null;
-			     kval : in string := "";
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			    );
-   procedure get_keyname_val(
-			     kclass : in root_option_record'Class ;
-			     kname  : in out string_ptr ;
-			     kval   : in out unsigned_integer_ptr;
-			     kval_nature : in out nature_enum_type;
-			     is_valid : in out boolean
-			    );
    package options_list is new Ada.Containers.Doubly_Linked_Lists( root_option_record , "=" );
----
+
+--     procedure get_keyname_val(
+--  			     kclass : in root_option_record ;
+--  			     kname  : in out string_ptr ;
+--  			     kval   : in out unsigned_integer_ptr;
+--  			     kval_nature : in out nature_enum_type;
+--  			     is_valid : in out boolean
+--  			    );
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : ssl_enum ;
+			     kval : string ;
+			     clear : boolean := false);
+   --
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval : string ;
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval :  Unsigned_Integer ;
+			     kval_nature :  nature_enum_type := nature_enum_type'(nat_uint);
+			     -- nat_uint or nat_ptr_ui
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval :  boolean ;
+			     clear : boolean := false);
 
 private
 
@@ -119,14 +118,11 @@ private
 	 key_ssl : ssl_enum := none;
 	 key_common : common_enum := none;
 	 --
-	 value_s : string_ptr;
+	 value_s : ada.Strings.Unbounded.Unbounded_String := ada.Strings.Unbounded.To_Unbounded_String("");
 	 value_u : Unsigned_Integer := 0 ;
 	 value_b : boolean := false;
 
       end record;
-
-
-
 
 
 end apq.mysql.client.option_system;

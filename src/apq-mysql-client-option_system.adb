@@ -297,174 +297,204 @@ package body apq.mysql.Client.option_system is
       return false; -- stub
    end "=";
 
-   procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname, kval : in string := "";
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			    )
+   procedure key_nameval( L : in out options_list.list ;
+			 val : root_option_record;
+			 clear : boolean := false
+			)
    is
+      use options_list;
+      mi_cursor : options_list.cursor := no_element;
    begin
-      add_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end add_keyname_val;
+      if clean then
+	 if not ( L.is_empth ) then
+	    L.clear;
+	 end if;
+      end if;
+      if L.is_empth then
+	 L.append(val);
+	 return;
+      end if;
+      mi_cursor := L.find(val);
+      if mi_cursor = No_Element then
+	 L.append(val);
+	 return;
+      end if;
+      L.replace_element(mi_cursor, val);
 
-   procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname  : in string := "";
-			     kval : in string_ptr := null;
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			    )
-   is
-   begin
-      add_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end add_keyname_val;
-
-    procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname  : in string_ptr := null;
-			     kval : in string_ptr := null;
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			     )
-   is
-   begin
-      add_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end add_keyname_val;
-
-    procedure add_keyname_val(
-			     kclass : in out root_option_record'Class ;
-			     kname  : in string_ptr := null;
-			     kval : in string := "";
-			     kval_nature : in nature_enum_type := none;
-			     is_valid : in out boolean
-			     )
-   is
-   begin
-      add_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end add_keyname_val;
+   end key_nameval;
 
    procedure get_keyname_val(
-			     kclass : in root_option_record'Class ;
-			     kname, kval : in out string_ptr ;
-			     kval_nature : in out nature_enum_type;
-			     is_valid : in out boolean
-			    )
-   is
-   begin
-      get_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end get_keyname_val;
-
-   procedure get_keyname_val(
-			     kclass : in root_option_record'Class ;
-			     kname  : in out string_ptr ;
-			     kval   : in out unsigned_integer;
-			     kval_nature : in out nature_enum_type;
-			     is_valid : in out boolean
-			    )
-   is
-   begin
-      get_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end get_keyname_val;
-
-   procedure get_keyname_val(
-			     kclass : in root_option_record'Class ;
+			     kclass : in root_option_record ;
 			     kname  : in out string_ptr ;
 			     kval   : in out unsigned_integer_ptr;
 			     kval_nature : in out nature_enum_type;
 			     is_valid : in out boolean
-			    )
-   is
-   begin
-      get_keyname_val(kclass, kname, kval , kval_nature, is_valid );
-   end get_keyname_val;
+			    );
 
-   type root_option_record_ptr is access all root_option_record'class ;
-   -- return 'null' when invalid string :-)
-   function is_valid( val : string; into : root_option_record'class ) return root_option_record'class
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : ssl_enum ;
+			     kval : string ;
+			     clear : boolean := false)
    is
    begin
-      return is_valid(val,into);
-   end is_valid;
+      if kname = none then
+	 return;
+      end if;
+      declare
+	 val_record : root_option_record :=
+	   root_option_record'(
+			especie => ssl,
+			is_valid => true,
+			value_nature => nat_ptr_char,
+			key_ssl => kname,
+			key_common => none,
+			value_s => ada.Strings.Unbounded.To_Unbounded_String(kval),
+			value_u => 0,
+			value_b => false
+		       );
+      begin
+	 key_nameval(
+	      L     => c.keyname_val_cache_ssl,
+	      val   => val_record,
+	      clear => clear );
 
-   function is_valid( val : string; into : root_option_record'class ) return root_option_record_ptr'class
-   is
-   begin
-      return is_valid(val,into);
-   end is_valid;
+      end;
+   end add_key_nameval;
 
-   function is_valid( val : string; into: root_option_record_ptr'class ) return root_option_record'class
+   --
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval : string ;
+			     clear : boolean := false)
    is
    begin
-      return is_valid(val,into);
-   end is_valid;
+      if kname = none then
+	 return;
+      end if;
+      declare
+	 val_record : root_option_record :=
+	   root_option_record'(
+			especie => common ,
+			is_valid => true,
+			value_nature => nat_ptr_char,
+			key_ssl => none ,
+			key_common => kname,
+			value_s => ada.Strings.Unbounded.To_Unbounded_String(kval),
+			value_u => 0,
+			value_b => false
+		       );
+      begin
+	 key_nameval(
+	      L     => c.keyname_val_cache_common,
+	      val   => val_record,
+	      clear => clear );
 
-   function is_valid( val : string; into: root_option_record_ptr'class ) return root_option_record_ptr'class
-   is
-   begin
-      return is_valid(val,into);
-   end is_valid;
+      end;
+   end add_key_nameval;
 
-   function is_valid( val : string_ptr; into: root_option_record'class ) return root_option_record'class
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval :  Unsigned_Integer ;
+			     kval_nature :  nature_enum_type := nature_enum_type'(nat_uint);
+			     -- nat_uint or nat_ptr_ui
+			     clear : boolean := false)
    is
+      kval_tmp : Unsigned_Integer := 1;
    begin
-      return is_valid(val,into);
-   end is_valid;
+      if kname = none then
+	 return;
+      end if;
+      if not( kval_nature = nat_uint or kval_nature = nat_ptr_ui ) then
+	 return;
+      end if;
+      if kval_nature = nat_ptr_ui then
+	 if kval = 0 then
+	    kval_tmp = 0;
+	 end if;
+      else
+	 kval_tmp = kval;
+      end if;
 
-   function is_valid( val : string_ptr; into: root_option_record'class ) return root_option_record_ptr'class
-   is
-   begin
-      return is_valid(val,into);
-   end is_valid;
+      declare
+	 val_record : root_option_record :=
+	   root_option_record'(
+			especie => common ,
+			is_valid => true,
+			value_nature => kval_nature,
+			key_ssl => none ,
+			key_common => kname,
+			value_s => ada.Strings.Unbounded.To_Unbounded_String(""),
+			value_u => kval_tmp,
+			value_b => false
+		       );
+      begin
+	 key_nameval(
+	      L     => c.keyname_val_cache_common,
+	      val   => val_record,
+	      clear => clear );
 
-   function is_valid( val : string_ptr; into: root_option_record_ptr'class ) return root_option_record'class
-   is
-   begin
-      return is_valid(val,into);
-   end is_valid;
+      end;
+   end add_key_nameval;
 
-   function is_valid( val : string_ptr; into: root_option_record_ptr'class ) return root_option_record_ptr'class
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     clear : boolean := false)
    is
    begin
-      return is_valid(val,into);
-   end is_valid;
+      if kname = none then
+	 return;
+      end if;
+      declare
+	 val_record : root_option_record :=
+	   root_option_record'(
+			especie => common ,
+			is_valid => true,
+			value_nature => nat_not_used,
+			key_ssl => none ,
+			key_common => kname,
+			value_s => ada.Strings.Unbounded.To_Unbounded_String(""),
+			value_u => 0,
+			value_b => false
+		       );
+      begin
+	 key_nameval(
+	      L     => c.keyname_val_cache_common,
+	      val   => val_record,
+	      clear => clear );
 
-   function is_valid( val : string; into: root_option_record'class ) return boolean
-   is
-   begin
-      return Boolean'(is_valid(val,into));
-   end is_valid;
+      end;
+   end add_key_nameval;
 
-   function is_valid( val : string; into: root_option_record_ptr'class ) return boolean
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval :  boolean ;
+			     clear : boolean := false)
    is
    begin
-      return Boolean'(is_valid(val,into));
-   end is_valid;
+      if kname = none then
+	 return;
+      end if;
+      declare
+	 val_record : root_option_record :=
+	   root_option_record'(
+			especie => common ,
+			is_valid => true,
+			value_nature => nat_ptr_my_bool,
+			key_ssl => none ,
+			key_common => kname,
+			value_s => ada.Strings.Unbounded.To_Unbounded_String(""),
+			value_u => 0,
+			value_b => kval
+		       );
+      begin
+	 key_nameval(
+	      L     => c.keyname_val_cache_common,
+	      val   => val_record,
+	      clear => clear );
 
-   function is_valid( val : string_ptr; into: root_option_record'class ) return boolean
-   is
-   begin
-      return Boolean'(is_valid(val,into));
-   end is_valid;
+      end;
+   end add_key_nameval;
 
-   function is_valid( val : string_ptr; into: root_option_record_ptr'class ) return boolean
-   is
-   begin
-      return Boolean'(is_valid(val,into));
-   end is_valid;
-
-   function is_valid( val : root_option_record'class ) return boolean
-   is
-   begin
-      return Boolean'(is_valid(val));
-   end is_valid;
-
-   function is_valid( val : root_option_record_ptr'class ) return boolean
-   is
-   begin
-      return Boolean'(is_valid(val));
-   end is_valid;
-   ----
    ----
    ----
    ----

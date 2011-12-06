@@ -82,22 +82,6 @@ package APQ.MySQL.Client is
    -----
    function quote_string( qkv : string ) return ada.Strings.Unbounded.Unbounded_String;
    function quote_string( qkv : string ) return String;
-   -- procedure grow_key( C : in out Connection_Type); --
-
-   --function  cache_key_nameval_uptodate( C : Connection_Type) return boolean;--
-   --pragma inline(cache_key_nameval_uptodate);
-   -- if force = true, re-create it even if already uptodate;
-   -- if force = false,(automatic,normal daily use) re-create only if necessary/not-uptodate
-   --procedure cache_key_nameval_create( C : in out Connection_Type; force : boolean := false);
-
-   --function get_keyname_default_case( C : Connection_Type) return SQL_Case_Type;--
-   --function get_keyval_default_case( C : Connection_Type) return SQL_Case_Type;--
-   --procedure set_keyname_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
-   --procedure set_keyval_default_case( C : in out Connection_Type; sqlcase: SQL_Case_Type);--
-   ---pragma inline(get_keyname_default_case);
-   ---pragma inline(get_keyval_default_case);
-   ---pragma inline(set_keyname_default_case);
-   --pragma inline(set_keyval_default_case);
 
    -- add keyword and his respective value for the connection string.
    -- if clear = false, just append keyword and value to list of keywords and values
@@ -108,20 +92,20 @@ package APQ.MySQL.Client is
    -- if in the list of keywords have keywords equals the value used is the last value in list.
    -- remember to include the libs was needed
 
-   procedure add_key_nameval( C : in out Connection_Type;
-			     kname : option_system.ssl_enum ; -- to reduce typing errors
-			     kval : string ;
-			     kval_nature : option_system.nature_enum_type :=
-			       nature_enum_type'(nat_ptr_char);
-			     -- kval_nature  is ignored here :-). it is always nat_ptr_char :-)
-                             clear : boolean := false);
-
-   procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum ; -- to reduce typing errors
-			     kval : string ;
-			     kval_nature : option_system.nature_enum_type :=
-			       nature_enum_type'(nat_ptr_char);-- dont ignore it ! :-)
-                             clear : boolean := false);
+--     procedure add_key_nameval( C : in out Connection_Type;
+--  			     kname : option_system.ssl_enum ; -- to reduce typing errors
+--  			     kval : string ;
+--  			     kval_nature : option_system.nature_enum_type :=
+--  			       nature_enum_type'(nat_ptr_char);
+--  			     -- kval_nature  is ignored here :-). it is always nat_ptr_char :-)
+--                               clear : boolean := false);
+--
+--     procedure add_key_nameval( C : in out Connection_Type;
+--  			     kname : apq.mysql.common_enum ; -- to reduce typing errors
+--  			     kval : string ;
+--  			     kval_nature : option_system.nature_enum_type :=
+--  			       nature_enum_type'(nat_ptr_char);-- dont ignore it ! :-)
+--                               clear : boolean := false);
 
    procedure clear_all_key_nameval(C : in out Connection_Type );
 
