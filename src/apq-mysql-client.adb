@@ -441,9 +441,28 @@ package body APQ.MySQL.Client is
    is
       pragma optimize(time);
       use apq.MySQL.Client.option_system.options_list;
+
+      procedure add_common(position : cursor) is
+      begin
+	 to.keyname_val_cache_common.append(element(position));
+      end add_common;
+
+      procedure add_ssl(position : cursor) is
+      begin
+	 to.keyname_val_cache_ssl.append(element(position));
+      end add_ssl;
+
    begin
       clear_all_key_nameval(to);
-      ---Dnm!!! Terminar de refazer essa procedure!! :-)
+
+      if not ( from.keyname_val_cache_common.is_empth ) then
+	    from.keyname_val_cache_common.iterate(add_common'Access);
+      end if;
+
+      if not ( from.keyname_val_cache_ssl.is_empth ) then
+	    from.keyname_val_cache_ssl.iterate(add_ssl'Access);
+      end if;
+
    end clone_clone_my;
 
    procedure my_process_options( C : Connection_Type) is
