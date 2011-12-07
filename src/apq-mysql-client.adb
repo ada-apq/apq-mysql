@@ -428,10 +428,10 @@ package body APQ.MySQL.Client is
       pragma optimize(time);
 
    begin
-      if not ( c.keyname_val_cache_common.is_empth ) then
+      if not ( c.keyname_val_cache_common.is_empty ) then
 	    c.keyname_val_cache_common.clear;
       end if;
-      if not ( c.keyname_val_cache_ssl.is_empth ) then
+      if not ( c.keyname_val_cache_ssl.is_empty ) then
 	    c.keyname_val_cache_ssl.clear;
       end if;
    end clear_all_key_nameval;
@@ -455,11 +455,11 @@ package body APQ.MySQL.Client is
    begin
       clear_all_key_nameval(to);
 
-      if not ( from.keyname_val_cache_common.is_empth ) then
+      if not ( from.keyname_val_cache_common.is_empty ) then
 	    from.keyname_val_cache_common.iterate(add_common'Access);
       end if;
 
-      if not ( from.keyname_val_cache_ssl.is_empth ) then
+      if not ( from.keyname_val_cache_ssl.is_empty ) then
 	    from.keyname_val_cache_ssl.iterate(add_ssl'Access);
       end if;
 
@@ -484,12 +484,12 @@ package body APQ.MySQL.Client is
 
    begin
       if  C.Connection = Null_Connection or
-	( C.keyname_val_cache_common.is_empth  and C.keyname_val_cache_ssl.is_empth )
+	( C.keyname_val_cache_common.is_empty  and C.keyname_val_cache_ssl.is_empty )
       then return; end if; -- bahiii ! :-)
 
       mi_connect := C.Connection;
 
-      if C.keyname_val_cache_Common.is_empth = false then
+      if C.keyname_val_cache_Common.is_empty = false then
 	 declare
 	    procedure process_common(position: cursor)
 	    is
@@ -534,7 +534,7 @@ package body APQ.MySQL.Client is
 	       C.keyname_val_cache_Common.iterate(process_common'Access);
 	    end;
 	 end if;
-	 if C.keyname_val_cache_ssl.is_empth = false then
+	 if C.keyname_val_cache_ssl.is_empty = false then
 	    declare
 	       ukey    : unbounded_string := To_Unbounded_String("");
 	       ucert   : unbounded_string := To_Unbounded_String("");
@@ -576,141 +576,129 @@ package body APQ.MySQL.Client is
 
 
 --     ---------------------------------
-   function verifica_conninfo_cache( C : Connection_Type ) return string
-   -- for debug purpose. :-P  In the spirit there are an get_password(c) yet...
-   is
-      pragma Optimize(Time);
+      function verifica_conninfo_cache( C : Connection_Type ) return string
+      -- for debug purpose. :-P  In the spirit there are an get_password(c) yet...
+      is
+	 pragma Optimize(Time);
 
-      use ada.strings.Unbounded;
-      use ada.Strings.Fixed;
-      use interfaces.c.Strings, interfaces.c;
+	 use ada.strings.Unbounded;
+	 use ada.Strings.Fixed;
+	 use interfaces.c.Strings, interfaces.c;
 
-      tmp_ub_know_options : Unbounded_String := To_Unbounded_String(160);
-      user : unbounded_string := To_Unbounded_String("''" );
-      pass : unbounded_string := To_Unbounded_String("''" );
-      dbname : unbounded_string := To_Unbounded_String( "''" );
-      host_name : unbounded_string := To_Unbounded_String("''" );
-      host_address : unbounded_string := To_Unbounded_String("''" );
-      port_name : unbounded_string := To_Unbounded_String("''" );
-      port_number : unbounded_string := To_Unbounded_String("'" & string'(trim(string'(port_integer'image(C.Port_Number)),ada.Strings.Both)) & "'" );
+	 tmp_ub_know_options : Unbounded_String := To_Unbounded_String(160);
+	 user : unbounded_string := To_Unbounded_String("''" );
+	 pass : unbounded_string := To_Unbounded_String("''" );
+	 dbname : unbounded_string := To_Unbounded_String( "''" );
+	 host_name : unbounded_string := To_Unbounded_String("''" );
+	 host_address : unbounded_string := To_Unbounded_String("''" );
+	 port_name : unbounded_string := To_Unbounded_String("''" );
+	 port_number : unbounded_string := To_Unbounded_String("'" & string'(trim(string'(port_integer'image(C.Port_Number)),ada.Strings.Both)) & "'" );
 
-      mi_h_unsigned : Unsigned_integer ;
-      mi_t : Argument_Type := ARG_CHAR_PTR;
+	 mi_h_unsigned : Unsigned_integer ;
+	 --- mi_t : Argument_Type := ARG_CHAR_PTR;
 
-   begin
-      if c.User_Name /= null then
-	 user := To_Unbounded_String("'" & C.User_Name.all & "'" );
-      end if;
-      if c.User_Password /= null then
-	 pass := To_Unbounded_String("'" & C.User_Password.all & "'" );
-      end if;
-      if c.DB_Name /= null then
-	 dbname := To_Unbounded_String("'" & C.DB_Name.all & "'" );
-      end if;
-      if c.Host_Name /= null then
-	 host_name := To_Unbounded_String("'" & C.Host_Name.all & "'" );
-      end if;
-      if c.Host_Address /= null then
-	 host_address := To_Unbounded_String("'" & C.Host_Address.all & "'" );
-      end if;
-      if c.Port_Name /= null then
-	 port_name := To_Unbounded_String("'" & C.Port_Name.all & "'" );
-      end if;
+      begin
+	 if c.User_Name /= null then
+	    user := To_Unbounded_String("'" & C.User_Name.all & "'" );
+	 end if;
+	 if c.User_Password /= null then
+	    pass := To_Unbounded_String("'" & C.User_Password.all & "'" );
+	 end if;
+	 if c.DB_Name /= null then
+	    dbname := To_Unbounded_String("'" & C.DB_Name.all & "'" );
+	 end if;
+	 if c.Host_Name /= null then
+	    host_name := To_Unbounded_String("'" & C.Host_Name.all & "'" );
+	 end if;
+	 if c.Host_Address /= null then
+	    host_address := To_Unbounded_String("'" & C.Host_Address.all & "'" );
+	 end if;
+	 if c.Port_Name /= null then
+	    port_name := To_Unbounded_String("'" & C.Port_Name.all & "'" );
+	 end if;
 
-      if c.Port_Format = IP_Port then
-	 tmp_ub_know_options := To_Unbounded_String(" host_address =") & host_address &
-	   to_unbounded_string("  port_number=" ) & port_number ;
-      elsif c.Port_Format = UNIX_port then
-	 tmp_ub_know_options := To_Unbounded_String(" host_name =") & host_name &
-	   to_unbounded_string("  port_name=" ) & port_name ;
-      else
-	 raise Program_Error;
-      end if;
-      tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String("  user=") & user &
+	 if c.Port_Format = IP_Port then
+	    tmp_ub_know_options := To_Unbounded_String(" host_address =") & host_address &
+	      to_unbounded_string("  port_number=" ) & port_number ;
+	 elsif c.Port_Format = UNIX_port then
+	    tmp_ub_know_options := To_Unbounded_String(" host_name =") & host_name &
+	      to_unbounded_string("  port_name=" ) & port_name ;
+	 else
+	    raise Program_Error;
+	 end if;
+	 tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String("  user=") & user &
 	   To_Unbounded_String("  pass=") & pass & To_Unbounded_String("  database_name=" ) & dbname ;
 
-      if C.keyname_val_cache_common /= null then
-	 for b in apq.mysql.Option_type'range loop
-	    if C.keyname_val_cache_common.all(b) /= null
-	      and then C.keyname_val_cache_common.all(b).all.valido
-	    then
-	       tmp_ub_know_options := tmp_ub_know_options &
-		 To_Unbounded_String(" " & trim(string'(Option_type'image(b)),ada.strings.Both) & "='" );
-	       mi_t := C.keyname_val_cache_common.all(b).all.type_val;
-	       mi_h_unsigned := C.keyname_val_cache_common.all(b).all.unsigned_part ;
+	 if c.keyname_val_cache_common.is_empty and c.keyname_val_cache_ssl.is_empty then
+	    return string'(To_String(tmp_ub_know_options)); -- :o]
+	 end if;
 
-	       case  mi_t  is
-	       when ARG_CHAR_PTR =>
-		  tmp_ub_know_options := tmp_ub_know_options &
-		    To_Unbounded_String( C.keyname_val_cache_common.all(b).all.string_ptr_part.all & "'" );
+	 if c.keyname_val_cache_common.is_empty = false then
+	    declare
+	       procedure process_common_coninfo(position : cursor)
+	       is
+		  mi_root_record : root_option_record := element(position);
+		  mi_common : string := common_enum'image(mi_root_record.key_common);
+	       begin
+		  if mi_root_record.is_valid = false
+		    or then mi_root_record.especie /= common
+		     then
+			return;
+		     end if;
 
-	       when  ARG_NOT_USED =>
-		  tmp_ub_know_options := tmp_ub_know_options &
-		    To_Unbounded_String("'" );
+		     tmp_ub_know_options := tmp_ub_know_options &
+		       To_Unbounded_String(string'trim(mi_common,ada.Strings.Both) & "='" );
 
-	       when ARG_UINT | ARG_PTR_UINT =>
-		  tmp_ub_know_options := tmp_ub_know_options &
-		       To_Unbounded_String(trim(string'(unsigned_integer'Image(mi_h_unsigned)),ada.Strings.Both) & "'" );
-	       when others =>
-		  null;
-	       end case;
-	    end if;
-	 end loop;
-      end if;
+		     case mi_root_record.value_nature is
+		     when nat_ptr_char =>
+			tmp_ub_know_options := tmp_ub_know_options & mi_root_record.value_s ;
 
-      if C.keyname_val_cache_ssl /= null then
-	 declare
-	    --b      : ssl_part_record_array renames C.keyname_val_cache_ssl.all ;
-	    ukey    : unbounded_string := To_Unbounded_String("''" );
-	    ucert   : unbounded_string := To_Unbounded_String("''" );
-	    uca     : unbounded_string := To_Unbounded_String("''" );
-	    ucapath : unbounded_string := To_Unbounded_String("''" );
-	    ucipher : unbounded_string := To_Unbounded_String("''" );
-	 begin -- key , cert , ca , capath, cipher
-	    if C.keyname_val_cache_ssl(key).string_ptr_part /= null
-	      and then C.keyname_val_cache_ssl(key).valido
-	    then
-	       ukey := To_Unbounded_String("'" & string'(To_String( C.keyname_val_cache_ssl(key).string_ptr_part)) & "'" );
-	    end if;
+		     when nat_not_used =>
+			tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String("not_used");
 
-	    if C.keyname_val_cache_ssl(cert).string_ptr_part /= null
-	      and then C.keyname_val_cache_ssl(cert).valido
-	    then
-	       ucert := To_Unbounded_String("'" & string'(To_String( C.keyname_val_cache_ssl(cert).string_ptr_part)) & "'" );
+		     when nat_uint | nat_ptr_ui =>
+			tmp_ub_know_options := tmp_ub_know_options &
+			  To_Unbounded_String(string'trim(string'(Unsigned_Integer'Image(mi_root_record.value_u)),ada.Strings.Both));
+
+		     when nat_ptr_my_bool =>
+			tmp_ub_know_options := tmp_ub_know_options &
+			  To_Unbounded_String(string'trim(string'(boolean'Image(mi_root_record.value_b)),ada.Strings.Both));
+
+		     when others =>
+			null;
+		     end case;
+		     tmp_ub_know_options := tmp_ub_know_options & To_Unbounded_String( "' " );
+
+		  end process_common_coninfo;
+	       begin
+		  c.keyname_val_cache_common.iterate(process_common_coninfo'Access);
+	       end;
 	    end if;
 
-	    if C.keyname_val_cache_ssl(ca).string_ptr_part /= null
-	      and then C.keyname_val_cache_ssl(ca).valido
-	    then
-	       uca := To_Unbounded_String("'" & string'(To_String( C.keyname_val_cache_ssl(ca).string_ptr_part)) & "'" );
+
+	    if c.keyname_val_cache_ssl.is_empty = false then
+	       declare
+		  procedure process_ssl_coninfo(position : cursor)
+		  is
+		     mi_root_record : root_option_record := element(position);
+		     mi_common : string := trim(string'(ssl_enum'image(mi_root_record.key_ssl)), ada.Strings.Both);
+		  begin
+		     if mi_root_record.is_valid = false or mi_root_record.especie /= ssl then
+			return;
+		     end if;
+		     tmp_ub_know_options := tmp_ub_know_options &
+		       To_Unbounded_String( mi_common & "='" ) & mi_root_record.value_s & To_Unbounded_String( "' " );
+		  end process_ssl_coninfo;
+	       begin
+		  c.keyname_val_cache_ssl.iterate(process_ssl_coninfo'Access);
+	       end;
 	    end if;
 
-	    if C.keyname_val_cache_ssl(capath).string_ptr_part /= null
-	      and then C.keyname_val_cache_ssl(capath).valido
-	    then
-	       ucapath := To_Unbounded_String("'" & string'(To_String( C.keyname_val_cache_ssl(capath).string_ptr_part)) & "'" );
-	    end if;
+	    return string'(To_String(tmp_ub_know_options)); -- :o]
 
-	    if C.keyname_val_cache_ssl(cipher).string_ptr_part /= null
-	      and then C.keyname_val_cache_ssl(cipher).valido
-	    then
-	       ucipher:= To_Unbounded_String("'" & string'(To_String( C.keyname_val_cache_ssl(cipher).string_ptr_part)) & "'" );
-	    end if;
+	 end verifica_conninfo_cache;
 
-	    tmp_ub_know_options := tmp_ub_know_options &
-	      To_Unbounded_String(" (SSL) ==> key =") & ukey &
-	      To_Unbounded_String(" cert =") & ucert &
-	      To_Unbounded_String(" ca =") & uca &
-	      To_Unbounded_String(" capath =") & ucapath &
-	      To_Unbounded_String(" cipher =") & ucipher ;
-	 end;
-      end if;
-
-      return string'(To_String(tmp_ub_know_options)); -- :o]
-
-   end verifica_conninfo_cache;
-
-   procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True) is
+	 procedure Connect(C : in out Connection_Type; Check_Connection : Boolean := True) is
 
       pragma Optimize(time);
 

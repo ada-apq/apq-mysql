@@ -44,7 +44,8 @@ with Ada.Strings.Unbounded;
 with Interfaces.C_Streams;
 with ada.Strings.Fixed;
 with Interfaces.C;
-with apq.MySQL.Client.option_system;
+with apq.MySQL.Client.option_system.options_list;
+
 use apq.MySQL.Client, apq.MySQL.Client.option_system;
 
 package APQ.MySQL.Client is

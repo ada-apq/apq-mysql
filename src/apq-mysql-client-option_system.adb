@@ -306,11 +306,11 @@ package body apq.mysql.Client.option_system is
       mi_cursor : options_list.cursor := no_element;
    begin
       if clean then
-	 if not ( L.is_empth ) then
+	 if not ( L.is_empty ) then
 	    L.clear;
 	 end if;
       end if;
-      if L.is_empth then
+      if L.is_empty then
 	 L.append(val);
 	 return;
       end if;
@@ -498,11 +498,6 @@ package body apq.mysql.Client.option_system is
    ----
    ----
    ----
-
-
-
-
-
 
 
 end apq.mysql.client.option_system;
