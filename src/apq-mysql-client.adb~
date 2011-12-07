@@ -441,17 +441,17 @@ package body APQ.MySQL.Client is
    is
       pragma optimize(time);
       use apq.MySQL.Client.option_system.options_list;
-      --
+
       procedure add_common(position : cursor) is
       begin
 	 to.keyname_val_cache_common.append(element(position));
       end add_common;
-      --
+
       procedure add_ssl(position : cursor) is
       begin
 	 to.keyname_val_cache_ssl.append(element(position));
       end add_ssl;
-      --
+
    begin
       clear_all_key_nameval(to);
 
@@ -470,8 +470,9 @@ package body APQ.MySQL.Client is
 
       use ada.strings.Unbounded; use ada.strings.Fixed;
       use interfaces.c.Strings, interfaces.c;
-
-      use APQ.MySQL.Client.option_system.options_list, APQ.MySQL.Client.option_system;
+      tmp_ub_dont_know_options : Unbounded_String := To_Unbounded_String(50);
+      mi_count : Integer := 0;
+      mi_hold : interfaces.c.int := 0;
 
       mi_connect :  MYSQL := Null_Connection;
       pragma Volatile(mi_connect);
@@ -482,95 +483,125 @@ package body APQ.MySQL.Client is
       mi_h_char_array_access : interfaces.c.Strings.char_array_access;
       pragma Volatile(mi_h_char_array_access);
 
+      mi_h_unsigned : Unsigned_integer ;
+
+      mi_b : MySQL_Enum_Option := 0;
+
+      mi_t : Argument_Type := ARG_CHAR_PTR;
    begin
       if  C.Connection = Null_Connection or
-	( C.keyname_val_cache_common.is_empth  and C.keyname_val_cache_ssl.is_empth )
+       ( C.keyname_val_cache_common.is_empth  and C.keyname_val_cache_ssl.is_empth )
       then return; end if; -- bahiii ! :-)
 
       mi_connect := C.Connection;
-
       if C.keyname_val_cache_Common.is_empth = false then
-	 declare
-	    procedure process_common(position: cursor)
-	    is
-	       mi_b : MySQL_Enum_Option := 0;
-	       mi_root_record : root_option_record := element(position);
-	       mi_h_unsigned : Unsigned_integer := mi_root_record.value_u ;
-	       mi_hold : interfaces.c.int := 0;
-	    begin
-	       if mi_root_record.is_valid = false
-		 or then mi_root_record.especie /= common
-		  then
-		     return;
+declare
+
+
+
+begin
+
+end;
+	 for b in apq.mysql.Option_type'range loop
+	    mi_b := toUnsigned(b);
+
+	    if C.keyname_val_cache_common.all(b) /= null
+	      and then C.keyname_val_cache_common.all(b).all.valido
+	    then
+	       mi_t := C.keyname_val_cache_common.all(b).all.type_val;
+	       mi_h_unsigned := C.keyname_val_cache_common.all(b).all.unsigned_part ;
+
+	       case  mi_t  is
+	       when ARG_CHAR_PTR =>
+		  C_String( C.keyname_val_cache_common.all(b).all.string_ptr_part ,
+	     mi_h_char_array_access ,
+	     mi_h_address );
+		  mi_hold := mysql_options_char( mi_connect, mi_b, mi_h_address );
+
+	       when  ARG_NOT_USED =>
+		  mi_hold := mysql_options_notused(mi_connect, mi_b );
+
+	       when ARG_UINT =>
+		  mi_hold := mysql_options_uint(mi_connect, mi_b, mi_h_unsigned);
+
+	       when ARG_PTR_UINT | ARG_PTR_MY_BOOL =>
+		  mi_hold := mysql_options_puint(mi_connect, mi_b, mi_h_unsigned);
+
+	       when others =>
+		  null;
+
+	       end case;
+
+	       if mi_hold /= 0 then
+		  mi_count := mi_count + 1 ;
+		  if mi_count /= 1 then
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &  To_Unbounded_String(", Key ") &
+		       To_Unbounded_String( "'" & string'(trim(string'(Option_type'image(b)), ada.Strings.Both)) & "' value=>" );
+		  else
+		     tmp_ub_dont_know_options := To_Unbounded_String(" Key ") &
+		       To_Unbounded_String( "'" & string'(trim(string'(Option_type'image(b)), ada.Strings.Both)) & "' value=>" );
 		  end if;
-		  mi_b := To_Mysql_Enum_option(mi_root_record.key_common);
-		  case mi_root_record.value_nature is
-		  when nat_ptr_char =>
-		     C_String( strint'(to_string(mi_root_record.value_s)) , mi_h_char_array_access , mi_h_address );
-		     mi_hold := mysql_options_char( mi_connect, mi_b, mi_h_address );
+		  if mi_t /= ARG_CHAR_PTR then
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Unbounded_String( "'" & string'(trim(string'(unsigned_integer'image(mi_h_unsigned)),ada.Strings.Both)) & "'" );
+		  else
+		     tmp_ub_dont_know_options := tmp_ub_dont_know_options &
+		       To_Unbounded_String( "'" & string'(To_Ada(mi_h_char_array_access.all)) & "'" );
+		  end if;
+	       end if;
+	    end if;
+	 end loop;
+      end if;
 
-		  when nat_not_used =>
-		     mi_hold := mysql_options_notused(mi_connect, mi_b );
+      if C.keyname_val_cache_ssl /= null then ---- DNM!! is correct use a rename here ?
+	 declare
+	    --b      : ssl_part_record_array renames C.keyname_val_cache_ssl.all ;
+	    ukey    : unbounded_string := To_Unbounded_String("");
+	    ucert   : unbounded_string := To_Unbounded_String("");
+	    uca     : unbounded_string := To_Unbounded_String("");
+	    ucapath : unbounded_string := To_Unbounded_String("");
+	    ucipher : unbounded_string := To_Unbounded_String("");
+	 begin -- key , cert , ca , capath, cipher
+	    if C.keyname_val_cache_ssl(key).string_ptr_part /= null
+	      and then C.keyname_val_cache_ssl(key).valido
+	    then
+	       ukey := To_Unbounded_String(string'(To_String( C.keyname_val_cache_ssl(key).string_ptr_part)) );
+	    end if;
+	    if C.keyname_val_cache_ssl(cert).string_ptr_part /= null
+	      and then C.keyname_val_cache_ssl(cert).valido
+	    then
+	       ucert := To_Unbounded_String( string'(To_String( C.keyname_val_cache_ssl(cert).string_ptr_part)) );
+	    end if;
+	    if C.keyname_val_cache_ssl(ca).string_ptr_part /= null
+	      and then C.keyname_val_cache_ssl(ca).valido
+	    then
+	       uca := To_Unbounded_String( string'(To_String( C.keyname_val_cache_ssl(ca).string_ptr_part)) );
+	    end if;
+	    if C.keyname_val_cache_ssl(capath).string_ptr_part /= null
+	      and then C.keyname_val_cache_ssl(capath).valido
+	    then
+	       ucapath := To_Unbounded_String( string'(To_String( C.keyname_val_cache_ssl(capath).string_ptr_part)) );
+	    end if;
+	    if C.keyname_val_cache_ssl(cipher).string_ptr_part /= null
+	      and then C.keyname_val_cache_ssl(cipher).valido
+	    then
+	       ucipher:= To_Unbounded_String( string'(To_String( C.keyname_val_cache_ssl(cipher).string_ptr_part)) );
+	    end if;
+	    --- this allways will return 0 :-)
+	    --- will only hit a error in mysql_real_connect() if the values for ssl are wrong :-)
+	    set_ssl(C1    => mi_connect ,
+	     key    => to_string(ukey),
+	     cert   => to_string(ucert),
+	     ca     => to_string(uca),
+	     capath => to_string(ucapath),
+	     cipher => to_string(ucipher) );
+	 end;
+      end if;
 
-		  when nat_uint =>
-		     mi_hold := mysql_options_uint(mi_connect, mi_b, mi_h_unsigned);
-
-		  when nat_ptr_ui =>
-		     mi_hold := mysql_options_puint(mi_connect, mi_b, mi_h_unsigned);
-
-		  when nat_ptr_my_bool =>
-		     if mi_root_record.value_b then
-			mi_h_unsigned := 1;
-		     else
-			mi_h_unsigned := 0;
-		     end if;
-		     mi_hold := mysql_options_puint(mi_connect, mi_b, mi_h_unsigned);
-
-		  when others =>
-		     null;
-		  end case;
-	       end process_common;
-	    begin
-	       C.keyname_val_cache_Common.iterate(process_common'Access);
-	    end;
-	 end if;
-	 if C.keyname_val_cache_ssl.is_empth = false then
-	    declare
-	       ukey    : unbounded_string := To_Unbounded_String("");
-	       ucert   : unbounded_string := To_Unbounded_String("");
-	       uca     : unbounded_string := To_Unbounded_String("");
-	       ucapath : unbounded_string := To_Unbounded_String("");
-	       ucipher : unbounded_string := To_Unbounded_String("");
-	       procedure process_ssl(position: cursor) is
-		  mi_root_record : root_option_record := element(position);
-		  mi_ssl : ssl_enum := mi_root_record.key_ssl;
-		  mi_ustr : ada.Strings.Unbounded.Unbounded_String := mi_root_record.value_s;
-		  --  ( key, cert, ca, capath, cipher , none );
-	       begin
-		  case mi_ssl is
-		  when key => ukey := mi_ustr;
-
-		  when cert => ucert := mi_ustr;
-
-		  when ca => uca := mi_ustr;
-
-		  when capath => ucapath := mi_ustr;
-
-		  when cipher => ucipher := mi_ustr;
-
-		  when others => null;
-		  end case;
-	       end process_ssl;
-	    begin
-	       c.keyname_val_cache_ssl.iterate(process_ssl'Access);
-	       set_ssl(C1    => mi_connect ,
-		key    => to_string(ukey),
-		cert   => to_string(ucert),
-		ca     => to_string(uca),
-		capath => to_string(ucapath),
-		cipher => to_string(ucipher) );
-	    end;
-	 end if;
+      if mi_count > 0 then
+	 Raise_Exception(Failed'Identity ,
+		  "MY03: Unkown option(s) ' " & string'(to_string(tmp_ub_dont_know_options)) & " ' " );
+      end if;
 
    end my_process_options;
 
