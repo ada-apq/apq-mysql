@@ -800,7 +800,7 @@ package body APQ.MySQL.Client is
 	 tmp_ub_know_options : Unbounded_String := To_Unbounded_String(160);
 	 user : unbounded_string := To_Unbounded_String("''" );
 	 pass : unbounded_string := To_Unbounded_String("''" );
-	 dbname : unbounded_string := To_Unbounded_String( "''" );
+	 dbname : unbounded_string := To_Unbounded_String( "'' " );
 	 host_name : unbounded_string := To_Unbounded_String("''" );
 	 host_address : unbounded_string := To_Unbounded_String("''" );
 	 port_name : unbounded_string := To_Unbounded_String("''" );
@@ -814,7 +814,7 @@ package body APQ.MySQL.Client is
 	    pass := To_Unbounded_String("'" & C.User_Password.all & "'" );
 	 end if;
 	 if c.DB_Name /= null then
-	    dbname := To_Unbounded_String("'" & C.DB_Name.all & "'" );
+	    dbname := To_Unbounded_String("'" & C.DB_Name.all & "' " );
 	 end if;
 	 if c.Host_Name /= null then
 	    host_name := To_Unbounded_String("'" & C.Host_Name.all & "'" );
