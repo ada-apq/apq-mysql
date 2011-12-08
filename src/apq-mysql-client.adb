@@ -649,7 +649,7 @@ package body APQ.MySQL.Client is
    procedure clone_clone_my(To : in out Connection_Type; From : Connection_Type )
    is
       pragma optimize(time);
-      use apq.MySQL.Client.option_system.options_list;
+      use apq.MySQL.Client.options_list;
       --
       procedure add_common(position : cursor) is
       begin
@@ -677,7 +677,8 @@ package body APQ.MySQL.Client is
    procedure my_process_options( C : Connection_Type) is
       pragma Optimize(Time);
 
-      use ada.strings.Unbounded; use ada.strings.Fixed;
+      use ada.strings.Unbounded;
+      use ada.strings.Fixed;
       use interfaces.c.Strings, interfaces.c;
 
       use APQ.MySQL.Client.options_list;
@@ -707,15 +708,16 @@ package body APQ.MySQL.Client is
 	       mi_h_unsigned : Unsigned_integer := mi_root_record.value_u ;
 	       mi_hold : interfaces.c.int := 0;
 	    begin
-	       if mi_root_record.is_valid = false
-		 or then mi_root_record.especie /= common
-		  then
-		     return;
-		  end if;
+	       if mi_root_record.is_valid = false or
+		 mi_root_record.especie /= common
+	       then
+		  return;
+	       end if;
+
 		  mi_b := To_Mysql_Enum_option(mi_root_record.key_common);
 		  case mi_root_record.value_nature is
 		  when nat_ptr_char =>
-		     C_String( strint'(to_string(mi_root_record.value_s)) , mi_h_char_array_access , mi_h_address );
+		     C_String( string'(to_string(mi_root_record.value_s)) , mi_h_char_array_access , mi_h_address );
 		     mi_hold := mysql_options_char( mi_connect, mi_b, mi_h_address );
 
 		  when nat_not_used =>
@@ -802,10 +804,7 @@ package body APQ.MySQL.Client is
 	 host_name : unbounded_string := To_Unbounded_String("''" );
 	 host_address : unbounded_string := To_Unbounded_String("''" );
 	 port_name : unbounded_string := To_Unbounded_String("''" );
-	 port_number : unbounded_string := To_Unbounded_String("'" & string'(trim(string'(port_integer'image(C.Port_Number)),ada.Strings.Both)) & "'" );
-
-	 mi_h_unsigned : Unsigned_integer ;
-	 --- mi_t : Argument_Type := ARG_CHAR_PTR;
+	 port_number : unbounded_string := To_Unbounded_String("'" & string'(ada.Strings.Fixed.Trim(string'(port_integer'image(C.Port_Number)),ada.Strings.Both)) & "'" );
 
       begin
 	 if c.User_Name /= null then
@@ -850,14 +849,14 @@ package body APQ.MySQL.Client is
 		  mi_root_record : root_option_record := element(position);
 		  mi_common : string := common_enum'image(mi_root_record.key_common);
 	       begin
-		  if mi_root_record.is_valid = false
-		    or then mi_root_record.especie /= common
-		     then
-			return;
-		     end if;
+	       if mi_root_record.is_valid = false
+		 or mi_root_record.especie /= common
+	       then
+		  return;
+	       end if;
 
 		     tmp_ub_know_options := tmp_ub_know_options &
-		       To_Unbounded_String(string'trim(mi_common,ada.Strings.Both) & "='" );
+		       To_Unbounded_String(string'(ada.Strings.Fixed.Trim(mi_common,ada.Strings.Both)) & "='" );
 
 		     case mi_root_record.value_nature is
 		     when nat_ptr_char =>
@@ -868,11 +867,11 @@ package body APQ.MySQL.Client is
 
 		     when nat_uint | nat_ptr_ui =>
 			tmp_ub_know_options := tmp_ub_know_options &
-			  To_Unbounded_String(string'trim(string'(Unsigned_Integer'Image(mi_root_record.value_u)),ada.Strings.Both));
+			  To_Unbounded_String(string'(ada.Strings.Fixed.Trim(string'(Unsigned_Integer'Image(mi_root_record.value_u)),ada.Strings.Both)));
 
 		     when nat_ptr_my_bool =>
 			tmp_ub_know_options := tmp_ub_know_options &
-			  To_Unbounded_String(string'trim(string'(boolean'Image(mi_root_record.value_b)),ada.Strings.Both));
+			  To_Unbounded_String(string'(ada.Strings.Fixed.Trim(string'(boolean'Image(mi_root_record.value_b)),ada.Strings.Both)));
 
 		     when others =>
 			null;
@@ -891,7 +890,7 @@ package body APQ.MySQL.Client is
 		  procedure process_ssl_coninfo(position : cursor)
 		  is
 		     mi_root_record : root_option_record := element(position);
-		     mi_common : string := trim(string'(ssl_enum'image(mi_root_record.key_ssl)), ada.Strings.Both);
+		     mi_common : string := ada.Strings.Fixed.Trim(string'(ssl_enum'image(mi_root_record.key_ssl)), ada.Strings.Both);
 		  begin
 		     if mi_root_record.is_valid = false or mi_root_record.especie /= ssl then
 			return;
