@@ -37,6 +37,7 @@ with Ada.Characters.Handling;
 with Ada.IO_Exceptions;
 with Interfaces.C.Strings;
 with System;
+with apq;
 
 package body APQ.MySQL.Client is
 
@@ -679,7 +680,7 @@ package body APQ.MySQL.Client is
       use ada.strings.Unbounded; use ada.strings.Fixed;
       use interfaces.c.Strings, interfaces.c;
 
-      use APQ.MySQL.Client.option_system.options_list, APQ.MySQL.Client.option_system;
+      use APQ.MySQL.Client.options_list;
 
       mi_connect :  MYSQL := Null_Connection;
       pragma Volatile(mi_connect);
@@ -789,6 +790,7 @@ package body APQ.MySQL.Client is
       is
 	 pragma Optimize(Time);
 
+	 use APQ.MySQL.Client.options_list;
 	 use ada.strings.Unbounded;
 	 use ada.Strings.Fixed;
 	 use interfaces.c.Strings, interfaces.c;
