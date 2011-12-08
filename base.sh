@@ -236,7 +236,7 @@ local my_atual_dir=$(pwd)
 # Silent Reporting, because apq_mysql_error.log or  don't exist or don't is a regular file or is a link
 if [ ! -f "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/apq_mysql_error.log" ] || [ -L "$my_atual_dir/ok.log" ]; then
 	exit 1
-	echo "oi"
+
 fi
 
 if [ $# -ne 9 ]; then
