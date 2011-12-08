@@ -70,9 +70,30 @@ for Result_Type use (
    type MySQL_Enum_Option is mod 2**32;
 
    function toUnsigned is new ada.Unchecked_Conversion(Source => common_enum , Target => MySQL_Enum_Option  );
-   function To_Mysql_Enum_option return MySQL_Enum_Option renames toUnsigned;
+   function To_Mysql_Enum_option is new ada.Unchecked_Conversion(Source => common_enum , Target => MySQL_Enum_Option  );
+
+   type nature_enum_type is ( nat_ptr_char, nat_ptr_ui, nat_uint,
+			     nat_not_used, nat_ptr_my_bool, none );
+   type root_option_enum is ( common, ssl, none );
+   type ssl_enum is ( key, cert, ca, capath, cipher , none );
+   type root_option_record is private;
 
 private
+
+    type root_option_record is tagged
+      record
+	 especie      : root_option_enum := none;
+	 is_valid     : boolean := false;
+	 value_nature : nature_enum_type := none;
+	 --
+	 key_ssl : ssl_enum := none;
+	 key_common : common_enum := none;
+	 --
+	 value_s : ada.Strings.Unbounded.Unbounded_String := ada.Strings.Unbounded.To_Unbounded_String("");
+	 value_u : Unsigned_Integer := 0 ;
+	 value_b : boolean := false;
+
+      end record;
 
    type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
    for Return_Status'Size use 32;

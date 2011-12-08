@@ -44,9 +44,7 @@ with Ada.Strings.Unbounded;
 with Interfaces.C_Streams;
 with ada.Strings.Fixed;
 with Interfaces.C;
-with apq.MySQL.Client.option_system.options_list;
-
-use apq.MySQL.Client, apq.MySQL.Client.option_system;
+with Ada.Containers.Doubly_Linked_Lists;
 
 package APQ.MySQL.Client is
 
@@ -107,6 +105,35 @@ package APQ.MySQL.Client is
 --  			     kval_nature : option_system.nature_enum_type :=
 --  			       nature_enum_type'(nat_ptr_char);-- dont ignore it ! :-)
 --                               clear : boolean := false);
+   function "="( Left :root_option_record; right : root_option_record) return boolean;
+   package options_list is new Ada.Containers.Doubly_Linked_Lists( root_option_record , "=" );
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : ssl_enum ;
+			     kval : string ;
+			     clear : boolean := false);
+   --
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval : string ;
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval :  Unsigned_Integer ;
+			     kval_nature :  nature_enum_type := nature_enum_type'(nat_uint);
+			     -- nat_uint or nat_ptr_ui
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     clear : boolean := false);
+
+   procedure add_key_nameval( C : in out Connection_Type;
+			     kname : apq.mysql.common_enum;
+			     kval :  boolean ;
+			     clear : boolean := false);
+
 
    procedure clear_all_key_nameval(C : in out Connection_Type );
 
@@ -211,8 +238,8 @@ private
 	 Error_Message : String_Ptr;
 	 -- Error message after failed to connect (only)
 
-	 keyname_val_cache_common   : option_system.options_list.list ;
-	 keyname_val_cache_ssl      : option_system.options_list.list ;
+	 keyname_val_cache_common   : options_list.list ;
+	 keyname_val_cache_ssl      : options_list.list ;
 	-- keyname_val_cache_uptodate : boolean := true; --  now allways uptodate :-)
 
       end record;
