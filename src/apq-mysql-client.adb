@@ -729,22 +729,14 @@ package body APQ.MySQL.Client is
 		  "MY09: Missing or bad port number for a connect (Connect).");
       end if;
 
-      cache_key_nameval_create(C); -- don't worry :-) "re-create" accours only if not uptodate :-)
-                                   -- This procedure can be executed manually if you desire :-)
-                                   -- "for example": the "Connection_type" var was created  and configured
-                                   -- much before the  connection with the DataBase server :-) take place
-                                   -- then the "Connection_type" already uptodate
-				   -- ( well... uptodate if really uptodate ;-)
-				   -- this will speedy up the things a little :-)
-
-      --
+     --
       -- Must re-establish a C.Connection after a Disconnect/Reset (object reuse)
       --
       if C.Connection = Null_Connection then
 	 C.Connection := mysql_init;      -- Needed after disconnects
       end if;
 
-      my_process_options( C ); -- ToDo: need a exception handler. this suffice for now :-)
+	    my_process_options( C );
 
       C_String(C.Host_Name,C_Host,A_Host);
       C_String(C.DB_Name,C_Dbname,A_Dbname);
