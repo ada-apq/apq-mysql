@@ -429,6 +429,7 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	local at_count_tmp="1"
 	local madeit2=
 	local at_count_tmp="1"
+        local kov_def2=
 
 	local kov_def1=$(
 		echo "version:=\"$my_version\"  "
@@ -439,9 +440,11 @@ local my_apq_mysql_ads=$( echo "$my_apq_mysql_ads_1"; echo "$pragma_linker_oopt"
 	do
 		madeit2="lib_system$at_count_tmp"
 		madeit3="${madeit3:+${madeit3},} \$$madeit2 "
-		local kov_def2=$(
-			echo "${madeit2}:=\"${!madeit2}\""
-		)
+                kov_def2="${kov_def2:+${kov_def2}\n}${madeit2}:=\"${!madeit2}\""
+#		local kov_def2=$(
+#
+#			echo "${madeit2}:=\"${!madeit2}\""
+#		)
 		at_count_tmp=$(( $at_count_tmp + 1 ))
 	done
 
