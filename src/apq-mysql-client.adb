@@ -1136,7 +1136,9 @@ package body APQ.MySQL.Client is
 			Free_Ptr(C.DB_Name);
 			Free_Ptr(C.User_Name);
 			Free_Ptr(C.User_Password);
-			Free_Ptr(C.Error_Message);
+	 Free_Ptr(C.Error_Message);
+	 clear_all_key_nameval(c);
+
 		end if;
 
 	end Internal_Reset;
