@@ -40,69 +40,92 @@ with Interfaces.c.Strings;
 
 package APQ.MySQL is
 
-%mysql_linker_options%
+	%mysql_linker_options%
 
-type Field_Type is (
+
+	----------------
+	-- Field Type --
+	----------------
+
+	type Field_Type is (
 %ENUM_FIELD_TYPE%
-);
-for Field_Type use (
+		);
+	for Field_Type use (
 %USE_FIELD_TYPE%
-);
-for Field_Type'Size use 32;
+		);
+	for Field_Type'Size use 32;
 
-type Result_Type is (
+
+	-----------------
+	-- Result Type --
+	-----------------
+
+	type Result_Type is (
 %ENUM_RESULT_TYPE%
-);
-for Result_Type use (
-%USE_RESULT_TYPE%
-);
-   for Result_Type'Size use 32;
+		);
 
-   -- MySQL Connection Option Argument Types
-   type MySQL_Option_Type is (
+	for Result_Type use (
+%USE_RESULT_TYPE%
+		);
+	for Result_Type'Size use 32;
+
+
+
+	-----------------------------
+	-- MySQL Connection Option --
+	-----------------------------
+	type MySQL_Option_Type is (
 %OPTION_ENUM_MY%
-	);
+		);
+
 	for MySQL_Option_Type use (
 %USE_OPTION_ENUM_MY%
-	);
-   for  MySQL_Option_Type'Size use 32;
+		);
+	for  MySQL_Option_Type'Size use 32;
 
-   type MySQL_Enum_Option is mod 2**32;
+	type MySQL_Enum_Option is mod 2**32;
 
-   function toUnsigned is new ada.Unchecked_Conversion(Source => MySQL_Option_Type , Target => MySQL_Enum_Option  );
-   function To_Mysql_Enum_option is new ada.Unchecked_Conversion(Source => MySQL_Option_Type , Target => MySQL_Enum_Option  );
 
-   type nature_enum_type is ( nat_ptr_char, nat_ptr_ui, nat_uint,
-			     nat_not_used, nat_ptr_my_bool, none );
-   type root_option_enum is ( common, ssl, none );
-   type ssl_enum is ( key, cert, ca, capath, cipher , none );
-   type root_option_record is private;
+	-- FIXME: Several names in here are not how they should be!
+
+	function toUnsigned is new ada.Unchecked_Conversion(Source => MySQL_Option_Type , Target => MySQL_Enum_Option  );
+	function To_Mysql_Enum_option is new ada.Unchecked_Conversion(Source => MySQL_Option_Type , Target => MySQL_Enum_Option  );
+
+	type nature_enum_type is (
+			nat_ptr_char,
+			nat_ptr_ui,
+			nat_uint,
+			nat_not_used,
+			nat_ptr_my_bool,
+			none
+		);
+	type root_option_enum is ( common, ssl, none );
+	type ssl_enum is ( key, cert, ca, capath, cipher , none );
+	type root_option_record is private;
 
 private
 
-    type root_option_record is tagged
-      record
-	 especie      : root_option_enum := none;
-	 is_valid     : boolean := false;
-	 value_nature : nature_enum_type := none;
-	 --
-	 key_ssl : ssl_enum := none;
-	 key_common : MySQL_Option_Type := none;
-	 --
-	 value_s : ada.Strings.Unbounded.Unbounded_String := ada.Strings.Unbounded.To_Unbounded_String("");
-	 value_u : Unsigned_Integer := 0 ;
-	 value_b : boolean := false;
+	type root_option_record is tagged record
+		especie      : root_option_enum := none;
+		is_valid     : boolean := false;
+		value_nature : nature_enum_type := none;
+		--
+		key_ssl : ssl_enum := none;
+		key_common : MySQL_Option_Type := none;
+		--
+		value_s : ada.Strings.Unbounded.Unbounded_String := ada.Strings.Unbounded.To_Unbounded_String("");
+		value_u : Unsigned_Integer := 0 ;
+		value_b : boolean := false;
+	end record;
 
-      end record;
+	type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
+	for Return_Status'Size use 32;
 
-   type Return_Status is range -2 ** 31 .. 2 ** 31 - 1;
-   for Return_Status'Size use 32;
+	type MySQL_Oid_Type is mod 2 ** 64;
+	for MySQL_Oid_Type'Size use 64;
 
-   type MySQL_Oid_Type is mod 2 ** 64;
-   for MySQL_Oid_Type'Size use 64;
-
-   type u_long is mod 2 ** 32;
-   for u_long'size use 32;
+	type u_long is mod 2 ** 32;
+	for u_long'size use 32;
 
 	Null_Row_ID : constant Row_ID_Type := 0;
 
@@ -120,4 +143,3 @@ private
 
 end APQ.MySQL;
 
--- End $Source: /cvsroot/apq/apq/apq-mysql.ads-in,v $
