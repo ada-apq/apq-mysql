@@ -150,7 +150,7 @@ echo_enum_declaration(){
 
 
 _for_declaration(){
-	echo -n "for $2 use $1";
+	echo -n "$2	=> $1";
 }
 echo_for_declaration(){
 	iterate_enum_list "$1" _for_declaration
