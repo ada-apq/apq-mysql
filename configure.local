@@ -74,11 +74,17 @@ then
 	echo "apq-mysql.ads exists";
 else
 	mkdir -p "$TMP_PATH";
+
+
 	echo "Generating src/apq-mysql.ads";
 	source configure-mysql.sh;
+
+
 	echo -n "    * Getting type codes     ... ";
 	field_types=`get_field_type_codes`;
 	test_is_set "${field_types}"
+
+
 	echo -n "    * Getting error codes    ... ";
 	error_codes=`get_error_codes`;
 	test_is_set "${error_codes}";
@@ -91,6 +97,3 @@ set_gnatprep MYSQL_LIBS "$MYSQL_LIBS"
 
 
 set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
-
-enums=$(cat teste)
-lala=$(echo_enum_declaration "$enums")
