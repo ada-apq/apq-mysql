@@ -106,3 +106,31 @@ set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
 
 
 
+
+echo
+echo
+echo "FIELD TYPES"
+echo
+echo
+echo "$field_types"
+echo
+echo
+echo
+echo
+echo
+echo
+
+echo "ERROR CODES"
+echo
+echo
+echo "$error_codes"
+echo
+echo
+echo
+echo
+echo
+echo
+
+
+echo "CONNECTION OPTIONS"
+echo "$connection_options"

@@ -30,7 +30,9 @@ test_is_set(){
 ###################
 
 
+###############
 # Field Types #
+###############
 
 generate_field_type_c_chunk(){
 	HDRFILE="${MYSQL_INCLUDE_PATH}/mysql_com.h"
@@ -52,9 +54,9 @@ get_field_type_codes(){
 
 
 
+###############
 # Error Codes #
-
-
+###############
 
 generate_error_code_c_chunk(){
 	HDR1="${MYSQL_INCLUDE_PATH}/errmsg.h"
@@ -79,13 +81,15 @@ generate_error_code_c_chunk(){
 get_error_codes(){
 	generate_error_code_c_chunk > "$TMP_PATH/mysql_errmsg.h"
 	cp src-in/mysql_generr.c "$TMP_PATH/"
-	$CC "${TMP_PATH}/mysql_generr.c" -o "${TMP_PATH}/mysql_generr" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_generr" | sort -k1,1n
+	$CC "${TMP_PATH}/mysql_generr.c" -o "${TMP_PATH}/mysql_generr" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_generr" |
+		grep -v -e R_MIN_ERROR -e CR_MAX_ERROR -e ER_ERROR_MESSAGES | sort -k1,1n
 }
 
 
 
-
+######################
 # Connection Options #
+######################
 
 generate_conection_options_c_chunk(){
 
