@@ -87,6 +87,8 @@ else
 	source configure-mysql.sh;
 
 
+	# Field Types
+
 	echo -n "    * Getting type codes                    ... ";
 	field_types=`get_field_type_codes`;
 	test_is_set "${field_types}"
@@ -95,15 +97,23 @@ else
 	set_enum_values "$TMP_ADS" "$field_types" "FIELD_TYPE"
 
 
+	# Error/Return codes
+
 	echo -n "    * Getting error codes                   ... ";
 	error_codes=`get_error_codes`;
 	test_is_set "${error_codes}";
+	echo -n "    * Setting error codes                   ... ";
+	set_enum_values "$TMP_ADS" "$error_codes" "RESULT_TYPE"
 
 
+
+	# Connection options codes
 
 	echo -n "    * Getting MySQL connection option codes ... ";
 	connection_options=`get_connection_options`
 	test_is_set "${connection_options}"
+	echo -n "    * Getting MySQL connection option codes ... ";
+	set_enum_values "$TMP_ADS" "$connection_options" "MYSQL_OPTION_TYPE"
 fi
 
 
