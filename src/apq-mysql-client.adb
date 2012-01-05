@@ -500,7 +500,7 @@ package body APQ.MySQL.Client is
    end add_key_nameval;
    --
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     kval : string ;
 			     clear : boolean := false)
    is
@@ -530,7 +530,7 @@ package body APQ.MySQL.Client is
    end add_key_nameval;
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     kval :  Unsigned_Integer ;
 			     kval_nature :  nature_enum_type := nature_enum_type'(nat_uint);
 			     -- nat_uint or nat_ptr_ui
@@ -574,7 +574,7 @@ package body APQ.MySQL.Client is
    end add_key_nameval;
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     clear : boolean := false)
    is
    begin
@@ -603,7 +603,7 @@ package body APQ.MySQL.Client is
    end add_key_nameval;
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     kval :  boolean ;
 			     clear : boolean := false)
    is
@@ -847,7 +847,7 @@ package body APQ.MySQL.Client is
 	       procedure process_common_coninfo(position : cursor)
 	       is
 		  mi_root_record : root_option_record := element(position);
-		  mi_common : string := common_enum'image(mi_root_record.key_common);
+		  mi_common : string := MySQL_Option_Type'image(mi_root_record.key_common);
 	       begin
 	       if mi_root_record.is_valid = false
 		 or mi_root_record.especie /= common

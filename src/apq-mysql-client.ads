@@ -100,7 +100,7 @@ package APQ.MySQL.Client is
 --                               clear : boolean := false);
 --
 --     procedure add_key_nameval( C : in out Connection_Type;
---  			     kname : apq.mysql.common_enum ; -- to reduce typing errors
+--  			     kname : apq.mysql.MySQL_Option_Type ; -- to reduce typing errors
 --  			     kval : string ;
 --  			     kval_nature : option_system.nature_enum_type :=
 --  			       nature_enum_type'(nat_ptr_char);-- dont ignore it ! :-)
@@ -114,23 +114,23 @@ package APQ.MySQL.Client is
 			     clear : boolean := false);
    --
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     kval : string ;
 			     clear : boolean := false);
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     kval :  Unsigned_Integer ;
 			     kval_nature :  nature_enum_type := nature_enum_type'(nat_uint);
 			     -- nat_uint or nat_ptr_ui
 			     clear : boolean := false);
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     clear : boolean := false);
 
    procedure add_key_nameval( C : in out Connection_Type;
-			     kname : apq.mysql.common_enum;
+			     kname : apq.mysql.MySQL_Option_Type;
 			     kval :  boolean ;
 			     clear : boolean := false);
 

@@ -97,3 +97,9 @@ set_gnatprep MYSQL_LIBS "$MYSQL_LIBS"
 
 
 set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
+
+
+
+
+
+get_common_enum

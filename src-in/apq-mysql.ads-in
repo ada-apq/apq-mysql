@@ -59,18 +59,18 @@ for Result_Type use (
    for Result_Type'Size use 32;
 
    -- MySQL Connection Option Argument Types
-   type common_enum is (
+   type MySQL_Option_Type is (
 %OPTION_ENUM_MY%
 	);
-	for common_enum use (
+	for MySQL_Option_Type use (
 %USE_OPTION_ENUM_MY%
 	);
-   for  common_enum'Size use 32;
+   for  MySQL_Option_Type'Size use 32;
 
    type MySQL_Enum_Option is mod 2**32;
 
-   function toUnsigned is new ada.Unchecked_Conversion(Source => common_enum , Target => MySQL_Enum_Option  );
-   function To_Mysql_Enum_option is new ada.Unchecked_Conversion(Source => common_enum , Target => MySQL_Enum_Option  );
+   function toUnsigned is new ada.Unchecked_Conversion(Source => MySQL_Option_Type , Target => MySQL_Enum_Option  );
+   function To_Mysql_Enum_option is new ada.Unchecked_Conversion(Source => MySQL_Option_Type , Target => MySQL_Enum_Option  );
 
    type nature_enum_type is ( nat_ptr_char, nat_ptr_ui, nat_uint,
 			     nat_not_used, nat_ptr_my_bool, none );
@@ -87,7 +87,7 @@ private
 	 value_nature : nature_enum_type := none;
 	 --
 	 key_ssl : ssl_enum := none;
-	 key_common : common_enum := none;
+	 key_common : MySQL_Option_Type := none;
 	 --
 	 value_s : ada.Strings.Unbounded.Unbounded_String := ada.Strings.Unbounded.To_Unbounded_String("");
 	 value_u : Unsigned_Integer := 0 ;
