@@ -133,3 +133,4 @@ replace_in_file "$GPR" "%MYSQL_LIBS%" "$list"
 
 
 
+set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
