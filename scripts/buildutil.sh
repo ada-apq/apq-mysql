@@ -27,7 +27,7 @@ check_in_path(){
 check_project(){
 	proj=$1;
 	echo -n "Looking for project $proj ...	"
-	${GPRBUILD} -P$proj 2>&- || { echo "[false]"; echo "${GPRBUILD} can't find $proj in ADA_PROJECT_PATH"; exit -1;} && echo "[ok]";
+	${GPRBUILD} -ws -P$proj 2>&- || { echo "[false]"; echo "${GPRBUILD} can't find $proj in ADA_PROJECT_PATH"; exit -1;} && echo "[ok]";
 }
 
 
