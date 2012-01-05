@@ -77,13 +77,8 @@ else
 	echo "Generating src/apq-mysql.ads";
 	source configure-mysql.sh;
 	echo -n "    * Getting type codes     ... ";
-	#field_types=`get_field_type_codes`;
-	#test_is_set "${field_types}"
-	echo
-	echo
-	get_field_type_codes
-	echo
-	echo
+	field_types=`get_field_type_codes`;
+	test_is_set "${field_types}"
 	echo -n "    * Getting error codes    ... ";
 	error_codes=`get_error_codes`;
 	test_is_set "${error_codes}";
