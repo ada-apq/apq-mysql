@@ -31,17 +31,22 @@ test_is_set(){
 
 
 
-generate_filed_type_c_chunk(){
-	$MYSQL_PATH;
+generate_field_type_c_chunk(){
 	HDRFILE="${MYSQL_INCLUDE_PATH}/mysql_com.h"
-	sed < "$HDRFILE" -n '/enum_field_types/,/};/p' | sed 's|enum||;s|enum_field_types||;s|[{};]||g;s|,||g;s|[ 	]*||g' | sed '/^$/d;s|=[0-9]*||g' | while read NAME ; do
+	sed <"$HDRFILE" -n '/enum_field_types/,/};/p' | sed 's|enum||;s|enum_field_types||;s|[{};]||g;s|,|\
+|g;s|[ 	]*||g' | sed '/^$/d;s|=[0-9]*||g' \
+        | while read NAME ; do
                 echo "  { \"$NAME\", $NAME },"
         done
         echo "  { 0, 0 }"
 }
 
+
 # Print into the standart output the list of MySQL codes for data types
 get_field_type_codes(){
+	generate_field_type_c_chunk > "$TMP_PATH/mysql_type_codes.h"
+	cp src-in/mysql_gentyp.c "$TMP_PATH/"
+	$CC "${TMP_PATH}/mysql_gentyp.c" -o "${TMP_PATH}/mysql_gentyp" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_gentyp"
 }
 
 

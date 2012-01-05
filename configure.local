@@ -64,19 +64,24 @@ fi
 # apq-mysql.ads Generation #
 ############################
 
+if [[ "$TMP_PATH" = "" ]]
+then
+	TMP_PATH=removemeplease
+fi
 
 if [[ -f src/apq-mysql.ads ]]
 then
 	echo "apq-mysql.ads exists";
 else
+	mkdir -p "$TMP_PATH";
 	echo "Generating src/apq-mysql.ads";
 	source configure-mysql.sh;
 	echo -n "    * Getting type codes     ... ";
-	field_types=`get_field_type_codes`;
-	test_is_set "${field_types}"
+	#field_types=`get_field_type_codes`;
+	#test_is_set "${field_types}"
 	echo
 	echo
-	echo "$field_types"
+	get_field_type_codes
 	echo
 	echo
 	echo -n "    * Getting error codes    ... ";
