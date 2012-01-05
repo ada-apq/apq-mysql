@@ -121,6 +121,7 @@ else
 fi
 
 
+mkdir -p gnat
 GPR="gnat/apq-mysql.gpr.in";
 cp "src-in/apq-mysql.gpr.in" $GPR
 
