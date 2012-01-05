@@ -214,6 +214,25 @@ set_gnatprep(){
 }
 
 
+
+# transform a list of parameters in a format both sed and gprbuild will understand...
+sedfy_gpr_list(){
+	is_first=1
+	for i in $1
+	do
+		if [[ $is_first -eq 1 ]]
+		then
+			is_first=0;
+		else
+			echo -n ","
+		fi
+		option=`echo $i | sed 's/\//\\\&/g'`
+		echo -n \\\"$option\\\"
+	done 
+}
+
+
+
 ############
 # Building #
 ############

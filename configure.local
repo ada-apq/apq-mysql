@@ -121,10 +121,13 @@ else
 fi
 
 
+GPR="gnat/apq-mysql.gpr.in";
+cp "src-in/apq-mysql.gpr.in" $GPR
 
-set_gnatprep MYSQL_CFLAGS "$MYSQL_CFLAGS"
-set_gnatprep MYSQL_LIBS "$MYSQL_LIBS"
+list=`sedfy_gpr_list "$MYSQL_CFLAGS"` 
+replace_in_file "$GPR" "%MYSQL_CFLAGS%" "$list"
+#set_gnatprep_list MYSQL_CFLAGS "$MYSQL_CFLAGS"
+#set_gnatprep_list MYSQL_LIBS "$MYSQL_LIBS"
 
 
 set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
-
