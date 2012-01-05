@@ -92,7 +92,8 @@ else
 
 
 	echo -n "    * Getting MySQL connection option codes ... ";
-	get_connection_options
+	connection_options=`get_connection_options`
+	test_is_set "${connection_options}"
 fi
 
 

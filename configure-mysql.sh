@@ -47,7 +47,7 @@ generate_field_type_c_chunk(){
 get_field_type_codes(){
 	generate_field_type_c_chunk > "$TMP_PATH/mysql_type_codes.h"
 	cp src-in/mysql_gentyp.c "$TMP_PATH/"
-	$CC "${TMP_PATH}/mysql_gentyp.c" -o "${TMP_PATH}/mysql_gentyp" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_gentyp"
+	$CC "${TMP_PATH}/mysql_gentyp.c" -o "${TMP_PATH}/mysql_gentyp" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_gentyp" |  sort -k1,1n
 }
 
 
@@ -79,7 +79,7 @@ generate_error_code_c_chunk(){
 get_error_codes(){
 	generate_error_code_c_chunk > "$TMP_PATH/mysql_errmsg.h"
 	cp src-in/mysql_generr.c "$TMP_PATH/"
-	$CC "${TMP_PATH}/mysql_generr.c" -o "${TMP_PATH}/mysql_generr" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_generr"
+	$CC "${TMP_PATH}/mysql_generr.c" -o "${TMP_PATH}/mysql_generr" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_generr" | sort -k1,1n
 }
 
 
@@ -100,6 +100,6 @@ sed 's/,//g' | grep -v "}" | grep -v "{" | grep -v "enum mysql_option"`
 get_connection_options(){
 	generate_conection_options_c_chunk > "$TMP_PATH/mysql_option_codes.h"
 	cp src-in/mysql_genop.c "$TMP_PATH/"
-	$CC "${TMP_PATH}/mysql_genop.c" -o "${TMP_PATH}/mysql_genop" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_genop"
+	$CC "${TMP_PATH}/mysql_genop.c" -o "${TMP_PATH}/mysql_genop" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_genop" |  sort -k1,1n
 }
 
