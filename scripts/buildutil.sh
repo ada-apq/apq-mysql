@@ -158,6 +158,47 @@ echo_for_declaration(){
 
 
 
+# Will set a enum value using the same list as the one used in iterate_enum_list
+# in the given file (edit the given file).
+# usage:
+# 	set_enum_values FILE LIST_OF_VALUES PREFIX
+#
+# This will replace:
+#	%${PREFIX}_DECLARATION% with the result of echo_enum_declaration
+#	%${PREFIX}_FOR% with the result of echo_for_declaration
+#
+set_enum_values(){
+	outfile="$1"
+	values="$2"
+	prefix="$3"
+
+
+	declaration_values=`echo_enum_declaration "$values"`
+	for_values=`echo_for_declaration "$values"`
+
+
+	replace_in_file "$outfile" "%${prefix}_DECLARATION%" "$declaration_values"
+	replace_in_file "$outfile" "%${prefix}_FOR%" "$for_values"
+
+
+	echo "[ok]"
+}
+
+
+
+
+# Simple str_replace in a file
+# usage
+#	replace_in_file FILENAME FROM TO
+replace_in_file(){
+	filename="$1"
+	from="$2"
+	to=$(echo "$3" | sed -e 's/$/\\&/')
+	sed -i -e "s/$from/$to /" "$filename"
+}
+
+
+
 
 ################################
 # Gnatprep def file management #

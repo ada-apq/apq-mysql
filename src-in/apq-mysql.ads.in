@@ -48,10 +48,10 @@ package APQ.MySQL is
 	----------------
 
 	type Field_Type is (
-%ENUM_FIELD_TYPE%
+%FIELD_TYPE_DECLARATION%
 		);
 	for Field_Type use (
-%USE_FIELD_TYPE%
+%FIELD_TYPE_FOR%
 		);
 	for Field_Type'Size use 32;
 
@@ -61,11 +61,11 @@ package APQ.MySQL is
 	-----------------
 
 	type Result_Type is (
-%ENUM_RESULT_TYPE%
+%RESULT_TYPE_DECLARATION%
 		);
 
 	for Result_Type use (
-%USE_RESULT_TYPE%
+%RESULT_TYPE_FOR%
 		);
 	for Result_Type'Size use 32;
 
@@ -75,12 +75,13 @@ package APQ.MySQL is
 	-- MySQL Connection Option --
 	-----------------------------
 	type MySQL_Option_Type is (
-%OPTION_ENUM_MY%
+%MYSQL_OPTION_TYPE_DECLARATION%
 		);
 
 	for MySQL_Option_Type use (
-%USE_OPTION_ENUM_MY%
+%MYSQL_OPTION_TYPE_FOR%
 		);
+
 	for  MySQL_Option_Type'Size use 32;
 
 	type MySQL_Enum_Option is mod 2**32;
