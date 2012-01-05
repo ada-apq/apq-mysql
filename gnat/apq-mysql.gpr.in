@@ -64,7 +64,7 @@ project APQ.MySQL is
 	----------------------
 	package Compiler is
 		for Default_Switches ( "Ada" ) use ( "-O2", "-gnat05", "-fPIC" ); 
-		for Default_Switches ( "C" ) use ( $MYSQL_CFLAGS, "-O2", "-gnat05", "-fPIC" ); 
+		for Default_Switches ( "C" ) use ( $MYSQL_CFLAGS, "-O2", "-fPIC" ); 
 		case Debug is
 			when "true" =>
 				for Default_Switches ("ada") use Compiler'Default_Switches("Ada") & ( "-g" );

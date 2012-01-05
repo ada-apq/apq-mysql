@@ -99,6 +99,7 @@ sed 's/,//g' | grep -v "}" | grep -v "{" | grep -v "enum mysql_option"`
 	do
                 echo "  { \"$NAME\", $NAME },"
 	done
+                echo "  { \"none\", 3105 }" # a huge number, also my birthdat in the Br syntax TODO :: verify if the NONE value is really necessary
 }
 
 get_connection_options(){

@@ -114,6 +114,10 @@ else
 	test_is_set "${connection_options}"
 	echo -n "    * Getting MySQL connection option codes ... ";
 	set_enum_values "$TMP_ADS" "$connection_options" "MYSQL_OPTION_TYPE"
+
+
+
+	mv "$TMP_ADS" src/ && echo "    => APQ.MySQL specification file seems to be ready now..." 
 fi
 
 

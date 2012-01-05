@@ -40,7 +40,8 @@ with Interfaces.c.Strings;
 
 package APQ.MySQL is
 
-	%mysql_linker_options%
+	-- %mysql_linker_options%
+	-- NOTE :: since 3.2 the linker options are in the gpr file
 
 
 	----------------
@@ -140,7 +141,7 @@ private
 	Null_Row :        constant MYSQL_ROW := MYSQL_ROW(System.Null_Address);
 	Null_Field :      constant MYSQL_FIELD := MYSQL_FIELD(System.Null_Address);
 
-	type MYSQL_ROW_NO is mod 2 ** %MYSQL_ROW_NO%;
+	type MYSQL_ROW_NO is mod 2 ** 64; -- find out if it's necessary to query this information from the installed mysql
 
 end APQ.MySQL;
 
