@@ -80,14 +80,19 @@ else
 	source configure-mysql.sh;
 
 
-	echo -n "    * Getting type codes     ... ";
+	echo -n "    * Getting type codes                    ... ";
 	field_types=`get_field_type_codes`;
 	test_is_set "${field_types}"
 
 
-	echo -n "    * Getting error codes    ... ";
+	echo -n "    * Getting error codes                   ... ";
 	error_codes=`get_error_codes`;
 	test_is_set "${error_codes}";
+
+
+
+	echo -n "    * Getting MySQL connection option codes ... ";
+	get_connection_options
 fi
 
 
@@ -100,6 +105,3 @@ set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
 
 
 
-
-
-get_common_enum

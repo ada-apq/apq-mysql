@@ -85,12 +85,21 @@ get_error_codes(){
 
 
 
-get_common_enum(){
+# Connection Options #
+
+generate_conection_options_c_chunk(){
+
 	HDRFILE="${MYSQL_INCLUDE_PATH}/mysql.h"
 	for NAME in `sed -n  '/^[[:blank:]]*enum[[:blank:]]*mysql_option\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/\};/p' $HDRFILE |
 sed 's/,//g' | grep -v "}" | grep -v "{" | grep -v "enum mysql_option"`
 	do
                 echo "  { \"$NAME\", $NAME },"
 	done
+}
+
+get_connection_options(){
+	generate_conection_options_c_chunk > "$TMP_PATH/mysql_option_codes.h"
+	cp src-in/mysql_genop.c "$TMP_PATH/"
+	$CC "${TMP_PATH}/mysql_genop.c" -o "${TMP_PATH}/mysql_genop" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_genop"
 }
 
