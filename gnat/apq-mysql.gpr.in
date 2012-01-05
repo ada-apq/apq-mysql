@@ -38,6 +38,7 @@ project APQ.MySQL is
 	----------------
 
 	for Library_Name use $project;
+	for Languages use ( "Ada", "C" );
 	for Source_Dirs use ( "../../src/" & Project'Library_Name & "/" );
 	for Library_kind use external( "LIBRARY_KIND", "static" );
 
@@ -62,11 +63,12 @@ project APQ.MySQL is
 	-- Compiler Package --
 	----------------------
 	package Compiler is
+		for Default_Switches ( "Ada" ) use ( "-O2", "-gnat05", "-fPIC" ); 
+		for Default_Switches ( "C" ) use ( $MYSQL_CFLAGS, "-O2", "-gnat05", "-fPIC" ); 
 		case Debug is
 			when "true" =>
-				for Default_Switches ("ada") use ("-O2", "-gnat05", "-fPIC", "-g");
+				for Default_Switches ("ada") use Compiler'Default_Switches("Ada") & ( "-g" );
 			when "false" =>
-				for Default_Switches ("ada") use ("-O2", "-gnat05", "-fPIC" );
 		end case;
 	end Compiler;
 

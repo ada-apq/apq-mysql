@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# 
+# Local configuration file for APQ.MySQL
+
+
+
+
+################
+# Project Name #
+################
+
+project="apq-mysql"
+
+
+
+
+if [[ "$CC" = "" ]]
+then
+	CC=gcc;
+fi
+
+###################
+# Standard Checks #
+###################
+check_project apq
+check_in_path mysql
+check_in_path mysql_config
+
+
+
+######################################
+# Used to query MySQL variable codes #
+######################################
+echo "The next check use the environment variable CC (default set to gcc). Change it to you C compiler."
+check_in_path $CC;
+
+
+
+###################################
+# MySQL Compiler and Linker Flags #
+###################################
+
+
+if [[ "$OS" = "Windows_NT" ]]
+then
+	if [[ "${MYSQL_PATH}" = "" ]]
+	then
+		echo "Please set the MYSQL_PATH environment variable pointing to your MySQL installment";
+		exit -1;
+	fi
+	MYSQL_CFLAGS=-I "${MYSQL_PATH}\include" -I./ -D_WINDOWS -D__LCC__
+	MYSQL_LIBS=-L${MYSQL_PATH} -lmysqlclient 
+	MYSQL_INCLUDE_PATH="${MYSQL_PATH}\include"
+else
+	MYSQL_CFLAGS=`mysql_config --cflags` 
+	MYSQL_LIBS=`mysql_config --libs`
+	MYSQL_PATH=`dirname \`dirname \\\`which mysql\\\`\``
+	MYSQL_INCLUDE_PATH="${MYSQL_PATH}/include/mysql"
+fi
+
+
+
+############################
+# apq-mysql.ads Generation #
+############################
+
+
+if [[ -f src/apq-mysql.ads ]]
+then
+	echo "apq-mysql.ads exists";
+else
+	echo "Generating src/apq-mysql.ads";
+	source configure-mysql.sh;
+	echo -n "    * Getting type codes     ... ";
+	field_types=`get_field_type_codes`;
+	test_is_set "${field_types}"
+	echo
+	echo
+	echo "$field_types"
+	echo
+	echo
+	echo -n "    * Getting error codes    ... ";
+	error_codes=`get_error_codes`;
+	test_is_set "${error_codes}";
+fi
+
+
+
+set_gnatprep MYSQL_CFLAGS "$MYSQL_CFLAGS"
+set_gnatprep MYSQL_LIBS "$MYSQL_LIBS"
+
+
+set_configuration APQMYSQL_EXTERNALLY_BUILT "false"
+
+enums=$(cat teste)
+lala=$(echo_enum_declaration "$enums")
