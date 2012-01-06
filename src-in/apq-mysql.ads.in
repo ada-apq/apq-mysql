@@ -44,6 +44,9 @@ package APQ.MySQL is
 	-- NOTE :: since 3.2 the linker options are in the gpr file
 
 
+
+%MYSQL_LIBS%
+
 	----------------
 	-- Field Type --
 	----------------

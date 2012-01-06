@@ -87,6 +87,7 @@ get_error_codes(){
 
 
 
+
 ######################
 # Connection Options #
 ######################
@@ -107,4 +108,18 @@ get_connection_options(){
 	cp src-in/mysql_genop.c "$TMP_PATH/"
 	$CC "${TMP_PATH}/mysql_genop.c" -o "${TMP_PATH}/mysql_genop" $MYSQL_CFLAGS $MYSQL_LIBS -I"${TMP_PATH}" && ./"$TMP_PATH/mysql_genop" |  sort -k1,1n
 }
+
+
+############################
+# The MySQL Linker Options #
+############################
+
+# Print each linker option pragma...
+get_linker_options(){
+	for i in $MYSQL_LIBS
+	do
+		echo "	pragma Linker_Options( \"$i\" );";
+	done;
+}
+
 

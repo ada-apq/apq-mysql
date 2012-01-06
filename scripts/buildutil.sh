@@ -193,7 +193,7 @@ set_enum_values(){
 replace_in_file(){
 	filename="$1"
 	from="$2"
-	to=$(echo "$3" | sed -e 's/$/\\&/')
+	to=$(echo "$3" | sed -e 's/$/\\&/' | sed -e 's/\//\\&/g' );
 	sed -i -e "s/$from/$to /" "$filename"
 }
 
@@ -216,9 +216,10 @@ set_gnatprep(){
 
 
 # transform a list of parameters in a format both sed and gprbuild will understand...
+# the output of this function is meant to be used by replace_in_file, which processes / and new lines
 sedfy_gpr_list(){
 	is_first=1
-	for i in $1
+	for option in $1
 	do
 		if [[ $is_first -eq 1 ]]
 		then
@@ -226,7 +227,7 @@ sedfy_gpr_list(){
 		else
 			echo -n ","
 		fi
-		option=`echo $i | sed 's/\//\\\&/g'`
+		#option=`echo $i | sed 's/\//\\\&/g'`
 		echo -n \\\"$option\\\"
 	done 
 }

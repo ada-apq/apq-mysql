@@ -74,9 +74,5 @@ project APQ.MySQL is
 
 
 
-	package Linker is
-		for Default_Switches( "Ada" ) use ( %MYSQL_LIBS% );
-	end Linker;
-
 end APQ.MySQL;
 

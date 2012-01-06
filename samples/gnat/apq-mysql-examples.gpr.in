@@ -13,7 +13,7 @@ with "apq-samples";
 
 
 
-project APQ.MySQL.Samples is
+project APQ.MySQL.Examples is
 
 	-----------------------
 	-- Type declarations --
@@ -41,7 +41,7 @@ project APQ.MySQL.Samples is
 
 	for Languages use ( "Ada" );
 	for Main use ( "add_user", "list_users" );
-	for Source_Dirs use ( "../../src/" & Project'Library_Name & "/" );
+	for Source_Dirs use ( "../../src/" & $project );
 	for Library_kind use external( "LIBRARY_KIND", "static" );
 
 
@@ -67,5 +67,10 @@ project APQ.MySQL.Samples is
 		end case;
 	end Compiler;
 
-end APQ.MySQL.Samples;
+
+
+	package Linker is
+		for Default_Switches( "Ada" ) use ( "-Wl,-O1,--as-needed","-rdynamic","-L/usr/lib64/mysql","-lmysqlclient","-L/usr//lib","-lz","-lcrypt","-lnsl","-lm","-L/usr/lib/","-lssl","-lcrypto"  );
+	end Linker;
+end APQ.MySQL.Examples;
 

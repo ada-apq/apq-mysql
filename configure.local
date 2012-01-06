@@ -116,6 +116,11 @@ else
 	set_enum_values "$TMP_ADS" "$connection_options" "MYSQL_OPTION_TYPE"
 
 
+	linker_options=`get_linker_options`
+	echo "$linker_options"
+	replace_in_file "$TMP_ADS" "%MYSQL_LIBS%" "$linker_options"
+
+
 
 	mv "$TMP_ADS" src/ && echo "    => APQ.MySQL specification file seems to be ready now..." 
 fi
@@ -127,9 +132,6 @@ cp "src-in/apq-mysql.gpr.in" $GPR
 
 list=`sedfy_gpr_list "$MYSQL_CFLAGS"` 
 replace_in_file "$GPR" "%MYSQL_CFLAGS%" "$list"
-
-list=`sedfy_gpr_list "${MYSQL_LIBS}"`
-replace_in_file "$GPR" "%MYSQL_LIBS%" "$list"
 
 
 
