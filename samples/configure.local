@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# 
+# Local configuration file for APQ.MySQL
+
+
+
+
+################
+# Project Name #
+################
+
+project="apq-mysql-samples"
+
+
+
+
+###################
+# Standard Checks #
+###################
+check_project apq
+check_project apq-mysql
+check_project apq-samples
+
+
+
+
