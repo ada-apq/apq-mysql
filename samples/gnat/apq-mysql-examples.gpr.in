@@ -68,9 +68,5 @@ project APQ.MySQL.Examples is
 	end Compiler;
 
 
-
-	package Linker is
-		for Default_Switches( "Ada" ) use ( "-Wl,-O1,--as-needed","-rdynamic","-L/usr/lib64/mysql","-lmysqlclient","-L/usr//lib","-lz","-lcrypt","-lnsl","-lm","-L/usr/lib/","-lssl","-lcrypto"  );
-	end Linker;
 end APQ.MySQL.Examples;
 
