@@ -168,9 +168,9 @@ echo_for_declaration(){
 #	%${PREFIX}_FOR% with the result of echo_for_declaration
 #
 set_enum_values(){
-	outfile="$1"
-	values="$2"
-	prefix="$3"
+	local outfile="$1"
+	local values="$2"
+	local prefix="$3"
 
 
 	declaration_values=`echo_enum_declaration "$values"`
