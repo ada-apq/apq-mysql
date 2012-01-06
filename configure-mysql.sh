@@ -95,12 +95,12 @@ get_error_codes(){
 generate_conection_options_c_chunk(){
 
 	HDRFILE="${MYSQL_INCLUDE_PATH}/mysql.h"
-	for NAME in `sed -n  '/^[[:blank:]]*enum[[:blank:]]*mysql_option\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*[{]\([[:blank:][:space:]]*$\|[[:blank:][:space:]]*\w*\)\)/,/\};/p' $HDRFILE |
-sed 's/,//g' | grep -v "}" | grep -v "{" | grep -v "enum mysql_option"`
+	for NAME in `sed -n  -e '/mysql_option/,/^};$/p' -e '/};/q' $HDRFILE | sed -e 's/,//g' | grep -v "}" | grep -v "{" | grep -v "enum mysql_option"`
 	do
                 echo "  { \"$NAME\", $NAME },"
 	done
-                echo "  { \"none\", 3105 }" # a huge number, also my birthdat in the Br syntax TODO :: verify if the NONE value is really necessary
+        echo "  { \"none\", 3105 }," # a huge number, also my birthdat in the Br syntax TODO :: verify if the NONE value is really necessary
+	echo "{0,0}" # exit criteria
 }
 
 get_connection_options(){
