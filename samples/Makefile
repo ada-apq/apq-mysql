@@ -16,4 +16,3 @@ uninstall:
 	./scripts/uninstall.sh
 clean:
 	./scripts/clean.sh
-	@rm src/apq-mysql.ads
