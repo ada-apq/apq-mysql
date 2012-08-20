@@ -60,7 +60,7 @@ else
 	MYSQL_LIBS=`mysql_config --libs`
 	MYSQL_PATH=`dirname \`dirname \\\`which mysql\\\`\``
 	
-	if [[ -d "${MYSQL_PATH}/include/mysql/mysql_com.h" ]]
+	if [[ -f "${MYSQL_PATH}/include/mysql/mysql_com.h" ]]
 	then
 		MYSQL_INCLUDE_PATH="${MYSQL_PATH}/include/mysql/"
 	else
