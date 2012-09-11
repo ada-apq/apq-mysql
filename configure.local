@@ -67,6 +67,14 @@ else
 		MYSQL_INCLUDE_PATH="${MYSQL_PATH}/include/"
 	fi;
 
+	if [[ "$OSTYPE" = "darwin10.0" ]]
+	then
+		# macos x fix
+		# remove the MacOS's gcc specific -arch option
+		# TODO :: remove from hardcoded in favour of using sed
+		MYSQL_CFLAGS="-I${MYSQL_INCLUDE_PATH}  -Os -g -fno-common -fno-strict-aliasing"
+	fi
+
 fi
 
 
