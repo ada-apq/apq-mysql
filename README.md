@@ -2,7 +2,7 @@
 
 This is the MySQL impementation for the APQ database bindings.
 
-The [main APQ](https://github.com/ada-apq/apq-mysql) repository
+The [main APQ](https://github.com/ada-apq/apq) repository
 contains more useful documentation, but as a simple example:
 
 
